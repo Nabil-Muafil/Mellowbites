@@ -31,7 +31,7 @@ if (typeof tailwind !== 'undefined') {
 }
 
 // 2. Data 8 Varian Rasa Es Gabin
-const PRODUCTS = [
+let PRODUCTS = [
   {
     id: 'gabin-double-choco',
     name: 'Double Choco',
@@ -125,7 +125,7 @@ const PRODUCTS = [
   },
   {
     id: 'gabin-keju-creamy',
-    name: 'Keju Susu Spesial',
+    name: 'Taro',
     category: 'special',
     isBestSeller: false,
     price: 8000,
@@ -141,6 +141,9 @@ const PRODUCTS = [
 // 3. State & Storage Constants
 const STORAGE_CART_KEY = 'mellowbites_es_gabin_cart_v1';
 const STORAGE_NAME_KEY = 'mellowbites_customer_name';
+const STORAGE_ADDRESS_KEY = 'mellowbites_customer_address';
+const STORAGE_ORDER_HISTORY_KEY = 'mellowbites_order_history_v1';
+let isStoreManuallyOpen = true;
 
 let cart = {};
 let currentCategory = 'all';
@@ -148,6 +151,7 @@ let searchQuery = '';
 let selectedOrderMethod = 'pickup'; // 'pickup' | 'delivery'
 let selectedPaymentMethod = 'qris'; // 'qris' | 'tunai'
 let currentOrder = null;
+let hasConfirmedWhatsApp = false;
 
 // 4. LocalStorage Helpers
 function saveCartToStorage() {
@@ -174,9 +178,64 @@ function loadCartFromStorage() {
     if (savedName && nameInput) {
       nameInput.value = savedName;
     }
+
+    // Restore alamat pengiriman / lokasi antar jika pernah diisi sebelumnya
+    const savedAddress = localStorage.getItem(STORAGE_ADDRESS_KEY);
+    const addressInput = document.getElementById('deliveryAddress');
+    if (savedAddress && addressInput) {
+      addressInput.value = savedAddress;
+    }
   } catch (err) {
     console.warn('Gagal membaca dari localStorage:', err);
     cart = {};
+  }
+}
+
+// 4b. LocalStorage Helper: Riwayat Pesanan Customer
+function getCustomerOrderHistory() {
+  try {
+    const raw = localStorage.getItem(STORAGE_ORDER_HISTORY_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.warn('Gagal membaca riwayat pesanan:', err);
+    return [];
+  }
+}
+
+function saveCustomerOrderHistory(order) {
+  if (!order || !order.orderNumber) return;
+  try {
+    let history = getCustomerOrderHistory();
+    // Hindari duplikasi jika orderNumber sudah ada
+    history = history.filter(o => o.orderNumber !== order.orderNumber);
+    // Masukkan pesanan terbaru di urutan pertama
+    const cleanOrder = {
+      ...order,
+      timestamp: order.timestamp instanceof Date ? order.timestamp.toISOString() : (order.timestamp || new Date().toISOString())
+    };
+    history.unshift(cleanOrder);
+    // Batasi riwayat maksimal 30 pesanan
+    if (history.length > 30) history = history.slice(0, 30);
+    localStorage.setItem(STORAGE_ORDER_HISTORY_KEY, JSON.stringify(history));
+    updateHistoryBadge();
+  } catch (err) {
+    console.warn('Gagal menyimpan riwayat pesanan:', err);
+  }
+}
+
+function updateHistoryBadge() {
+  const badge = document.getElementById('historyBadge');
+  if (!badge) return;
+  const history = getCustomerOrderHistory();
+  if (history.length > 0) {
+    badge.textContent = history.length > 9 ? '9+' : history.length;
+    badge.classList.remove('hidden');
+    badge.classList.add('flex');
+  } else {
+    badge.classList.add('hidden');
+    badge.classList.remove('flex');
   }
 }
 
@@ -212,6 +271,7 @@ function initProductGrid() {
   if (!grid) return;
 
   grid.innerHTML = PRODUCTS.map(product => {
+    const isAvail = product.isAvailable !== false;
     const searchTokens = `${product.name} ${product.desc} ${product.tag}`.toLowerCase();
 
     return `
@@ -221,7 +281,7 @@ function initProductGrid() {
         data-category="${product.category}"
         data-bestseller="${product.isBestSeller}"
         data-search="${searchTokens}"
-        class="product-card group relative bg-white rounded-2xl p-3 border transition-all duration-200 flex flex-col justify-between border-stone-200 hover:border-stone-300 shadow-sm"
+        class="product-card group relative bg-white rounded-2xl p-3 border transition-all duration-200 flex flex-col justify-between border-stone-200 hover:border-stone-300 shadow-sm ${!isAvail ? 'opacity-75' : ''}"
       >
         <div>
           <!-- Wadah Gambar Foto & Ilustrasi Fallback (Hanya di-load 1x seumur sesi) -->
@@ -235,9 +295,17 @@ function initProductGrid() {
               src="${product.image}" 
               alt="${product.name}" 
               loading="lazy"
-              class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${!isAvail ? 'grayscale-[60%]' : ''}"
               onerror="this.remove()"
             />
+
+            ${!isAvail ? `
+              <div class="absolute inset-0 bg-stone-900/40 backdrop-blur-[1px] flex items-center justify-center z-20">
+                <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black bg-rose-600 text-white shadow-md uppercase tracking-wider">
+                  Habis
+                </span>
+              </div>
+            ` : ''}
 
             <div class="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
 
@@ -278,6 +346,31 @@ function initProductGrid() {
 function updateProductCardState(productId) {
   const card = document.getElementById(`card-${productId}`);
   if (!card) return;
+
+  const product = PRODUCTS.find(p => p.id === productId);
+  const isAvail = product ? product.isAvailable !== false : true;
+
+  if (!isAvail) {
+    if (cart[productId]) {
+      delete cart[productId];
+      saveCartToStorage();
+    }
+    card.classList.remove('border-brand-500', 'ring-2', 'ring-brand-100', 'shadow-md');
+    card.classList.add('border-stone-200');
+
+    const badgeEl = document.getElementById(`card-badge-${productId}`);
+    if (badgeEl) badgeEl.innerHTML = '';
+
+    const actionEl = document.getElementById(`card-action-${productId}`);
+    if (actionEl) {
+      actionEl.innerHTML = `
+        <span class="px-3 py-1.5 rounded-xl bg-stone-100 text-stone-400 text-xs font-bold select-none cursor-not-allowed">
+          Habis
+        </span>
+      `;
+    }
+    return;
+  }
 
   const qty = cart[productId] || 0;
   const isSelected = qty > 0;
@@ -401,7 +494,7 @@ function getCartSummary() {
   for (const [id, qty] of Object.entries(cart)) {
     if (qty > 0) {
       const product = PRODUCTS.find(p => p.id === id);
-      if (product) {
+      if (product && product.isAvailable !== false) {
         totalItems += qty;
         const subtotal = product.price * qty;
         totalPrice += subtotal;
@@ -473,8 +566,12 @@ function updateUI() {
 
 // 12. Aksi Keranjang
 function addToCart(productId) {
-  cart[productId] = (cart[productId] || 0) + 1;
   const product = PRODUCTS.find(p => p.id === productId);
+  if (product && product.isAvailable === false) {
+    showToast(`Maaf, ${product.name} sedang habis`);
+    return;
+  }
+  cart[productId] = (cart[productId] || 0) + 1;
   showToast(`+1 ${product ? product.name : 'Item'} ditambahkan`);
   
   // Update HANYA kartu yang bersangkutan (Tanpa reload foto)
@@ -486,6 +583,11 @@ function updateQty(productId, delta) {
   const current = cart[productId] || 0;
   const next = current + delta;
   const product = PRODUCTS.find(p => p.id === productId);
+
+  if (delta > 0 && product && product.isAvailable === false) {
+    showToast(`Maaf, ${product.name} sedang habis`);
+    return;
+  }
 
   if (next <= 0) {
     delete cart[productId];
@@ -1000,9 +1102,15 @@ function proceedCreateOrder() {
     timestamp: orderDate
   };
 
-  // Simpan customerName di STORAGE_NAME_KEY agar pembeli tidak perlu mengetik ulang nanti
+  // Simpan ke riwayat pesanan pelanggan di localStorage
+  saveCustomerOrderHistory(currentOrder);
+
+  // Simpan customerName di STORAGE_NAME_KEY & alamat di STORAGE_ADDRESS_KEY agar tidak perlu mengetik ulang
   try {
     localStorage.setItem(STORAGE_NAME_KEY, currentOrder.customerName);
+    if (currentOrder.deliveryAddress) {
+      localStorage.setItem(STORAGE_ADDRESS_KEY, currentOrder.deliveryAddress);
+    }
   } catch (_) {}
 
   // Kosongkan cart dan STORAGE_CART_KEY di localStorage setelah pesanan dibuat
@@ -1017,6 +1125,49 @@ function proceedCreateOrder() {
   // Tutup konfirmasi modal & cart modal
   closeConfirmModal();
   closeCartModal();
+
+  if (sbClient) {
+  sbClient.from('orders').insert([{
+    order_number: currentOrder.orderNumber,
+    customer_name: currentOrder.customerName,
+    order_method: currentOrder.orderMethod,
+    pickup_time: currentOrder.pickupTime,
+    delivery_address: currentOrder.deliveryAddress,
+    payment_method: currentOrder.paymentMethod,
+    items: currentOrder.items,
+    total_items: currentOrder.totalItems,
+    total_price: currentOrder.totalPrice
+  }]).then(({ error }) => {
+    if (error) console.warn('Gagal mencatat pesanan ke rekap admin:', error);
+  });
+
+  // Kirim Notifikasi Email ke Penjual via Web3Forms (Berjalan di background)
+  const daftarMenuEmail = currentOrder.items
+    .map(i => `- ${i.name} (${i.qty} pcs) = ${formatRupiah(i.subtotal)}`)
+    .join('\n');
+
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      access_key: '00db6347-97f9-41eb-9077-820ec9bd01f3',
+      subject: `🔔 Pesanan Baru Mellowbites: ${currentOrder.orderNumber} (${currentOrder.customerName})`,
+      from_name: 'Mellowbites',
+      No_Order: currentOrder.orderNumber,
+      Nama_Pemesan: currentOrder.customerName,
+      Metode_Pesanan: currentOrder.orderMethod === 'pickup' 
+        ? `Ambil Sendiri (Jam ${currentOrder.pickupTime} WIB)` 
+        : `Diantar / COD (${currentOrder.deliveryAddress})`,
+      Metode_Pembayaran: currentOrder.paymentMethod.toUpperCase(),
+      Rincian_Pesanan: `\n${daftarMenuEmail}`,
+      Total_Bayar: formatRupiah(currentOrder.totalPrice)
+    })
+  }).catch(err => console.warn('Gagal kirim notifikasi email:', err));
+}
+
+  // Reset status wajib konfirmasi WA untuk pesanan baru
+  hasConfirmedWhatsApp = false;
+  updateReceiptConfirmationState();
 
   // Render & buka struk digital
   renderReceiptModal(currentOrder);
@@ -1058,7 +1209,14 @@ function openReceiptModal() {
   box.classList.add('scale-100');
 }
 
-function closeReceiptModal() {
+function closeReceiptModal(force = false) {
+  // Jika belum konfirmasi ke WhatsApp, tolak penutupan struk & beri peringatan
+  if (!force && !hasConfirmedWhatsApp) {
+    showToast('⚠️ Wajib konfirmasi pesanan ke WhatsApp terlebih dahulu!');
+    flashWaNotice();
+    return;
+  }
+
   const modal = document.getElementById('receiptModal');
   const box = document.getElementById('receiptContentBox');
   if (!modal || !box) return;
@@ -1067,6 +1225,64 @@ function closeReceiptModal() {
   modal.classList.remove('opacity-100');
   box.classList.add('scale-95');
   box.classList.remove('scale-100');
+}
+
+function flashWaNotice() {
+  const statusBox = document.getElementById('rcptWaStatusBox');
+  const btn = document.getElementById('btnSubmitWaOrder');
+
+  if (statusBox) {
+    statusBox.classList.add('ring-2', 'ring-amber-500', 'bg-amber-100', 'scale-[1.02]');
+    setTimeout(() => {
+      statusBox.classList.remove('ring-2', 'ring-amber-500', 'bg-amber-100', 'scale-[1.02]');
+    }, 800);
+  }
+
+  if (btn) {
+    btn.classList.add('ring-4', 'ring-emerald-400', 'scale-105');
+    setTimeout(() => {
+      btn.classList.remove('ring-4', 'ring-emerald-400', 'scale-105');
+    }, 800);
+  }
+}
+
+function updateReceiptConfirmationState() {
+  const statusBox = document.getElementById('rcptWaStatusBox');
+  const icon = document.getElementById('rcptWaStatusIcon');
+  const text = document.getElementById('rcptWaStatusText');
+  const btnClose = document.getElementById('btnCloseReceipt');
+  const btnText = document.getElementById('btnSubmitWaText');
+
+  if (hasConfirmedWhatsApp) {
+    if (statusBox) {
+      statusBox.className = 'p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs flex items-center justify-between gap-2 transition-all duration-200';
+    }
+    if (icon) icon.textContent = '✅';
+    if (text) {
+      text.innerHTML = '<span class="font-bold text-emerald-800">Sudah dikonfirmasi ke WhatsApp!</span> <span class="text-[10px] text-stone-500">Struk sekarang sudah bisa ditutup.</span>';
+    }
+    if (btnClose) {
+      btnClose.title = 'Tutup Struk';
+      btnClose.classList.remove('opacity-50');
+    }
+    if (btnText) {
+      btnText.textContent = 'Kirim Ulang ke WhatsApp';
+    }
+  } else {
+    if (statusBox) {
+      statusBox.className = 'p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-2 transition-all duration-200';
+    }
+    if (icon) icon.textContent = '⚠️';
+    if (text) {
+      text.innerHTML = '<strong class="font-bold">Wajib:</strong> Klik tombol hijau di bawah untuk konfirmasi ke WhatsApp agar pesanan segera dibuatkan. Struk tidak dapat ditutup sebelum konfirmasi.';
+    }
+    if (btnClose) {
+      btnClose.title = 'Wajib konfirmasi WA sebelum menutup struk';
+    }
+    if (btnText) {
+      btnText.textContent = 'Konfirmasi ke WhatsApp (Wajib)';
+    }
+  }
 }
 
 function renderReceiptModal(order) {
@@ -1169,6 +1385,69 @@ async function downloadReceiptPng() {
   }
 }
 
+// Unduh Gambar QRIS Statis Mellowbites
+async function downloadQrisImage() {
+  const btn = document.getElementById('btnDownloadQris');
+  const imgEl = document.getElementById('qrisImgElement');
+  const fallbackEl = document.getElementById('qrisSvgFallback');
+
+  // 1. Jika gambar foto img/qris.png ada dan berhasil dimuat (tidak hidden)
+  if (imgEl && !imgEl.classList.contains('hidden') && imgEl.naturalWidth > 0) {
+    try {
+      const resp = await fetch(imgEl.src);
+      const blob = await resp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = 'QRIS-Mellowbites.png';
+      link.click();
+      URL.revokeObjectURL(blobUrl);
+      showToast('Gambar QRIS berhasil diunduh!');
+      return;
+    } catch (_) {
+      // Fallback lanjut ke html2canvas jika fetch gagal
+    }
+  }
+
+  // 2. Jika menggunakan fallback SVG atau html2canvas
+  const qrisArea = document.getElementById('qrisDownloadArea');
+  if (!qrisArea) return;
+
+  if (typeof html2canvas === 'undefined') {
+    showToast('Sedang menyiapkan gambar, coba lagi dalam sekejap...');
+    return;
+  }
+
+  const origText = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span>Mengunduh...</span>`;
+  }
+
+  try {
+    const canvas = await html2canvas(qrisArea, {
+      scale: 3,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false
+    });
+
+    const link = document.createElement('a');
+    link.download = 'QRIS-Mellowbites.png';
+    link.href = canvas.toDataURL('image/png', 1.0);
+    link.click();
+    showToast('Gambar QRIS berhasil diunduh!');
+  } catch (err) {
+    console.error('Gagal download QRIS:', err);
+    showToast('Gagal mengunduh gambar QRIS');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origText;
+    }
+  }
+}
+
 // 20. Sanitasi Teks WhatsApp
 function sanitizeForWhatsApp(text) {
   if (!text) return '';
@@ -1220,12 +1499,16 @@ function submitWhatsAppOrder() {
   const text = buildOrderString();
   if (!text) return;
 
+  // Tandai sudah konfirmasi ke WhatsApp (Membuka izin tutup struk)
+  hasConfirmedWhatsApp = true;
+  updateReceiptConfirmationState();
+
   // Nomor WhatsApp Penjual (Preserved)
   const waNumber = '6285646409023';
   const waUrl = `https://api.whatsapp.com/send?phone=${waNumber}&text=${encodeURIComponent(text)}`;
 
   window.open(waUrl, '_blank');
-  showToast('Membuka WhatsApp untuk mengirim konfirmasi...');
+  showToast('Membuka WhatsApp... Struk kini dapat ditutup');
 }
 
 // 23. Salin Rincian Pesanan ke Clipboard
@@ -1241,6 +1524,176 @@ function copyOrderText() {
     });
   } else {
     showToast('Clipboard tidak didukung di browser ini');
+  }
+}
+
+// 23b. Riwayat Pesanan & Repeat Order untuk Pelanggan
+function openOrderHistoryModal() {
+  const modal = document.getElementById('orderHistoryModal');
+  const box = document.getElementById('orderHistoryContentBox');
+  const listContainer = document.getElementById('orderHistoryList');
+  if (!modal || !box || !listContainer) return;
+
+  const orders = getCustomerOrderHistory();
+
+  if (orders.length === 0) {
+    listContainer.innerHTML = `
+      <div class="py-12 px-4 text-center">
+        <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-3xl">
+          🛍️
+        </div>
+        <h4 class="font-extrabold text-stone-800 text-sm">Belum Ada Riwayat Pesanan</h4>
+        <p class="text-xs text-stone-500 mt-1.5 max-w-xs mx-auto leading-relaxed">
+          Pesanan yang Anda buat di sini akan tercatat otomatis. Anda bisa melihat struk atau memesan ulang dengan 1 klik!
+        </p>
+        <button onclick="closeOrderHistoryModal()" class="mt-4 px-4 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-sm transition active:scale-95">
+          Lihat Menu Es Gabin
+        </button>
+      </div>
+    `;
+  } else {
+    listContainer.innerHTML = orders.map(order => {
+      const itemsListHtml = (order.items || []).map(i => `
+        <div class="flex items-center justify-between text-xs py-1">
+          <span class="text-stone-700 font-medium truncate pr-2">
+            ${i.name} <span class="text-stone-400 font-bold">×${i.qty}</span>
+          </span>
+          <span class="text-stone-600 font-bold shrink-0">${formatRupiah(i.subtotal)}</span>
+        </div>
+      `).join('');
+
+      const isPickup = order.orderMethod === 'pickup';
+      const methodLabel = isPickup ? `🏬 Ambil (${order.pickupTime || '-'})` : `🛵 Antar COD`;
+
+      return `
+        <div class="bg-white p-4 rounded-2xl border border-stone-200/90 shadow-2xs space-y-2.5 transition hover:border-brand-300">
+          <!-- Top Row: Order #, Date, Method Badge -->
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="font-mono font-extrabold text-[11px] text-brand-600 tracking-wide">${order.orderNumber}</span>
+              <p class="text-[10px] text-stone-400 font-medium mt-0.5">${formatDateTime(order.timestamp)}</p>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPickup ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">
+              ${methodLabel}
+            </span>
+          </div>
+
+          <!-- Items Breakdown -->
+          <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-100 divide-y divide-stone-100">
+            ${itemsListHtml}
+          </div>
+
+          <!-- Total & Method -->
+          <div class="flex items-center justify-between text-xs pt-0.5">
+            <span class="text-stone-500 text-[11px]">
+              ${order.totalItems} pcs • <strong class="text-stone-700 uppercase font-bold">${order.paymentMethod}</strong>
+            </span>
+            <div class="text-right">
+              <span class="text-[10px] text-stone-400 block -mb-0.5">Total Bayar</span>
+              <span class="font-black text-brand-600 text-sm">${formatRupiah(order.totalPrice)}</span>
+            </div>
+          </div>
+
+          <!-- Actions: Lihat Struk & Pesan Lagi -->
+          <div class="pt-2 border-t border-stone-100 grid grid-cols-2 gap-2">
+            <button 
+              type="button" 
+              onclick="viewPastOrderReceipt('${order.orderNumber}')"
+              class="py-2 px-3 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-700 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5"
+            >
+              <span>🧾</span>
+              <span>Lihat Struk</span>
+            </button>
+            <button 
+              type="button" 
+              onclick="repeatOrder('${order.orderNumber}')"
+              class="py-2 px-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm shadow-brand-500/20 active:scale-95 transition flex items-center justify-center gap-1.5"
+            >
+              <span>🔁</span>
+              <span>Pesan Lagi</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  modal.classList.remove('opacity-0', 'pointer-events-none');
+  modal.classList.add('opacity-100');
+  box.classList.remove('scale-95');
+  box.classList.add('scale-100');
+}
+
+function closeOrderHistoryModal() {
+  const modal = document.getElementById('orderHistoryModal');
+  const box = document.getElementById('orderHistoryContentBox');
+  if (!modal || !box) return;
+
+  modal.classList.remove('opacity-100');
+  modal.classList.add('opacity-0', 'pointer-events-none');
+  box.classList.remove('scale-100');
+  box.classList.add('scale-95');
+}
+
+function viewPastOrderReceipt(orderNumber) {
+  const history = getCustomerOrderHistory();
+  const order = history.find(o => o.orderNumber === orderNumber);
+  if (!order) {
+    showToast('Data pesanan tidak ditemukan');
+    return;
+  }
+
+  currentOrder = {
+    ...order,
+    timestamp: new Date(order.timestamp)
+  };
+
+  // Pesanan riwayat masa lalu dianggap sudah dikonfirmasi sehingga struk bisa ditutup bebas
+  hasConfirmedWhatsApp = true;
+  updateReceiptConfirmationState();
+
+  renderReceiptModal(currentOrder);
+  closeOrderHistoryModal();
+  openReceiptModal();
+}
+
+function repeatOrder(orderNumber) {
+  const history = getCustomerOrderHistory();
+  const order = history.find(o => o.orderNumber === orderNumber);
+  if (!order || !order.items || order.items.length === 0) {
+    showToast('Data pesanan tidak ditemukan');
+    return;
+  }
+
+  let addedCount = 0;
+  const unavailableNames = [];
+
+  order.items.forEach(item => {
+    const prod = PRODUCTS.find(p => p.id === item.id);
+    if (!prod || prod.isAvailable === false) {
+      unavailableNames.push(item.name);
+    } else {
+      cart[item.id] = (cart[item.id] || 0) + item.qty;
+      addedCount++;
+    }
+  });
+
+  if (addedCount === 0) {
+    showToast('Maaf, semua menu dari pesanan ini sedang habis/tidak tersedia.');
+    return;
+  }
+
+  saveCartToStorage();
+  updateUI();
+  PRODUCTS.forEach(p => updateProductCardState(p.id));
+
+  closeOrderHistoryModal();
+  openCartModal();
+
+  if (unavailableNames.length > 0) {
+    showToast(`Menu ditambahkan! (${unavailableNames.join(', ')} sedang habis & dilewati)`);
+  } else {
+    showToast('Pesanan berhasil dimasukkan ke keranjang!');
   }
 }
 
@@ -1274,11 +1727,7 @@ function getWIBMinutes() {
 }
 
 function isStoreOpen() {
-  const currentMinutes = getWIBMinutes();
-  const openMinutes  = 8 * 60;   // 08:00 WIB (480 menit)
-  const closeMinutes = 20 * 60;  // 20:00 WIB (1200 menit)
-
-  return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+  return isStoreManuallyOpen;
 }
 
 function updateStoreStatus() {
@@ -1331,17 +1780,102 @@ function updateStoreStatus() {
   }
 }
 
+ async function syncFromSupabase() {
+  if (!sbClient) return;
+  try {
+    // 1. Ambil status buka/tutup manual dari admin
+    const { data: settings } = await sbClient.from('store_settings').select('is_open').eq('id', 1).single();
+    if (settings) {
+      isStoreManuallyOpen = settings.is_open;
+    }
+
+    // 1.5. Dorong perubahan nama, harga, deskripsi & foto dari VS Code (PRODUCTS) ke Supabase
+    // (is_available tidak dikirim agar status Ready/Habis dari kakakmu tetap aman)
+    const codeProducts = PRODUCTS.map((p, idx) => ({
+      id: p.id,
+      name: p.name,
+      category: p.category,
+      is_best_seller: p.isBestSeller,
+      price: p.price,
+      description: p.desc || '',
+      tag: p.tag || 'Favorit',
+      tag_color: p.tagColor || 'bg-amber-100 text-amber-900',
+      flavor_bg: p.flavorBg || 'bg-gradient-to-tr from-amber-800 to-amber-600',
+      cream_color: p.creamColor || '#f59e0b',
+      image_url: p.image || '',
+      sort_order: idx + 1
+    }));
+    await sbClient.from('products').upsert(codeProducts, { onConflict: 'id' });
+
+    // 2. Ambil daftar menu & status stok terbaru
+    const { data: dbProducts } = await sbClient.from('products').select('*').order('sort_order', { ascending: true });
+    if (dbProducts && dbProducts.length > 0) {
+      PRODUCTS = dbProducts.map(p => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        isBestSeller: p.is_best_seller,
+        price: p.price,
+        desc: p.description || '',
+        tag: p.tag || 'Favorit',
+        tagColor: p.tag_color || 'bg-amber-100 text-amber-900',
+        flavorBg: p.flavor_bg || 'bg-gradient-to-tr from-amber-800 to-amber-600',
+        creamColor: p.cream_color || '#f59e0b',
+        image: p.image_url || '',
+        isAvailable: p.is_available !== false && p.is_available !== 'false'
+      }));
+
+      // Hapus item dari keranjang jika stoknya habis di database
+      let cartChanged = false;
+      for (const id in cart) {
+        const prod = PRODUCTS.find(p => p.id === id);
+        if (prod && prod.isAvailable === false) {
+          delete cart[id];
+          cartChanged = true;
+        }
+      }
+      if (cartChanged) {
+        saveCartToStorage();
+      }
+    }
+  } catch (err) {
+    console.warn('Menggunakan data menu lokal (offline/fallback):', err);
+  }
+}
+
 // 26. Inisialisasi Saat Dokumen Siap
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // 1. Muat data keranjang & formulir dari localStorage
   loadCartFromStorage();
+  updateHistoryBadge();
+
+  // 1.5. Ambil status toko & data produk terbaru dari Supabase
+  await syncFromSupabase();
 
   // 2. Render kartu produk SEKALI SAJA (foto tetap di-cache oleh browser)
   initProductGrid();
 
-  // 3. Perbarui bilah total & status toko
+  // 27. Perbarui bilah total & status toko
   updateUI();
   updateStoreStatus();
+
+  // Realtime update dari Supabase jika ada perubahan stok atau setting toko
+  if (sbClient) {
+    try {
+      sbClient
+        .channel('public:store_sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
+          await syncFromSupabase();
+          initProductGrid();
+          updateUI();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'store_settings' }, async () => {
+          await syncFromSupabase();
+          updateStoreStatus();
+        })
+        .subscribe();
+    } catch (_) {}
+  }
 
   // 4. Pasang listener otomatis hapus error saat user mengetik/mengubah input
   document.getElementById('customerName')?.addEventListener('input', (e) => {
@@ -1362,8 +1896,11 @@ document.addEventListener('DOMContentLoaded', () => {
     clearFieldError('pickupTime');
   });
 
-  document.getElementById('deliveryAddress')?.addEventListener('input', () => {
+  document.getElementById('deliveryAddress')?.addEventListener('input', (e) => {
     clearFieldError('deliveryAddress');
+    try {
+      localStorage.setItem(STORAGE_ADDRESS_KEY, e.target.value);
+    } catch (_) {}
   });
 
   // 5. Periksa status buka/tutup berkala setiap 30 detik

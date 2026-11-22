@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Admin Panel - Es Gabin Mellowbites</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+          colors: {
+            brand: {
+              50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74',
+              400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Supabase JS SDK & Config -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+
+  <!-- SheetJS Library for Native .xlsx Excel Generation (Tanpa Peringatan Format) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- html2canvas for Admin Receipt Image Generation -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <!-- Main CSS for Thermal Receipt Styles -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #adminReceiptModal, #adminReceiptModal * {
+        visibility: visible !important;
+      }
+      #adminReceiptModal {
+        position: fixed !important;
+        inset: 0 !important;
+        background: white !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        z-index: 99999 !important;
+      }
+      #adminReceiptContentBox {
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+      #adminReceiptPaper {
+        border: none !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        max-width: 400px !important;
+        margin: 0 auto !important;
+        padding: 10px !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-stone-100 font-sans text-stone-800 antialiased min-h-screen">
+
+  <!-- ==================== 1. HALAMAN LOGIN ADMIN ==================== -->
+  <div id="loginView" class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-white rounded-3xl shadow-xl border border-stone-200/80 p-6 space-y-5">
+      <div class="text-center space-y-1.5">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-brand-500 to-amber-400 text-white flex items-center justify-center text-2xl shadow-md shadow-brand-500/25">
+          🔐
+        </div>
+        <h1 class="text-lg font-extrabold text-stone-900 pt-1">Admin Mellowbites</h1>
+        <p class="text-xs text-stone-500">Masuk untuk kelola toko</p>
+      </div>
+
+      <form id="loginForm" onsubmit="handleAdminLogin(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">Email Admin</label>
+          <input type="email" id="adminEmail" required placeholder="admin@mellowbites.com"
+            class="w-full text-xs px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
+        </div>
+        <div>
+  <label class="block text-xs font-bold text-stone-700 mb-1">Password</label>
+  <div class="relative">
+    <input type="password" id="adminPassword" required placeholder="••••••••"
+      class="w-full text-xs pl-3.5 pr-10 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
+    
+    <button type="button" onclick="toggleAdminPassword()" aria-label="Lihat atau sembunyikan password"
+      class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none">
+      <!-- Ikon Mata Terbuka (Default) -->
+      <svg id="eyeIconShow" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+      </svg>
+      <!-- Ikon Mata Dicoret (Muncul saat password terlihat) -->
+      <svg id="eyeIconHide" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+      </svg>
+    </button>
+  </div>
+</div>
+
+        <p id="loginError" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl font-semibold"></p>
+
+        <button type="submit" id="btnLogin"
+          class="w-full py-3 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition">
+          Masuk ke Dashboard
+        </button>
+      </form>
+
+      <div class="text-center pt-1">
+        <a href="index.html" class="text-xs font-semibold text-stone-400 hover:text-brand-600 transition">
+          ← Kembali ke Katalog Pembeli
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 2. DASHBOARD ADMIN ==================== -->
+  <div id="dashboardView" class="hidden pb-16">
+    <!-- Top Header -->
+    <header class="sticky top-0 z-30 bg-white border-b border-stone-200 shadow-2xs">
+      <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div>
+          <h1 class="text-base font-extrabold text-stone-900 leading-tight">Dashboard Mellowbites</h1>
+          <p id="adminUserEmail" class="text-[11px] text-stone-500 font-medium">admin</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <a href="index.html"
+            class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1">
+            ← Ke Toko
+          </a>
+          <button onclick="openProfileModal()"
+            class="px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold transition">
+            👤 Profil
+          </button>
+          <button onclick="handleAdminLogout()"
+            class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition">
+            Keluar
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 pt-4 space-y-4">
+      
+      <!-- Saklar Buka / Tutup Toko Manual -->
+      <section class="bg-white rounded-2xl p-4 border border-stone-200 shadow-2xs flex items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="font-extrabold text-sm text-stone-900">Status Operasional Toko</h2>
+            <span id="adminStoreBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Buka</span>
+          </div>
+          <p class="text-[11px] text-stone-500 mt-0.5 leading-snug">
+            Matikan saklar ini jika stok hari ini sudah habis sebelum pukul 20.00 WIB.
+          </p>
+        </div>
+
+        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+          <input type="checkbox" id="toggleStoreOpen" onchange="toggleStoreStatus(this.checked)" class="sr-only peer" checked>
+          <div class="w-12 h-7 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+        </label>
+      </section>
+
+      <!-- Tab Navigasi: Kelola Menu vs Rekap Pesanan -->
+      <div class="grid grid-cols-2 gap-2 bg-stone-200/70 p-1 rounded-2xl">
+        <button onclick="switchAdminTab('menu')" id="tabAdminMenu"
+          class="py-2 px-3 rounded-xl text-xs font-extrabold bg-white text-brand-600 shadow-2xs transition">
+          🥪 Kelola Stok & Menu
+        </button>
+        <button onclick="switchAdminTab('orders')" id="tabAdminOrders"
+          class="py-2 px-3 rounded-xl text-xs font-bold text-stone-600 hover:text-stone-900 transition flex items-center justify-center gap-1.5">
+          <span>🧾 Rekap Pesanan</span>
+          <span id="pendingOrderBadge" class="hidden px-1.5 py-0.2 rounded-full text-[10px] bg-brand-500 text-white font-extrabold">0</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: KELOLA STOK & MENU -->
+      <section id="panelMenu" class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="font-extrabold text-sm text-stone-800">Daftar Varian Es Gabin</h3>
+          <button onclick="openAddProductModal()"
+            class="px-3 py-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-xs active:scale-95 transition">
+            + Tambah Varian
+          </button>
+        </div>
+
+        <div id="adminProductList" class="space-y-2.5">
+          <div class="text-center py-8 text-xs text-stone-400">Memuat daftar menu...</div>
+        </div>
+      </section>
+
+      <!-- TAB 2: REKAP PESANAN MASUK -->
+      <section id="panelOrders" class="hidden space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="font-extrabold text-sm text-stone-800">Riwayat Checkout Pembeli</h3>
+          <div class="flex items-center gap-2">
+            <button onclick="exportOrdersToExcel()"
+              class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-95">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <span>Download Excel</span>
+            </button>
+            <button onclick="loadAdminOrders()"
+              class="px-3 py-1.5 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-bold transition">
+              ↻ Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- RINGKASAN OMZET & JUMLAH TERJUAL -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-stone-500">Ringkasan Penjualan (Status Selesai)</span>
+            <div class="inline-flex rounded-xl bg-stone-200/80 p-0.5 text-[11px] font-bold">
+              <button type="button" id="btnStatToday" onclick="setOrderStatPeriod('today')"
+                class="px-2.5 py-1 rounded-lg bg-white text-brand-600 shadow-2xs transition">
+                Hari Ini
+              </button>
+              <button type="button" id="btnStatAll" onclick="setOrderStatPeriod('all')"
+                class="px-2.5 py-1 rounded-lg text-stone-600 hover:text-stone-900 transition">
+                Semua
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <!-- Kartu Omzet -->
+            <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs">
+              <div class="flex items-center gap-1.5 text-[11px] font-bold text-stone-500">
+                <span>💰</span>
+                <span>Omzet Penjualan</span>
+              </div>
+              <p id="statTotalRevenue" class="text-base sm:text-lg font-black text-emerald-600 mt-1">Rp 0</p>
+              <p id="statOrderCount" class="text-[10px] text-stone-400 mt-0.5">0 pesanan selesai</p>
+            </div>
+
+            <!-- Kartu Jumlah Terjual -->
+            <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs">
+              <div class="flex items-center gap-1.5 text-[11px] font-bold text-stone-500">
+                <span>🥪</span>
+                <span>Jumlah Terjual</span>
+              </div>
+              <p id="statTotalSold" class="text-base sm:text-lg font-black text-brand-600 mt-1">0 pcs</p>
+              <p id="statTopProduct" class="text-[10px] text-stone-400 truncate mt-0.5">Terlaris: -</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="adminOrderList" class="space-y-2.5">
+          <div class="text-center py-8 text-xs text-stone-400">Memuat data pesanan...</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL PROFIL ADMIN & GANTI SANDI -->
+  <div id="profileModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-extrabold text-sm text-stone-900 flex items-center gap-2">
+          <span>👤</span> Profil Admin
+        </h3>
+        <button type="button" onclick="closeProfileModal()" class="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 text-xs font-bold transition">✕</button>
+      </div>
+
+      <!-- Info Akun -->
+      <div class="bg-stone-50 border border-stone-200/80 rounded-2xl p-3.5 space-y-1">
+        <span class="text-[10px] font-bold tracking-wider uppercase text-stone-400">Akun Terdaftar</span>
+        <div class="flex items-center justify-between gap-2">
+          <p id="profileUserEmail" class="text-xs font-extrabold text-stone-800 truncate">admin</p>
+          <span class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-100 text-brand-700">Admin</span>
+        </div>
+      </div>
+
+      <!-- Form Ganti Sandi -->
+      <form id="profilePasswordForm" onsubmit="handleUpdatePassword(event)" class="space-y-3 text-xs">
+        <div class="pt-1 border-t border-stone-100">
+          <h4 class="font-bold text-stone-800 text-xs mb-1">Ganti Kata Sandi</h4>
+          <p class="text-[11px] text-stone-400">Masukkan kata sandi baru untuk akun admin Anda.</p>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Kata Sandi Baru</label>
+          <div class="relative">
+            <input type="password" id="newAdminPassword" required minlength="6" placeholder="Minimal 6 karakter"
+              class="w-full pl-3 pr-10 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
+            <button type="button" onclick="togglePasswordVisibility('newAdminPassword', 'eyeNewShow', 'eyeNewHide')" aria-label="Lihat kata sandi baru"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none">
+              <svg id="eyeNewShow" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+              <svg id="eyeNewHide" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Konfirmasi Kata Sandi Baru</label>
+          <div class="relative">
+            <input type="password" id="confirmAdminPassword" required minlength="6" placeholder="Ketik ulang kata sandi baru"
+              class="w-full pl-3 pr-10 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
+            <button type="button" onclick="togglePasswordVisibility('confirmAdminPassword', 'eyeConfirmShow', 'eyeConfirmHide')" aria-label="Lihat konfirmasi kata sandi"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none">
+              <svg id="eyeConfirmShow" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+              <svg id="eyeConfirmHide" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <p id="profileError" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl font-semibold"></p>
+        <p id="profileSuccess" class="hidden text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl font-semibold"></p>
+
+        <div class="flex items-center gap-2 pt-1">
+          <button type="button" onclick="closeProfileModal()"
+            class="flex-1 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold transition">
+            Batal
+          </button>
+          <button type="submit" id="btnUpdatePassword"
+            class="flex-1 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold shadow-sm active:scale-95 transition">
+            Simpan Sandi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL TAMBAH VARIAN BARU -->
+  <div id="addProductModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-3.5">
+      <div class="flex items-center justify-between">
+        <h3 class="font-extrabold text-sm text-stone-900">Tambah Varian Baru</h3>
+        <button onclick="closeAddProductModal()" class="w-7 h-7 rounded-full bg-stone-100 text-stone-500 text-xs font-bold">✕</button>
+      </div>
+
+      <form onsubmit="handleAddProduct(event)" class="space-y-2.5 text-xs">
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Nama Varian *</label>
+          <input type="text" id="newProdName" required placeholder="cth: Tiramisu Almond"
+            class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Harga (Rp) *</label>
+            <input type="number" id="newProdPrice" required value="8000" min="0" step="500"
+              oninput="if(this.value !== '' && Number(this.value) < 0) this.value = 0;"
+              class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Kategori</label>
+            <select id="newProdCategory" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
+              <option value="special">Spesial Mix</option>
+              <option value="choco">Cokelat</option>
+              <option value="fruity">Fruity</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Deskripsi Singkat</label>
+          <textarea id="newProdDesc" rows="2" placeholder="Fla tiramisu lembut dengan taburan kacang almond..."
+            class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500"></textarea>
+        </div>
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">URL Gambar (Opsional)</label>
+          <input type="url" id="newProdImage" placeholder="https://..."
+            class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm transition mt-2">
+          Simpan Menu Baru
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL CEK STRUK PESANAN ADMIN (#adminReceiptModal) -->
+  <div id="adminReceiptModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4">
+    <!-- Backdrop dismiss (No Print) -->
+    <div class="absolute inset-0 no-print" onclick="closeAdminReceiptModal()"></div>
+
+    <!-- Modal Box -->
+    <div id="adminReceiptContentBox" class="relative z-10 w-full max-w-sm max-h-[95vh] flex flex-col bg-stone-100 rounded-3xl shadow-2xl overflow-hidden border border-stone-300">
+      
+      <!-- Modal Header Bar (No Print) -->
+      <div class="px-4 py-2.5 bg-stone-900 text-white flex items-center justify-between shrink-0 no-print">
+        <div class="flex items-center gap-1.5">
+          <span class="text-sm">🧾</span>
+          <span class="text-xs font-bold tracking-tight">Struk Digital Pesanan</span>
+        </div>
+        <button onclick="closeAdminReceiptModal()" class="w-6 h-6 rounded-full bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-300 text-xs transition" title="Tutup">✕</button>
+      </div>
+
+      <!-- Scrollable Receipt Body -->
+      <div class="overflow-y-auto p-3.5 sm:p-4 flex-1 flex justify-center bg-stone-100">
+        <!-- Physical Receipt Paper (#adminReceiptPaper) -->
+        <div id="adminReceiptPaper" class="w-full bg-white text-stone-800 p-5 rounded-2xl shadow-sm border border-stone-200/90 font-sans text-xs relative">
+          
+          <!-- Shop Header -->
+          <div class="text-center pb-1">
+            <h4 class="font-black text-stone-900 text-base tracking-tight uppercase leading-snug">Es Gabin - Mellowbites</h4>
+            <p class="text-[10px] text-stone-500 font-medium mt-0.5">Biskuit Renyah, Fla Creamy Lumer</p>
+            <p class="text-[9px] text-stone-400 mt-0.5">Jl. Mawar No. 14 • WA: 0856-4640-9023</p>
+          </div>
+
+          <!-- Divider 1 -->
+          <div class="rcpt-divider"></div>
+
+          <!-- Order Metadata -->
+          <div class="text-[11px] leading-relaxed">
+            <div class="flex justify-between py-0.5">
+              <span class="text-stone-500">No. Order:</span>
+              <span id="adminRcptOrderNumber" class="font-extrabold text-stone-900 font-mono">-</span>
+            </div>
+            <div class="flex justify-between py-0.5">
+              <span class="text-stone-500">Waktu Pesan:</span>
+              <span id="adminRcptDateTime" class="font-semibold text-stone-700">-</span>
+            </div>
+            <div class="flex justify-between py-0.5">
+              <span class="text-stone-500">Nama Pembeli:</span>
+              <span id="adminRcptCustomerName" class="font-bold text-stone-900">-</span>
+            </div>
+            <div class="flex justify-between py-0.5">
+              <span class="text-stone-500">Metode Pesanan:</span>
+              <span id="adminRcptOrderMethod" class="font-bold text-stone-800">-</span>
+            </div>
+            <!-- Detail Row (Alamat atau Jam Ambil) -->
+            <div id="adminRcptDetailRow" class="text-[10px] text-stone-600 bg-stone-50 p-2 rounded-lg border border-stone-200/60 leading-normal my-1.5">
+              -
+            </div>
+            <div class="flex justify-between items-center py-0.5 mt-1">
+              <span class="text-stone-500">Status & Bayar:</span>
+              <div class="flex items-center gap-1.5">
+                <span id="adminRcptStatus" class="font-extrabold px-2 py-0.5 rounded text-[10px] bg-amber-100 text-amber-800">Menunggu</span>
+                <span id="adminRcptPaymentMethod" class="font-extrabold px-2 py-0.5 rounded text-[10px] bg-stone-100 text-stone-800">QRIS</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Divider 2 -->
+          <div class="rcpt-divider"></div>
+
+          <!-- Items Table -->
+          <div>
+            <div class="flex justify-between text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">
+              <span>Item Menu</span>
+              <span>Subtotal</span>
+            </div>
+            <div id="adminRcptItemsList" class="text-xs">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Divider 3 -->
+          <div class="rcpt-divider"></div>
+
+          <!-- Total Calculation -->
+          <div class="text-xs leading-normal">
+            <div class="flex justify-between text-stone-500 py-0.5">
+              <span>Jumlah Item:</span>
+              <span id="adminRcptTotalItems" class="font-semibold text-stone-800">0 pcs</span>
+            </div>
+            <div class="flex justify-between text-sm font-extrabold text-stone-900 pt-1.5 mt-1 border-t border-stone-200">
+              <span>Total Tagihan:</span>
+              <span id="adminRcptTotalPrice" class="text-brand-600 font-black">Rp 0</span>
+            </div>
+          </div>
+
+          <!-- Divider 4 -->
+          <div class="rcpt-divider"></div>
+
+          <!-- Receipt Footer Note -->
+          <div class="text-center text-[10px] text-stone-400 pt-0.5">
+            <p class="font-semibold text-stone-600">Dokumen Struk Transaksi Resmi</p>
+            <p class="mt-0.5">Es Gabin Mellowbites • Dicetak oleh Kasir/Admin</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Bottom Actions (No Print) -->
+      <div class="p-3 bg-white border-t border-stone-200 grid grid-cols-3 gap-2 shrink-0 no-print">
+        <button 
+          type="button" 
+          onclick="printAdminReceipt()" 
+          class="py-2 px-2 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1"
+        >
+          <span>🖨</span>
+          <span>Cetak</span>
+        </button>
+        <button 
+          type="button" 
+          onclick="downloadAdminReceiptPng()" 
+          class="py-2 px-2 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1"
+        >
+          <span>📥</span>
+          <span>PNG</span>
+        </button>
+        <button 
+          type="button" 
+          onclick="closeAdminReceiptModal()" 
+          class="py-2 px-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-xs active:scale-95 transition flex items-center justify-center"
+        >
+          Tutup
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL EDIT VARIAN MENU -->
+  <div id="editProductModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-3.5">
+      <div class="flex items-center justify-between">
+        <h3 class="font-extrabold text-sm text-stone-900 flex items-center gap-2">
+          <span>✏️</span> Edit Detail Varian
+        </h3>
+        <button onclick="closeEditProductModal()" class="w-7 h-7 rounded-full bg-stone-100 text-stone-500 text-xs font-bold hover:bg-stone-200 transition">✕</button>
+      </div>
+
+      <!-- Preview Foto Saat Ini -->
+      <div id="editProdImagePreviewBox" class="hidden">
+        <p class="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Foto Saat Ini</p>
+        <div class="w-full h-28 rounded-xl border border-stone-200 overflow-hidden bg-stone-50 flex items-center justify-center">
+          <img id="editProdImagePreview" src="" alt="Preview" class="w-full h-full object-cover">
+        </div>
+      </div>
+
+      <form onsubmit="handleEditProduct(event)" class="space-y-2.5 text-xs">
+        <input type="hidden" id="editProdId">
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Nama Varian *</label>
+          <input type="text" id="editProdName" required
+            class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Harga (Rp) *</label>
+            <input type="number" id="editProdPrice" required min="0" step="500"
+              oninput="if(this.value !== '' && Number(this.value) < 0) this.value = 0;"
+              class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Kategori</label>
+            <select id="editProdCategory" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
+              <option value="special">Spesial Mix</option>
+              <option value="choco">Cokelat</option>
+              <option value="fruity">Fruity</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Deskripsi Singkat</label>
+          <textarea id="editProdDesc" rows="2"
+            class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500"></textarea>
+        </div>
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">URL Foto / Upload Foto Baru</label>
+          <!-- Opsi 1: Input URL langsung -->
+          <input type="url" id="editProdImageUrl" placeholder="https://images.unsplash.com/..."
+            class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500 mb-1.5">
+          <!-- Opsi 2: Upload file gambar ke Supabase Storage -->
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] text-stone-400 font-bold uppercase">atau</span>
+            <div class="flex-1 h-px bg-stone-200"></div>
+          </div>
+          <input type="file" id="editProdFile" accept="image/*"
+            class="w-full text-[11px] mt-1.5 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-brand-50 file:text-brand-700 file:font-bold file:cursor-pointer">
+          <input type="hidden" id="editProdCurrentImage">
+          <p class="text-[10px] text-stone-400 mt-1">Masukkan URL foto atau upload file baru. Kosongkan keduanya jika ingin mempertahankan foto saat ini.</p>
+        </div>
+
+        <!-- Error display -->
+        <p id="editProdError" class="text-rose-600 text-[11px] font-bold hidden"></p>
+
+        <button type="submit" id="btnSaveEditProduct" class="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm transition mt-2">
+          Simpan Perubahan
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="adminToast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-stone-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-xl pointer-events-none opacity-0 transition-opacity duration-200">
+    Tersimpan
+  </div>
+
+  <script>
+    // --- 1. Helper UI & Toggle Password (Diletakkan di atas agar selalu siap dipanggil) ---
+    function showAdminToast(msg) {
+      const el = document.getElementById('adminToast');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.remove('opacity-0');
+      setTimeout(() => el.classList.add('opacity-0'), 2000);
+    }
+
+    function formatRupiah(num) {
+      return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
+    }
+
+    function toggleAdminPassword() {
+      const input = document.getElementById('adminPassword');
+      const eyeShow = document.getElementById('eyeIconShow');
+      const eyeHide = document.getElementById('eyeIconHide');
+      if (!input || !eyeShow || !eyeHide) return;
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        eyeShow.classList.add('hidden');
+        eyeHide.classList.remove('hidden');
+      } else {
+        input.type = 'password';
+        eyeShow.classList.remove('hidden');
+        eyeHide.classList.add('hidden');
+      }
+    }
+
+    function togglePasswordVisibility(inputId, showIconId, hideIconId) {
+      const input = document.getElementById(inputId);
+      const eyeShow = document.getElementById(showIconId);
+      const eyeHide = document.getElementById(hideIconId);
+      if (!input || !eyeShow || !eyeHide) return;
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        eyeShow.classList.add('hidden');
+        eyeHide.classList.remove('hidden');
+      } else {
+        input.type = 'password';
+        eyeShow.classList.remove('hidden');
+        eyeHide.classList.add('hidden');
+      }
+    }
+
+    window.toggleAdminPassword = toggleAdminPassword;
+    window.togglePasswordVisibility = togglePasswordVisibility;
+
+    // --- 2. Cek Sesi Login Saat Halaman Dibuka ---
+    document.addEventListener('DOMContentLoaded', async () => {
+      const errEl = document.getElementById('loginError');
+      if (!sbClient) {
+        if (errEl) {
+          errEl.textContent = 'Konfigurasi Supabase belum diisi di js/supabase-config.js';
+          errEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      try {
+        const { data: { session } } = await sbClient.auth.getSession();
+        if (session && session.user) {
+          showDashboard(session.user);
+        }
+      } catch (err) {
+        console.warn('Gagal membaca sesi:', err);
+      }
+
+      sbClient.auth.onAuthStateChange((_event, session) => {
+        if (session && session.user) {
+          showDashboard(session.user);
+        } else {
+          document.getElementById('loginView').classList.remove('hidden');
+          document.getElementById('dashboardView').classList.add('hidden');
+        }
+      });
+    });
+
+    // --- 3. Proses Login Admin ---
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const errEl = document.getElementById('loginError');
+      const btn = document.getElementById('btnLogin');
+
+      if (!sbClient) {
+        if (errEl) {
+          errEl.textContent = 'Koneksi database Supabase belum siap.';
+          errEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+
+      if (!email || !password) {
+        if (errEl) {
+          errEl.textContent = 'Mohon masukkan email dan password.';
+          errEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Memeriksa...';
+      if (errEl) errEl.classList.add('hidden');
+
+      try {
+        const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
+
+        btn.disabled = false;
+        btn.textContent = 'Masuk ke Dashboard';
+
+        if (error) {
+          if (errEl) {
+            errEl.textContent = 'Email atau password salah: ' + error.message;
+            errEl.classList.remove('hidden');
+          }
+        } else if (data && data.user) {
+          showDashboard(data.user);
+          showAdminToast('Berhasil masuk ke Dashboard');
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Masuk ke Dashboard';
+        if (errEl) {
+          errEl.textContent = 'Gagal masuk: ' + (err.message || 'Terjadi gangguan koneksi');
+          errEl.classList.remove('hidden');
+        }
+      }
+    }
+
+    window.handleAdminLogin = handleAdminLogin;
+
+    async function handleAdminLogout() {
+      if (!sbClient) return;
+      await sbClient.auth.signOut();
+      showAdminToast('Berhasil keluar');
+    }
+
+    let currentAdminUser = null;
+
+    function showDashboard(user) {
+      currentAdminUser = user;
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('dashboardView').classList.remove('hidden');
+      document.getElementById('adminUserEmail').textContent = user.email || 'admin';
+      const profileEmail = document.getElementById('profileUserEmail');
+      if (profileEmail) profileEmail.textContent = user.email || 'admin';
+
+      loadStoreSettings();
+      loadAdminProducts();
+      loadAdminOrders();
+      subscribeRealtimeOrders();
+    }
+
+    function openProfileModal() {
+      const modal = document.getElementById('profileModal');
+      if (currentAdminUser) {
+        const profileEmail = document.getElementById('profileUserEmail');
+        if (profileEmail) profileEmail.textContent = currentAdminUser.email || 'admin';
+      }
+      const form = document.getElementById('profilePasswordForm');
+      if (form) form.reset();
+      const errEl = document.getElementById('profileError');
+      if (errEl) errEl.classList.add('hidden');
+      const successEl = document.getElementById('profileSuccess');
+      if (successEl) successEl.classList.add('hidden');
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeProfileModal() {
+      const modal = document.getElementById('profileModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function togglePasswordVisibility(inputId, showIconId, hideIconId) {
+      const input = document.getElementById(inputId);
+      const eyeShow = document.getElementById(showIconId);
+      const eyeHide = document.getElementById(hideIconId);
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        eyeShow.classList.add('hidden');
+        eyeHide.classList.remove('hidden');
+      } else {
+        input.type = 'password';
+        eyeShow.classList.remove('hidden');
+        eyeHide.classList.add('hidden');
+      }
+    }
+
+    async function handleUpdatePassword(e) {
+      e.preventDefault();
+      if (!sbClient) return;
+
+      const newPass = document.getElementById('newAdminPassword').value;
+      const confirmPass = document.getElementById('confirmAdminPassword').value;
+      const errEl = document.getElementById('profileError');
+      const successEl = document.getElementById('profileSuccess');
+      const btn = document.getElementById('btnUpdatePassword');
+
+      errEl.classList.add('hidden');
+      successEl.classList.add('hidden');
+
+      if (!newPass || newPass.length < 6) {
+        errEl.textContent = 'Kata sandi minimal harus 6 karakter.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      if (newPass !== confirmPass) {
+        errEl.textContent = 'Konfirmasi kata sandi tidak cocok.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
+      try {
+        const { data, error } = await sbClient.auth.updateUser({
+          password: newPass
+        });
+
+        btn.disabled = false;
+        btn.textContent = 'Simpan Sandi';
+
+        if (error) {
+          errEl.textContent = 'Gagal mengubah kata sandi: ' + error.message;
+          errEl.classList.remove('hidden');
+        } else {
+          successEl.textContent = 'Kata sandi berhasil diperbarui!';
+          successEl.classList.remove('hidden');
+          document.getElementById('profilePasswordForm').reset();
+          showAdminToast('Kata sandi berhasil diperbarui');
+          setTimeout(() => {
+            closeProfileModal();
+          }, 1500);
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Sandi';
+        errEl.textContent = 'Terjadi kesalahan: ' + err.message;
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    function switchAdminTab(tab) {
+      const isMenu = tab === 'menu';
+      document.getElementById('panelMenu').classList.toggle('hidden', !isMenu);
+      document.getElementById('panelOrders').classList.toggle('hidden', isMenu);
+
+      document.getElementById('tabAdminMenu').className = isMenu
+        ? 'py-2 px-3 rounded-xl text-xs font-extrabold bg-white text-brand-600 shadow-2xs transition'
+        : 'py-2 px-3 rounded-xl text-xs font-bold text-stone-600 hover:text-stone-900 transition';
+
+      document.getElementById('tabAdminOrders').className = !isMenu
+        ? 'py-2 px-3 rounded-xl text-xs font-extrabold bg-white text-brand-600 shadow-2xs transition flex items-center justify-center gap-1.5'
+        : 'py-2 px-3 rounded-xl text-xs font-bold text-stone-600 hover:text-stone-900 transition flex items-center justify-center gap-1.5';
+    }
+
+    // 2. Kelola Status Buka / Tutup Toko
+    async function loadStoreSettings() {
+      const { data } = await sbClient.from('store_settings').select('*').eq('id', 1).single();
+      if (data) {
+        document.getElementById('toggleStoreOpen').checked = data.is_open;
+        updateAdminStoreBadge(data.is_open);
+      }
+    }
+
+    function updateAdminStoreBadge(isOpen) {
+      const badge = document.getElementById('adminStoreBadge');
+      if (isOpen) {
+        badge.textContent = 'Buka (Sesuai Jam)';
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800';
+      } else {
+        badge.textContent = 'Ditutup Manual';
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800';
+      }
+    }
+
+    async function toggleStoreStatus(isOpen) {
+      updateAdminStoreBadge(isOpen);
+      const { error } = await sbClient
+        .from('store_settings')
+        .update({ is_open: isOpen, updated_at: new Date().toISOString() })
+        .eq('id', 1);
+
+      if (error) showAdminToast('Gagal mengubah status toko');
+      else showAdminToast(isOpen ? 'Toko diaktifkan kembali' : 'Toko berhasil ditutup sementara');
+    }
+
+    // 3. Kelola Produk (Stok Ready/Habis, Edit Harga & Hapus)
+    let adminProductsCache = [];
+
+    // 3. Kelola Produk (Stok Ready/Habis, Edit Harga & Hapus)
+    async function loadAdminProducts() {
+      const { data, error } = await sbClient.from('products').select('*').order('sort_order', { ascending: true });
+      const container = document.getElementById('adminProductList');
+
+      if (error || !data) {
+        container.innerHTML = '<p class="text-xs text-rose-600 text-center py-6">Gagal memuat data produk.</p>';
+        return;
+      }
+
+      adminProductsCache = data;
+
+      container.innerHTML = data.map(p => {
+        const isAvail = p.is_available !== false && p.is_available !== 'false';
+        const safeId = String(p.id).replace(/'/g, "\\'");
+        const safeName = String(p.name).replace(/'/g, "\\'");
+        const hasImg = p.image_url && p.image_url.length > 5;
+        return `
+        <div class="bg-white p-3.5 rounded-2xl border ${isAvail ? 'border-stone-200' : 'border-rose-200 bg-rose-50/30'} shadow-2xs flex items-start gap-3">
+          <!-- Thumbnail -->
+          <div class="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-stone-100 border border-stone-200 flex items-center justify-center">
+            ${hasImg
+              ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-lg\\'>🧁</span>'">`
+              : '<span class="text-lg">🧁</span>'}
+          </div>
+
+          <!-- Info -->
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5">
+              <h4 class="font-extrabold text-xs sm:text-sm text-stone-900 truncate">${p.name}</h4>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isAvail ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}">
+                ${isAvail ? 'Ready' : 'Habis'}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 mt-1.5">
+              <span class="text-[11px] text-stone-500">Harga: Rp</span>
+              <input type="number" value="${p.price}" min="0" step="500"
+                oninput="if(this.value !== '' && Number(this.value) < 0) this.value = 0;"
+                onchange="updateProductPrice('${safeId}', this.value, this)"
+                class="w-24 text-xs font-bold px-2 py-1 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:border-brand-500">
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button onclick="toggleProductStock('${safeId}', ${!isAvail})"
+              class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${isAvail ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}">
+              ${isAvail ? 'Set Habis' : 'Set Ready'}
+            </button>
+            <button onclick="openEditProductModal('${safeId}')"
+              title="Edit detail & foto"
+              class="p-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-600 text-xs font-bold transition">
+              ✏️
+            </button>
+            <button onclick="deleteProduct('${safeId}', '${safeName}')"
+              title="Hapus varian"
+              class="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition">
+              🗑
+            </button>
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    async function toggleProductStock(id, newStatus) {
+      const boolStatus = Boolean(newStatus);
+      const { error } = await sbClient.from('products').update({ is_available: boolStatus }).eq('id', id);
+      if (error) {
+        showAdminToast('Gagal memperbarui stok: ' + error.message);
+      } else {
+        showAdminToast(boolStatus ? 'Status diubah: Ready' : 'Status diubah: Habis');
+        loadAdminProducts();
+      }
+    }
+
+    async function updateProductPrice(id, newPrice, inputEl) {
+      let price = parseInt(newPrice, 10);
+      if (isNaN(price) || price < 0) {
+        price = 0;
+      }
+      if (inputEl) inputEl.value = price;
+
+      const { error } = await sbClient.from('products').update({ price }).eq('id', id);
+      if (error) showAdminToast('Gagal menyimpan harga');
+      else showAdminToast('Harga berhasil diperbarui');
+    }
+
+    async function deleteProduct(id, name) {
+      if (!confirm(`Yakin ingin menghapus menu "${name}" secara permanen?`)) return;
+
+      const { error } = await sbClient.from('products').delete().eq('id', id);
+      if (error) {
+        showAdminToast('Gagal menghapus menu: ' + error.message);
+      } else {
+        showAdminToast(`Menu "${name}" berhasil dihapus`);
+        loadAdminProducts();
+      }
+    }
+
+    function openAddProductModal() {
+      const modal = document.getElementById('addProductModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeAddProductModal() {
+      const modal = document.getElementById('addProductModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function handleAddProduct(e) {
+      e.preventDefault();
+      const name = document.getElementById('newProdName').value.trim();
+      let price = parseInt(document.getElementById('newProdPrice').value, 10);
+      if (isNaN(price) || price < 0) price = 0;
+      const category = document.getElementById('newProdCategory').value;
+      const description = document.getElementById('newProdDesc').value.trim();
+      const image_url = document.getElementById('newProdImage').value.trim();
+      const id = 'gabin-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString().slice(-3);
+
+      const { error } = await sbClient.from('products').insert([{
+        id, name, price, category, description,
+        image_url: image_url || null,
+        is_available: true,
+        sort_order: 99
+      }]);
+
+      if (error) {
+        showAdminToast('Gagal menambah menu: ' + error.message);
+      } else {
+        showAdminToast('Varian baru ditambahkan!');
+        e.target.reset();
+        closeAddProductModal();
+        loadAdminProducts();
+      }
+    }
+
+    let adminOrdersCache = [];
+    let currentAdminReceiptOrder = null;
+
+    function formatAdminDateTime(d) {
+      if (!d) return '-';
+      const date = new Date(d);
+      if (isNaN(date.getTime())) return '-';
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = months[date.getMonth()];
+      const year = date.getFullYear();
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${day} ${month} ${year}, ${hours}:${minutes} WIB`;
+    }
+
+    // 4. Kelola Rekap Pesanan Masuk
+    async function loadAdminOrders() {
+      const { data, error } = await sbClient
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      adminOrdersCache = data || [];
+      updateOrderStats();
+
+      const container = document.getElementById('adminOrderList');
+      const badge = document.getElementById('pendingOrderBadge');
+
+      if (error || !data) {
+        container.innerHTML = '<p class="text-xs text-rose-600 text-center py-6">Gagal memuat pesanan.</p>';
+        return;
+      }
+
+      const pendingCount = data.filter(o => o.status === 'Menunggu Konfirmasi').length;
+      if (pendingCount > 0) {
+        badge.textContent = pendingCount;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+
+      if (data.length === 0) {
+        container.innerHTML = '<div class="bg-white p-8 rounded-2xl border border-stone-200 text-center text-xs text-stone-400">Belum ada pesanan masuk.</div>';
+        return;
+      }
+
+      container.innerHTML = data.map(o => {
+        const itemsText = (o.items || []).map(i => `${i.name} (${i.qty}x)`).join(', ');
+        const isDone = o.status === 'Selesai';
+        return `
+          <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs space-y-2 text-xs">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="font-mono font-extrabold text-[11px] text-brand-600">${o.order_number}</span>
+                <h4 class="font-extrabold text-stone-900 text-sm">${o.customer_name}</h4>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                ${o.status}
+              </span>
+            </div>
+
+            <p class="text-[11px] text-stone-700 bg-stone-50 p-2 rounded-xl border border-stone-100">
+              ${itemsText}
+            </p>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-500">
+              <span>${o.order_method === 'pickup' ? '🏬 Ambil (' + o.pickup_time + ')' : '🛵 Antar: ' + o.delivery_address}</span>
+              <span class="font-extrabold text-stone-900 uppercase">${o.payment_method} • ${formatRupiah(o.total_price)}</span>
+            </div>
+
+            <div class="pt-1.5 border-t border-stone-100 flex items-center justify-end gap-2 flex-wrap">
+              <button onclick="openAdminReceipt(${o.id})"
+                class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-[11px] transition flex items-center gap-1.5"
+                title="Cek struk digital dan cetak">
+                🧾 Cek Struk
+              </button>
+              <button onclick="deleteOrder(${o.id})"
+                class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-[11px] transition">
+                🗑 Hapus
+              </button>
+              ${!isDone ? `
+                <button onclick="markOrderDone(${o.id})"
+                  class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition">
+                  ✓ Tandai Lunas & Selesai
+                </button>
+              ` : `
+                <button onclick="markOrderPending(${o.id})"
+                  class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold text-[11px] transition">
+                  ↩ Tandai Belum Selesai
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 4b. Modal Cek Struk & Cetak untuk Admin
+    function openAdminReceipt(orderId) {
+      const order = adminOrdersCache.find(o => o.id === orderId);
+      if (!order) {
+        showAdminToast('Data pesanan tidak ditemukan');
+        return;
+      }
+      currentAdminReceiptOrder = order;
+
+      document.getElementById('adminRcptOrderNumber').textContent = order.order_number || '-';
+      document.getElementById('adminRcptDateTime').textContent = formatAdminDateTime(order.created_at);
+      document.getElementById('adminRcptCustomerName').textContent = order.customer_name || '-';
+
+      const methodText = order.order_method === 'pickup' ? 'Ambil Sendiri (Pickup)' : 'Diantar / COD (Delivery)';
+      document.getElementById('adminRcptOrderMethod').textContent = methodText;
+
+      const detailRow = document.getElementById('adminRcptDetailRow');
+      if (order.order_method === 'pickup') {
+        detailRow.innerHTML = `<strong>Jam Rencana Ambil:</strong> Pukul ${order.pickup_time || '-'} WIB di Kedai Mellowbites`;
+      } else {
+        detailRow.innerHTML = `<strong>Alamat Pengiriman:</strong> ${order.delivery_address || '-'}`;
+      }
+
+      const statusBadge = document.getElementById('adminRcptStatus');
+      const isDone = order.status === 'Selesai';
+      statusBadge.textContent = order.status || 'Menunggu';
+      statusBadge.className = `font-extrabold px-2 py-0.5 rounded text-[10px] ${isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`;
+
+      const payBadge = document.getElementById('adminRcptPaymentMethod');
+      payBadge.textContent = (order.payment_method || 'QRIS').toUpperCase();
+      if ((order.payment_method || '').toLowerCase() === 'tunai') {
+        payBadge.className = 'font-extrabold px-2 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800';
+      } else {
+        payBadge.className = 'font-extrabold px-2 py-0.5 rounded text-[10px] bg-brand-100 text-brand-800';
+      }
+
+      // Render daftar item menu
+      const itemsList = document.getElementById('adminRcptItemsList');
+      const items = Array.isArray(order.items) ? order.items : [];
+      if (items.length > 0) {
+        itemsList.innerHTML = items.map(item => `
+          <div class="rcpt-item-row">
+            <div style="min-width: 0; flex: 1;">
+              <p class="rcpt-item-name">${item.name || 'Es Gabin'}</p>
+              <p class="rcpt-item-sub">${formatRupiah(item.price || 0)} × ${item.qty || 1}</p>
+            </div>
+            <span class="rcpt-item-price">${formatRupiah(item.subtotal || ((item.price || 0) * (item.qty || 1)))}</span>
+          </div>
+        `).join('');
+      } else {
+        itemsList.innerHTML = '<p class="text-stone-400 py-1 text-center italic text-[11px]">Rincian item tidak tersedia</p>';
+      }
+
+      const totalItems = order.total_items || items.reduce((sum, i) => sum + (i.qty || 1), 0);
+      document.getElementById('adminRcptTotalItems').textContent = `${totalItems} pcs`;
+      document.getElementById('adminRcptTotalPrice').textContent = formatRupiah(order.total_price);
+
+      const modal = document.getElementById('adminReceiptModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function closeAdminReceiptModal() {
+      const modal = document.getElementById('adminReceiptModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function printAdminReceipt() {
+      window.print();
+    }
+
+    async function downloadAdminReceiptPng() {
+      if (typeof html2canvas === 'undefined') {
+        showAdminToast('Library pembuat gambar sedang dimuat, silakan coba sesaat lagi...');
+        return;
+      }
+      const paper = document.getElementById('adminReceiptPaper');
+      if (!paper || !currentAdminReceiptOrder) return;
+
+      showAdminToast('Membuat struk gambar PNG...');
+
+      try {
+        if (document.fonts && document.fonts.ready) {
+          await document.fonts.ready;
+        }
+
+        const canvas = await html2canvas(paper, {
+          scale: 2.5,
+          backgroundColor: '#ffffff',
+          useCORS: true,
+          logging: false
+        });
+
+        const link = document.createElement('a');
+        link.download = `Struk-${currentAdminReceiptOrder.order_number || 'Mellowbites'}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showAdminToast('Struk PNG berhasil diunduh!');
+      } catch (err) {
+        console.error('Gagal mengunduh struk PNG:', err);
+        showAdminToast('Gagal mengunduh gambar struk: ' + err.message);
+      }
+    }
+
+    async function markOrderDone(orderId) {
+      const { error } = await sbClient.from('orders').update({ status: 'Selesai' }).eq('id', orderId);
+      if (!error) {
+        showAdminToast('Pesanan ditandai selesai');
+        loadAdminOrders();
+      }
+    }
+
+    async function markOrderPending(orderId) {
+      const { error } = await sbClient
+        .from('orders')
+        .update({ status: 'Menunggu Konfirmasi' })
+        .eq('id', orderId);
+
+      if (error) {
+        showAdminToast('Gagal mengubah status pesanan: ' + error.message);
+      } else {
+        showAdminToast('Status dikembalikan ke Menunggu Konfirmasi');
+        loadAdminOrders();
+      }
+    }
+
+    async function deleteOrder(orderId) {
+      if (!confirm('Hapus riwayat pesanan ini?')) return;
+      const { error } = await sbClient.from('orders').delete().eq('id', orderId);
+      if (error) {
+        showAdminToast('Gagal menghapus pesanan: ' + error.message);
+      } else {
+        showAdminToast('Pesanan berhasil dihapus');
+        loadAdminOrders();
+      }
+    }
+
+    // 5. Ekspor Rekap Jualan ke Excel Asli (.xlsx / .csv) Tanpa Peringatan Format
+    async function exportOrdersToExcel() {
+      if (!sbClient) {
+        showAdminToast('Koneksi database tidak tersedia');
+        return;
+      }
+
+      showAdminToast('Menyiapkan file spreadsheet...');
+
+      try {
+        const { data, error } = await sbClient
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error || !data || data.length === 0) {
+          showAdminToast('Tidak ada data pesanan untuk diunduh');
+          return;
+        }
+
+        let grandTotalNominal = 0;
+        let grandTotalItems = 0;
+
+        const nowStr = new Date().toISOString().slice(0, 10);
+
+        // Siapkan struktur array 2D untuk data spreadsheet
+        const sheetData = [
+          ['REKAP PENJUALAN ES GABIN - MELLOWBITES'],
+          ['Waktu Ekspor:', new Date().toLocaleString('id-ID')],
+          [],
+          [
+            'No',
+            'No. Pesanan',
+            'Tanggal & Waktu',
+            'Nama Pembeli',
+            'Metode Pesan',
+            'Waktu Ambil / Alamat',
+            'Item Menu (Qty)',
+            'Total Pcs',
+            'Metode Bayar',
+            'Total Tagihan (Rp)',
+            'Status Pesanan'
+          ]
+        ];
+
+        data.forEach((o, index) => {
+          const itemsDetail = (o.items || [])
+            .map(i => `${i.name} (${i.qty}x)`)
+            .join(', ');
+
+          const totalPcs = Number(o.total_items || 0);
+          const totalPrice = Number(o.total_price || 0);
+          grandTotalItems += totalPcs;
+          grandTotalNominal += totalPrice;
+
+          const dateStr = o.created_at ? new Date(o.created_at).toLocaleString('id-ID') : '-';
+          const methodInfo = o.order_method === 'pickup' ? 'Ambil Sendiri' : 'Delivery (Antar)';
+          const detailLokasi = o.order_method === 'pickup'
+            ? (o.pickup_time ? 'Pukul ' + o.pickup_time : '-')
+            : (o.delivery_address || '-');
+
+          sheetData.push([
+            index + 1,
+            o.order_number || '-',
+            dateStr,
+            o.customer_name || '-',
+            methodInfo,
+            detailLokasi,
+            itemsDetail || '-',
+            totalPcs,
+            (o.payment_method || '-').toUpperCase(),
+            totalPrice,
+            o.status || '-'
+          ]);
+        });
+
+        // Tambahkan baris total di bagian bawah
+        sheetData.push([]);
+        sheetData.push([
+          '',
+          'TOTAL KESELURUHAN:',
+          '',
+          '',
+          '',
+          '',
+          '',
+          grandTotalItems,
+          '',
+          grandTotalNominal,
+          ''
+        ]);
+
+        // Prioritas 1: Buat file .xlsx murni via SheetJS (Bebas peringatan format)
+        if (typeof XLSX !== 'undefined') {
+          const wb = XLSX.utils.book_new();
+          const ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+          // Atur lebar kolom agar rapi saat dibuka
+          ws['!cols'] = [
+            { wch: 6 },  // No
+            { wch: 18 }, // No. Pesanan
+            { wch: 22 }, // Tanggal & Waktu
+            { wch: 20 }, // Nama Pembeli
+            { wch: 16 }, // Metode Pesan
+            { wch: 26 }, // Alamat / Waktu
+            { wch: 36 }, // Item Menu
+            { wch: 10 }, // Total Pcs
+            { wch: 14 }, // Metode Bayar
+            { wch: 18 }, // Total Tagihan
+            { wch: 16 }  // Status
+          ];
+
+          XLSX.utils.book_append_sheet(wb, ws, 'Rekap Penjualan');
+          XLSX.writeFile(wb, `Rekap-Penjualan-Mellowbites-${nowStr}.xlsx`);
+          showAdminToast('File Excel (.xlsx) berhasil diunduh!');
+        } else {
+          // Fallback jika library belum termuat: Unduh sebagai CSV ber-BOM UTF-8
+          function escapeCsv(val) {
+            if (val === null || val === undefined) return '""';
+            return `"${String(val).replace(/"/g, '""')}"`;
+          }
+          const csvContent = '\uFEFF' + sheetData.map(row => row.map(escapeCsv).join(',')).join('\n');
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = `Rekap-Penjualan-Mellowbites-${nowStr}.csv`;
+          link.click();
+          URL.revokeObjectURL(link.href);
+          showAdminToast('Rekap penjualan (.csv) berhasil diunduh!');
+        }
+      } catch (err) {
+        console.error('Gagal ekspor ke excel:', err);
+        showAdminToast('Gagal mengunduh rekap Excel: ' + err.message);
+      }
+    }
+
+    // ==================== FITUR 4: REALTIME ORDERS + SUARA ====================
+    function playOrderBell() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1318.5, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.6);
+      } catch (_) {}
+    }
+
+    let ordersSubscription = null;
+    function subscribeRealtimeOrders() {
+      if (ordersSubscription || !sbClient) return;
+      ordersSubscription = sbClient
+        .channel('admin-orders-realtime')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+          playOrderBell();
+          showAdminToast(`🔔 Pesanan baru dari ${payload.new.customer_name}!`);
+          loadAdminOrders();
+        })
+        .subscribe();
+    }
+
+    // ==================== FITUR 5: EDIT MENU & UPLOAD FOTO ====================
+    function openEditProductModal(productId) {
+      const product = adminProductsCache.find(p => String(p.id) === String(productId));
+      if (!product) {
+        showAdminToast('Data produk tidak ditemukan');
+        return;
+      }
+
+      document.getElementById('editProdId').value = product.id;
+      document.getElementById('editProdName').value = product.name;
+      document.getElementById('editProdPrice').value = product.price;
+      document.getElementById('editProdCategory').value = product.category || 'special';
+      document.getElementById('editProdDesc').value = product.description || '';
+      document.getElementById('editProdCurrentImage').value = product.image_url || '';
+      document.getElementById('editProdImageUrl').value = product.image_url || '';
+      document.getElementById('editProdFile').value = '';
+
+      // Error state reset
+      const errEl = document.getElementById('editProdError');
+      if (errEl) { errEl.classList.add('hidden'); errEl.textContent = ''; }
+
+      // Preview foto saat ini
+      const previewBox = document.getElementById('editProdImagePreviewBox');
+      const previewImg = document.getElementById('editProdImagePreview');
+      if (product.image_url) {
+        previewImg.src = product.image_url;
+        previewImg.onerror = () => { previewBox.classList.add('hidden'); };
+        previewBox.classList.remove('hidden');
+      } else {
+        previewBox.classList.add('hidden');
+      }
+
+      const modal = document.getElementById('editProductModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeEditProductModal() {
+      const modal = document.getElementById('editProductModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // Helper: konversi file ke Data URL (fallback jika Supabase Storage belum dikonfigurasi)
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleEditProduct(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSaveEditProduct');
+      const errEl = document.getElementById('editProdError');
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+      if (errEl) { errEl.classList.add('hidden'); errEl.textContent = ''; }
+
+      try {
+        const id = document.getElementById('editProdId').value;
+        const name = document.getElementById('editProdName').value.trim();
+        let price = parseInt(document.getElementById('editProdPrice').value, 10);
+        if (isNaN(price) || price < 0) price = 0;
+        const category = document.getElementById('editProdCategory').value;
+        const description = document.getElementById('editProdDesc').value.trim();
+
+        // Prioritas foto: file upload > URL input > foto lama
+        const currentImage = document.getElementById('editProdCurrentImage').value;
+        const urlInput = document.getElementById('editProdImageUrl').value.trim();
+        let image_url = currentImage; // default: foto lama
+
+        const fileInput = document.getElementById('editProdFile');
+        const hasFile = fileInput.files && fileInput.files[0];
+
+        if (hasFile) {
+          const file = fileInput.files[0];
+
+          // Validasi ukuran file (maks 5MB)
+          if (file.size > 5 * 1024 * 1024) {
+            throw new Error('Ukuran foto terlalu besar (maks 5 MB)');
+          }
+
+          // Coba upload ke Supabase Storage jika bucket tersedia
+          let uploaded = false;
+          try {
+            const fileExt = file.name.split('.').pop().toLowerCase();
+            const filePath = `${id}-${Date.now()}.${fileExt}`;
+
+            const { error: uploadError } = await sbClient.storage
+              .from('product-images')
+              .upload(filePath, file, { upsert: true });
+
+            if (!uploadError) {
+              const { data: urlData } = sbClient.storage.from('product-images').getPublicUrl(filePath);
+              if (urlData && urlData.publicUrl) {
+                image_url = urlData.publicUrl;
+                uploaded = true;
+              }
+            }
+          } catch (_) {
+            // Storage bucket belum ada, jangan error — gunakan fallback
+          }
+
+          // Fallback: konversi ke Data URL jika upload storage gagal
+          if (!uploaded) {
+            try {
+              image_url = await fileToDataUrl(file);
+            } catch (readErr) {
+              throw new Error('Gagal membaca file foto: ' + readErr.message);
+            }
+          }
+
+        } else if (urlInput && urlInput !== currentImage) {
+          // User mengetik URL baru yang berbeda dari foto lama
+          image_url = urlInput;
+        }
+
+        // Validasi nama wajib diisi
+        if (!name) {
+          throw new Error('Nama varian wajib diisi');
+        }
+
+        const { error } = await sbClient
+          .from('products')
+          .update({ name, price, category, description, image_url })
+          .eq('id', id);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        showAdminToast('Varian berhasil diperbarui!');
+        closeEditProductModal();
+        loadAdminProducts();
+
+      } catch (err) {
+        if (errEl) {
+          errEl.textContent = err.message || 'Terjadi kesalahan';
+          errEl.classList.remove('hidden');
+        }
+        showAdminToast('Gagal menyimpan: ' + (err.message || 'Kesalahan tidak diketahui'));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Perubahan';
+      }
+    }
+
+    // ==================== RINGKASAN OMZET & TERJUAL ====================
+    let orderStatPeriod = 'today'; // 'today' | 'all'
+
+    function setOrderStatPeriod(period) {
+      orderStatPeriod = period;
+      const btnToday = document.getElementById('btnStatToday');
+      const btnAll = document.getElementById('btnStatAll');
+
+      if (btnToday && btnAll) {
+        btnToday.className = period === 'today'
+          ? 'px-2.5 py-1 rounded-lg bg-white text-brand-600 shadow-2xs transition'
+          : 'px-2.5 py-1 rounded-lg text-stone-600 hover:text-stone-900 transition';
+        btnAll.className = period === 'all'
+          ? 'px-2.5 py-1 rounded-lg bg-white text-brand-600 shadow-2xs transition'
+          : 'px-2.5 py-1 rounded-lg text-stone-600 hover:text-stone-900 transition';
+      }
+
+      updateOrderStats();
+    }
+
+    function updateOrderStats() {
+      const revEl = document.getElementById('statTotalRevenue');
+      const soldEl = document.getElementById('statTotalSold');
+      const countEl = document.getElementById('statOrderCount');
+      const topEl = document.getElementById('statTopProduct');
+      if (!revEl || !soldEl) return;
+
+      const todayStr = new Date().toLocaleDateString('id-ID');
+
+      // Filter pesanan berstatus 'Selesai' (agar pesanan batal/belum bayar tidak masuk omzet)
+      const filteredOrders = (adminOrdersCache || []).filter(o => {
+        if (o.status !== 'Selesai') return false;
+        if (orderStatPeriod === 'today') {
+          const orderDateStr = o.created_at ? new Date(o.created_at).toLocaleDateString('id-ID') : '';
+          return orderDateStr === todayStr;
+        }
+        return true;
+      });
+
+      let totalRevenue = 0;
+      let totalSold = 0;
+      const itemCounter = {};
+
+      filteredOrders.forEach(o => {
+        totalRevenue += Number(o.total_price || 0);
+        const items = Array.isArray(o.items) ? o.items : [];
+        let orderPcs = 0;
+
+        items.forEach(item => {
+          const qty = Number(item.qty || 0);
+          orderPcs += qty;
+          const name = item.name || 'Varian';
+          itemCounter[name] = (itemCounter[name] || 0) + qty;
+        });
+
+        totalSold += Number(o.total_items || orderPcs);
+      });
+
+      // Cari varian paling laris
+      let topName = '-';
+      let topQty = 0;
+      for (const [name, qty] of Object.entries(itemCounter)) {
+        if (qty > topQty) {
+          topQty = qty;
+          topName = `${name} (${qty} pcs)`;
+        }
+      }
+
+      revEl.textContent = formatRupiah(totalRevenue);
+      soldEl.textContent = `${totalSold} pcs`;
+      if (countEl) countEl.textContent = `${filteredOrders.length} pesanan selesai`;
+      if (topEl) topEl.textContent = `Terlaris: ${topName}`;
+    }
+  </script>
+</body>
+</html>

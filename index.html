@@ -19,8 +19,13 @@
   <!-- html2canvas CDN for Digital Receipt Image Export -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
 
+  <!-- Supabase JS SDK & Config -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+
   <!-- External Application Logic -->
   <script src="js/main.js"></script>
+
 </head>
 <body class="bg-stone-50 font-sans text-stone-800 antialiased min-h-screen pb-32">
 
@@ -56,17 +61,33 @@
         </div>
       </div>
 
-      <!-- Quick Cart Button in Header -->
-      <button 
-        onclick="openCartModal()" 
-        class="relative p-2.5 text-stone-600 hover:text-brand-600 rounded-2xl hover:bg-stone-100 transition active:scale-95" 
-        aria-label="Buka Keranjang"
-      >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-        </svg>
-        <span id="headerCartCount" class="hidden absolute top-1 right-1 bg-brand-500 text-white text-[10px] font-bold w-4 h-4 rounded-full items-center justify-center ring-2 ring-white">0</span>
-      </button>
+      <!-- Header Action Buttons (Riwayat Pesanan & Keranjang) -->
+      <div class="flex items-center gap-1">
+        <!-- Riwayat Pesanan Button -->
+        <button 
+          onclick="openOrderHistoryModal()" 
+          class="relative p-2.5 text-stone-600 hover:text-brand-600 rounded-2xl hover:bg-stone-100 transition active:scale-95" 
+          title="Riwayat Pesanan Saya"
+          aria-label="Riwayat Pesanan"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span id="historyBadge" class="hidden absolute top-1 right-1 bg-stone-700 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white">0</span>
+        </button>
+
+        <!-- Quick Cart Button in Header -->
+        <button 
+          onclick="openCartModal()" 
+          class="relative p-2.5 text-stone-600 hover:text-brand-600 rounded-2xl hover:bg-stone-100 transition active:scale-95" 
+          aria-label="Buka Keranjang"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+          </svg>
+          <span id="headerCartCount" class="hidden absolute top-1 right-1 bg-brand-500 text-white text-[10px] font-bold w-4 h-4 rounded-full items-center justify-center ring-2 ring-white">0</span>
+        </button>
+      </div>
     </div>
 
     <!-- Search & Category Filters -->
@@ -182,6 +203,13 @@
           Simpan di freezer lemari es. Langsung nikmati selagi dingin beku untuk sensasi <em>crispy ice cream sandwich</em>, atau diamkan 2 menit agar flanya semakin lembut & lumer!
         </p>
       </div>
+    </div>
+
+    <!-- FOOTER KECIL & LINK ADMIN -->
+    <div class="mt-6 text-center">
+      <a href="admin.html" class="text-[10px] text-stone-400 hover:text-brand-600 transition">
+        © Mellowbites • Admin
+      </a>
     </div>
   </main>
 
@@ -436,8 +464,9 @@
           </div>
 
           <!-- Gambar QRIS Statis dengan Fallback SVG -->
-          <div class="relative w-44 sm:w-48 mx-auto bg-stone-50 rounded-xl p-2 border border-stone-200">
+          <div id="qrisDownloadArea" class="relative w-44 sm:w-48 mx-auto bg-stone-50 rounded-xl p-2 border border-stone-200">
             <img 
+              id="qrisImgElement"
               src="img/qris.png" 
               alt="QRIS Es Gabin Mellowbites" 
               class="w-full aspect-square object-contain mx-auto rounded-lg"
@@ -450,6 +479,21 @@
               <p class="text-[10px] font-bold text-stone-700 mt-1">QRIS Mellowbites</p>
               <p class="text-[9px] text-stone-400">NMID: ID10293847561</p>
             </div>
+          </div>
+
+          <!-- Tombol Download QRIS -->
+          <div class="text-center">
+            <button 
+              type="button" 
+              onclick="downloadQrisImage()" 
+              id="btnDownloadQris"
+              class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-brand-50 hover:text-brand-700 text-stone-700 border border-stone-200 text-[11px] font-bold shadow-2xs active:scale-95 transition"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              <span>Download Gambar QRIS</span>
+            </button>
           </div>
 
           <!-- Total Nominal Tagihan -->
@@ -605,6 +649,36 @@
     </div>
   </div>
 
+  <!-- CUSTOMER ORDER HISTORY MODAL (#orderHistoryModal) -->
+  <div id="orderHistoryModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-3 sm:p-4">
+    <!-- Backdrop dismiss -->
+    <div class="absolute inset-0" onclick="closeOrderHistoryModal()"></div>
+
+    <!-- Modal Box -->
+    <div id="orderHistoryContentBox" class="relative z-10 w-full max-w-md max-h-[90vh] flex flex-col bg-stone-50 rounded-3xl shadow-2xl overflow-hidden border border-stone-200 transform scale-95 transition-transform duration-300">
+      <!-- Modal Header -->
+      <div class="px-5 py-4 bg-white border-b border-stone-200 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center font-bold text-lg">
+            🕒
+          </div>
+          <div>
+            <h3 class="font-extrabold text-stone-900 text-sm sm:text-base leading-tight">Riwayat Pesanan</h3>
+            <p class="text-[11px] text-stone-500 font-medium">Daftar pesanan sebelumnya di perangkat ini</p>
+          </div>
+        </div>
+        <button onclick="closeOrderHistoryModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center text-xs font-bold transition" title="Tutup">
+          ✕
+        </button>
+      </div>
+
+      <!-- Order History List Body -->
+      <div id="orderHistoryList" class="overflow-y-auto p-3.5 sm:p-4 flex-1 space-y-3">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
   <!-- DIGITAL RECEIPT MODAL (#receiptModal) -->
   <div id="receiptModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-3 sm:p-4">
     <!-- Backdrop dismiss -->
@@ -619,7 +693,7 @@
           <span class="text-sm">🧾</span>
           <span class="text-xs font-bold tracking-tight">Struk Digital Pesanan</span>
         </div>
-        <button onclick="closeReceiptModal()" class="w-6 h-6 rounded-full bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-300 text-xs transition">✕</button>
+        <button id="btnCloseReceipt" onclick="closeReceiptModal()" class="w-6 h-6 rounded-full bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-300 text-xs transition" title="Tutup Struk">✕</button>
       </div>
 
       <!-- Scrollable Receipt Body -->
@@ -706,25 +780,34 @@
       </div>
 
       <!-- Modal Bottom Actions (3 Buttons) -->
-      <div class="p-3.5 bg-white border-t border-stone-200 space-y-2 shrink-0">
+      <div class="p-3.5 bg-white border-t border-stone-200 space-y-2.5 shrink-0">
+        
+        <!-- Peringatan Status Konfirmasi WA -->
+        <div id="rcptWaStatusBox" class="p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-2 transition-all duration-200">
+          <span id="rcptWaStatusIcon" class="text-sm shrink-0">⚠️</span>
+          <p id="rcptWaStatusText" class="text-[11px] leading-snug">
+            <strong class="font-bold">Wajib:</strong> Klik tombol hijau di bawah untuk konfirmasi ke WhatsApp agar pesanan segera dibuatkan.
+          </p>
+        </div>
+
         <div class="grid grid-cols-2 gap-2">
           <!-- 1. Download PNG Button -->
           <button 
             type="button" 
             onclick="downloadReceiptPng()" 
-            class="py-2.5 px-3 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5"
+            class="py-2 px-3 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
-            <span>Download Struk (PNG)</span>
+            <span>Download PNG</span>
           </button>
 
           <!-- 2. Salin Pesanan Button -->
           <button 
             type="button" 
             onclick="copyOrderText()" 
-            class="py-2.5 px-3 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5"
+            class="py-2 px-3 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
@@ -733,16 +816,17 @@
           </button>
         </div>
 
-        <!-- 3. WhatsApp Confirmation Button -->
+        <!-- 3. WhatsApp Confirmation Button (Wajib) -->
         <button 
           type="button" 
+          id="btnSubmitWaOrder"
           onclick="submitWhatsAppOrder()" 
-          class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-emerald-600/20 active:scale-95 transition flex items-center justify-center gap-2"
+          class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-emerald-600/20 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
         >
-          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
             <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
           </svg>
-          <span>Konfirmasi ke WhatsApp</span>
+          <span id="btnSubmitWaText">Konfirmasi ke WhatsApp (Wajib)</span>
         </button>
       </div>
 
