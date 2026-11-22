@@ -1,0 +1,1371 @@
+/**
+ * ============================================================
+ * Katalog Es Gabin - Mellowbites - JavaScript Application Logic
+ * ============================================================
+ */
+
+// 1. Tailwind CDN Configuration
+if (typeof tailwind !== 'undefined') {
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        },
+        colors: {
+          brand: {
+            50: '#fff7ed',
+            100: '#ffedd5',
+            200: '#fed7aa',
+            300: '#fdba74',
+            400: '#fb923c',
+            500: '#f97316',
+            600: '#ea580c',
+            700: '#c2410c',
+            800: '#9a3412',
+          }
+        }
+      }
+    }
+  };
+}
+
+// 2. Data 8 Varian Rasa Es Gabin
+const PRODUCTS = [
+  {
+    id: 'gabin-double-choco',
+    name: 'Double Choco',
+    category: 'choco',
+    isBestSeller: true,
+    price: 8000,
+    desc: 'Fla cokelat pekat ganda dengan lelehan choco chips di antara biskuit gabin renyah.',
+    tag: 'Best Seller',
+    tagColor: 'bg-amber-100 text-amber-900',
+    flavorBg: 'bg-gradient-to-tr from-amber-950 via-amber-800 to-amber-700',
+    creamColor: '#5c3826',
+    image: 'https://images.unsplash.com/photo-1570476922354-81227cdbb76c?auto=format&fit=crop&w=600&q=80'
+  },
+  {
+    id: 'gabin-strawberry',
+    name: 'Strawberry',
+    category: 'fruity',
+    isBestSeller: false,
+    price: 8000,
+    desc: 'Fla stroberi manis asam segar buah alami, dingin sejuk menyegarkan harimu.',
+    tag: 'Fruity Segar',
+    tagColor: 'bg-rose-100 text-rose-800',
+    flavorBg: 'bg-gradient-to-tr from-rose-600 via-pink-500 to-rose-400',
+    creamColor: '#f43f5e',
+    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80'
+  },
+  {
+    id: 'gabin-vanilla-oreo',
+    name: 'Vanilla Oreo',
+    category: 'special',
+    isBestSeller: true,
+    price: 8000,
+    desc: 'Fla vanila wangi lembut bertabur remahan biskuit Oreo asli yang renyah legit.',
+    tag: 'Favorit Anak',
+    tagColor: 'bg-slate-200 text-slate-800',
+    flavorBg: 'bg-gradient-to-tr from-slate-800 via-stone-700 to-slate-600',
+    creamColor: '#f1f5f9',
+    image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=600&q=80'
+  },
+  {
+    id: 'gabin-matcha-regal',
+    name: 'Matcha Regal',
+    category: 'special',
+    isBestSeller: true,
+    price: 8000,
+    desc: 'Matcha otentik wangi khas Jepang dipadu remahan biskuit Marie Regal gurih.',
+    tag: 'Signature',
+    tagColor: 'bg-emerald-100 text-emerald-800',
+    flavorBg: 'bg-gradient-to-tr from-emerald-800 via-teal-700 to-emerald-600',
+    creamColor: '#059669',
+    image: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=600&q=80'
+  },
+  {
+    id: 'gabin-mango',
+    name: 'Mango',
+    category: 'fruity',
+    isBestSeller: false,
+    price: 8000,
+    desc: 'Fla mangga tropis harum manis alami, tekstur creamy lumer saat digigit.',
+    tag: 'Tropis Manis',
+    tagColor: 'bg-amber-100 text-amber-900',
+    flavorBg: 'bg-gradient-to-tr from-amber-600 via-yellow-500 to-orange-400',
+    creamColor: '#f59e0b',
+    image: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=600&q=80'
+  },
+  {
+    id: 'gabin-strawberry-matcha',
+    name: 'Strawberry Matcha',
+    category: 'special',
+    isBestSeller: true,
+    price: 8000,
+    desc: 'Dua lapis fla istimewa: manis asam stroberi berpadu pekat aroma matcha premium.',
+    tag: '2 Layer Rasa',
+    tagColor: 'bg-pink-100 text-pink-800',
+    flavorBg: 'bg-gradient-to-tr from-pink-600 via-emerald-700 to-rose-500',
+    creamColor: '#ec4899',
+    image: 'https://images.unsplash.com/photo-1505394033641-40c6ad1178d7?auto=format&fit=crop&w=600&q=80'
+  },
+  {
+    id: 'gabin-durian-choco',
+    name: 'Durian Choco',
+    category: 'choco',
+    isBestSeller: false,
+    price: 8000,
+    desc: 'Aroma fla durian asli yang legit harum berpadu saus lelehan cokelat pekat.',
+    tag: 'Super Legit',
+    tagColor: 'bg-yellow-100 text-yellow-900',
+    flavorBg: 'bg-gradient-to-tr from-yellow-700 via-amber-800 to-amber-950',
+    creamColor: '#ca8a04',
+    image: 'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=600&q=80'
+  },
+  {
+    id: 'gabin-keju-creamy',
+    name: 'Keju Susu Spesial',
+    category: 'special',
+    isBestSeller: false,
+    price: 8000,
+    desc: 'Fla keju cheddar gurih dipadukan susu kental manis lembut yang menggugah selera.',
+    tag: 'Gurih Manis',
+    tagColor: 'bg-orange-100 text-orange-900',
+    flavorBg: 'bg-gradient-to-tr from-amber-500 via-orange-400 to-yellow-400',
+    creamColor: '#fbbf24',
+    image: 'https://images.unsplash.com/photo-1514849302-984523450ce4?auto=format&fit=crop&w=600&q=80'
+  }
+];
+
+// 3. State & Storage Constants
+const STORAGE_CART_KEY = 'mellowbites_es_gabin_cart_v1';
+const STORAGE_NAME_KEY = 'mellowbites_customer_name';
+
+let cart = {};
+let currentCategory = 'all';
+let searchQuery = '';
+let selectedOrderMethod = 'pickup'; // 'pickup' | 'delivery'
+let selectedPaymentMethod = 'qris'; // 'qris' | 'tunai'
+let currentOrder = null;
+
+// 4. LocalStorage Helpers
+function saveCartToStorage() {
+  try {
+    localStorage.setItem(STORAGE_CART_KEY, JSON.stringify(cart));
+  } catch (err) {
+    console.warn('Gagal menyimpan cart ke localStorage:', err);
+  }
+}
+
+function loadCartFromStorage() {
+  try {
+    const savedCart = localStorage.getItem(STORAGE_CART_KEY);
+    if (savedCart) {
+      const parsed = JSON.parse(savedCart);
+      if (parsed && typeof parsed === 'object') {
+        cart = parsed;
+      }
+    }
+
+    // Restore nama pemesan jika pernah diisi sebelumnya
+    const savedName = localStorage.getItem(STORAGE_NAME_KEY);
+    const nameInput = document.getElementById('customerName');
+    if (savedName && nameInput) {
+      nameInput.value = savedName;
+    }
+  } catch (err) {
+    console.warn('Gagal membaca dari localStorage:', err);
+    cart = {};
+  }
+}
+
+// 5. Utility: Format Rupiah
+function formatRupiah(num) {
+  return 'Rp ' + Number(num).toLocaleString('id-ID');
+}
+
+// 6. Utility: Gambar Ilustrasi Gabin SVG (Fallback jika foto offline/loading)
+function getGabinSvg(creamColor) {
+  return `
+    <svg class="w-16 h-16 drop-shadow-md" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="5" y="8" width="90" height="20" rx="6" fill="#FBBF24" stroke="#B45309" stroke-width="3"/>
+      <circle cx="20" cy="18" r="3" fill="#B45309"/>
+      <circle cx="35" cy="18" r="3" fill="#B45309"/>
+      <circle cx="50" cy="18" r="3" fill="#B45309"/>
+      <circle cx="65" cy="18" r="3" fill="#B45309"/>
+      <circle cx="80" cy="18" r="3" fill="#B45309"/>
+      <rect x="10" y="26" width="80" height="28" rx="5" fill="${creamColor}" stroke="#78350F" stroke-width="2"/>
+      <rect x="5" y="52" width="90" height="20" rx="6" fill="#FBBF24" stroke="#B45309" stroke-width="3"/>
+      <circle cx="20" cy="62" r="3" fill="#B45309"/>
+      <circle cx="35" cy="62" r="3" fill="#B45309"/>
+      <circle cx="50" cy="62" r="3" fill="#B45309"/>
+      <circle cx="65" cy="62" r="3" fill="#B45309"/>
+      <circle cx="80" cy="62" r="3" fill="#B45309"/>
+    </svg>
+  `;
+}
+
+// 7. Inisialisasi Kartu Produk SEKALI SAJA (Foto Tidak Pernah Di-render Ulang!)
+function initProductGrid() {
+  const grid = document.getElementById('productGrid');
+  if (!grid) return;
+
+  grid.innerHTML = PRODUCTS.map(product => {
+    const searchTokens = `${product.name} ${product.desc} ${product.tag}`.toLowerCase();
+
+    return `
+      <div 
+        id="card-${product.id}"
+        data-id="${product.id}"
+        data-category="${product.category}"
+        data-bestseller="${product.isBestSeller}"
+        data-search="${searchTokens}"
+        class="product-card group relative bg-white rounded-2xl p-3 border transition-all duration-200 flex flex-col justify-between border-stone-200 hover:border-stone-300 shadow-sm"
+      >
+        <div>
+          <!-- Wadah Gambar Foto & Ilustrasi Fallback (Hanya di-load 1x seumur sesi) -->
+          <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden ${product.flavorBg} mb-3 flex items-center justify-center shadow-inner">
+            
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none transition-transform group-hover:scale-105 duration-300">
+              ${getGabinSvg(product.creamColor)}
+            </div>
+
+            <img 
+              src="${product.image}" 
+              alt="${product.name}" 
+              loading="lazy"
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              onerror="this.remove()"
+            />
+
+            <div class="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
+
+            <span class="absolute top-2 left-2 ${product.tagColor} text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm backdrop-blur-sm z-10">
+              ${product.tag}
+            </span>
+
+            <!-- Badge Kuantitas di Foto (Hanya teks di sini yang di-update saat klik) -->
+            <div id="card-badge-${product.id}"></div>
+          </div>
+
+          <!-- Rincian Produk -->
+          <div class="flex items-start justify-between gap-1 mb-1">
+            <h4 class="font-bold text-stone-900 text-sm leading-tight">${product.name}</h4>
+            <span class="text-xs font-black text-brand-600 whitespace-nowrap">${formatRupiah(product.price)}</span>
+          </div>
+          <p class="text-[11px] text-stone-500 leading-relaxed line-clamp-2 mb-3">
+            ${product.desc}
+          </p>
+        </div>
+
+        <!-- Tombol Aksi (+ / -) (Hanya elemen ini yang diperbarui secara in-place) -->
+        <div class="pt-2 border-t border-stone-100 flex items-center justify-between">
+          <span class="text-[10px] text-stone-400 font-medium">Satuan / pcs</span>
+          <div id="card-action-${product.id}" class="flex items-center"></div>
+        </div>
+
+      </div>
+    `;
+  }).join('');
+
+  // Perbarui status tombol dan badge sesuai data cart dari localStorage
+  PRODUCTS.forEach(p => updateProductCardState(p.id));
+  applyFilters();
+}
+
+// 8. Update Tampilan Khusus Satu Kartu Produk (Tanpa Sentuh <img>)
+function updateProductCardState(productId) {
+  const card = document.getElementById(`card-${productId}`);
+  if (!card) return;
+
+  const qty = cart[productId] || 0;
+  const isSelected = qty > 0;
+
+  // Toggle border kartu
+  if (isSelected) {
+    card.classList.add('border-brand-500', 'ring-2', 'ring-brand-100', 'shadow-md');
+    card.classList.remove('border-stone-200', 'shadow-sm');
+  } else {
+    card.classList.remove('border-brand-500', 'ring-2', 'ring-brand-100', 'shadow-md');
+    card.classList.add('border-stone-200', 'shadow-sm');
+  }
+
+  // Update badge kuantitas pada foto
+  const badgeEl = document.getElementById(`card-badge-${productId}`);
+  if (badgeEl) {
+    if (qty > 0) {
+      badgeEl.innerHTML = `
+        <span class="absolute bottom-2 right-2 bg-brand-500 text-white font-extrabold text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full shadow-md animate-pop z-10 flex items-center gap-1">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+          <span>${qty} dipilih</span>
+        </span>
+      `;
+    } else {
+      badgeEl.innerHTML = '';
+    }
+  }
+
+  // Update tombol tambah atau kontrol +/-
+  const actionEl = document.getElementById(`card-action-${productId}`);
+  if (actionEl) {
+    if (qty === 0) {
+      actionEl.innerHTML = `
+        <button 
+          onclick="addToCart('${productId}')"
+          class="px-3.5 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-500 text-brand-600 hover:text-white text-xs font-bold transition flex items-center gap-1 active:scale-95 shadow-xs"
+          aria-label="Tambah item"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+          </svg>
+          <span>Tambah</span>
+        </button>
+      `;
+    } else {
+      actionEl.innerHTML = `
+        <div class="flex items-center bg-stone-100 rounded-xl p-0.5 border border-stone-200">
+          <button 
+            onclick="updateQty('${productId}', -1)"
+            class="w-7 h-7 rounded-lg bg-white text-stone-700 hover:bg-rose-50 hover:text-rose-600 shadow-xs flex items-center justify-center font-black text-sm active:scale-90 transition"
+            aria-label="Kurangi"
+          >
+            -
+          </button>
+          <span class="w-8 text-center text-xs font-extrabold text-stone-800">
+            ${qty}
+          </span>
+          <button 
+            onclick="updateQty('${productId}', 1)"
+            class="w-7 h-7 rounded-lg bg-brand-500 text-white hover:bg-brand-600 shadow-xs flex items-center justify-center font-black text-sm active:scale-90 transition"
+            aria-label="Tambah"
+          >
+            +
+          </button>
+        </div>
+      `;
+    }
+  }
+}
+
+// 9. Filter Produk Berdasarkan Kategori & Pencarian (Toggle CSS .hidden, Foto Tidak Di-reload)
+function applyFilters() {
+  const cards = document.querySelectorAll('.product-card');
+  let visibleCount = 0;
+  const q = searchQuery.toLowerCase().trim();
+
+  cards.forEach(card => {
+    const cat = card.dataset.category;
+    const isBest = card.dataset.bestseller === 'true';
+    const searchData = card.dataset.search || '';
+
+    const matchCategory =
+      currentCategory === 'all' ? true :
+      currentCategory === 'bestseller' ? isBest :
+      currentCategory === 'choco' ? cat === 'choco' :
+      currentCategory === 'fruity' ? cat === 'fruity' :
+      currentCategory === 'special' ? cat === 'special' : true;
+
+    const matchSearch = q === '' || searchData.includes(q);
+
+    if (matchCategory && matchSearch) {
+      card.classList.remove('hidden');
+      visibleCount++;
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+
+  const emptyState = document.getElementById('emptyState');
+  const badgeCount = document.getElementById('filteredCountBadge');
+
+  if (badgeCount) badgeCount.textContent = `(${visibleCount})`;
+
+  if (emptyState) {
+    if (visibleCount === 0) {
+      emptyState.classList.remove('hidden');
+      emptyState.classList.add('flex');
+    } else {
+      emptyState.classList.add('hidden');
+      emptyState.classList.remove('flex');
+    }
+  }
+}
+
+// 10. Hitung Ringkasan Keranjang
+function getCartSummary() {
+  let totalItems = 0;
+  let totalPrice = 0;
+  const items = [];
+
+  for (const [id, qty] of Object.entries(cart)) {
+    if (qty > 0) {
+      const product = PRODUCTS.find(p => p.id === id);
+      if (product) {
+        totalItems += qty;
+        const subtotal = product.price * qty;
+        totalPrice += subtotal;
+        items.push({
+          ...product,
+          qty,
+          subtotal
+        });
+      }
+    }
+  }
+
+  return { totalItems, totalPrice, items };
+}
+
+// 11. Perbarui Antarmuka Pengguna (UI Keranjang & Floating Bar)
+function updateUI() {
+  const { totalItems, totalPrice } = getCartSummary();
+
+  const floatBadge = document.getElementById('floatCartBadge');
+  const floatItemCount = document.getElementById('floatItemCountText');
+  const floatTotalPrice = document.getElementById('floatTotalPrice');
+  const btnCheckout = document.getElementById('btnCheckout');
+  const headerCartCount = document.getElementById('headerCartCount');
+
+  if (floatBadge) floatBadge.textContent = totalItems;
+  if (floatItemCount) floatItemCount.textContent = `${totalItems} item`;
+  if (floatTotalPrice) floatTotalPrice.textContent = formatRupiah(totalPrice);
+
+  if (headerCartCount) {
+    if (totalItems > 0) {
+      headerCartCount.textContent = totalItems;
+      headerCartCount.classList.remove('hidden');
+      headerCartCount.classList.add('flex');
+    } else {
+      headerCartCount.classList.add('hidden');
+      headerCartCount.classList.remove('flex');
+    }
+  }
+
+  if (btnCheckout) {
+    const open = isStoreOpen();
+    if (!open) {
+      btnCheckout.disabled = true;
+      btnCheckout.innerHTML = `
+        <span>Toko Tutup (Buka 08.00 WIB)</span>
+      `;
+    } else {
+      btnCheckout.disabled = totalItems === 0;
+      btnCheckout.innerHTML = `
+        <span>Lihat Pesanan</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+        </svg>
+      `;
+    }
+  }
+
+  // Simpan status keranjang ke localStorage
+  saveCartToStorage();
+
+  // Sinkronkan nominal pada box QRIS jika elemen tersedia
+  const qrisAmount = document.getElementById('qrisTotalAmount');
+  if (qrisAmount) qrisAmount.textContent = formatRupiah(totalPrice);
+
+  // Perbarui daftar di modal jika sedang terbuka
+  renderModalCart();
+}
+
+// 12. Aksi Keranjang
+function addToCart(productId) {
+  cart[productId] = (cart[productId] || 0) + 1;
+  const product = PRODUCTS.find(p => p.id === productId);
+  showToast(`+1 ${product ? product.name : 'Item'} ditambahkan`);
+  
+  // Update HANYA kartu yang bersangkutan (Tanpa reload foto)
+  updateProductCardState(productId);
+  updateUI();
+}
+
+function updateQty(productId, delta) {
+  const current = cart[productId] || 0;
+  const next = current + delta;
+  const product = PRODUCTS.find(p => p.id === productId);
+
+  if (next <= 0) {
+    delete cart[productId];
+    showToast(`${product ? product.name : 'Item'} dihapus dari keranjang`);
+  } else {
+    cart[productId] = next;
+    if (delta > 0) {
+      showToast(`+1 ${product ? product.name : 'Item'}`);
+    }
+  }
+
+  // Update HANYA kartu yang bersangkutan (Tanpa reload foto)
+  updateProductCardState(productId);
+  updateUI();
+}
+
+function clearEntireCart() {
+  if (Object.keys(cart).length === 0) return;
+  if (confirm('Kosongkan semua pesanan di keranjang?')) {
+    const productIds = Object.keys(cart);
+    cart = {};
+    saveCartToStorage();
+
+    // Reset tombol pada semua kartu produk
+    productIds.forEach(id => updateProductCardState(id));
+    updateUI();
+    showToast('Keranjang berhasil dikosongkan');
+    closeCartModal();
+  }
+}
+
+// 13. Filter Kategori & Pencarian
+function setCategory(cat, btnElement) {
+  currentCategory = cat;
+  document.querySelectorAll('.cat-pill').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  if (btnElement) {
+    btnElement.classList.add('active');
+  }
+  applyFilters();
+}
+
+function handleSearch(val) {
+  searchQuery = val;
+  const clearBtn = document.getElementById('clearSearchBtn');
+  if (clearBtn) {
+    if (val.trim().length > 0) {
+      clearBtn.classList.remove('hidden');
+      clearBtn.classList.add('flex');
+    } else {
+      clearBtn.classList.add('hidden');
+      clearBtn.classList.remove('flex');
+    }
+  }
+  applyFilters();
+}
+
+function clearSearch() {
+  const input = document.getElementById('searchInput');
+  if (input) input.value = '';
+  searchQuery = '';
+  const clearBtn = document.getElementById('clearSearchBtn');
+  if (clearBtn) clearBtn.classList.add('hidden');
+
+  // Kembalikan seleksi kategori ke 'Semua Rasa'
+  currentCategory = 'all';
+  document.querySelectorAll('.cat-pill').forEach((btn, idx) => {
+    btn.classList.toggle('active', idx === 0);
+  });
+
+  applyFilters();
+}
+
+// 14. Modal Keranjang
+function openCartModal() {
+  if (!isStoreOpen()) {
+    showToast('Toko sedang tutup. Fitur checkout dibuka kembali pukul 08.00 WIB');
+    return;
+  }
+
+  const modal = document.getElementById('cartModal');
+  const box = document.getElementById('cartContentBox');
+  if (!modal || !box) return;
+
+  renderModalCart();
+
+  modal.classList.remove('opacity-0', 'pointer-events-none');
+  modal.classList.add('opacity-100');
+  box.classList.remove('translate-y-full', 'sm:translate-y-4');
+  box.classList.add('translate-y-0');
+}
+
+function closeCartModal() {
+  const modal = document.getElementById('cartModal');
+  const box = document.getElementById('cartContentBox');
+  if (!modal || !box) return;
+
+  modal.classList.add('opacity-0', 'pointer-events-none');
+  modal.classList.remove('opacity-100');
+  box.classList.add('translate-y-full', 'sm:translate-y-4');
+  box.classList.remove('translate-y-0');
+}
+
+function renderModalCart() {
+  const { totalItems, totalPrice, items } = getCartSummary();
+  const listEl = document.getElementById('cartItemList');
+  const modalItemSubtitle = document.getElementById('modalItemSubtitle');
+  const modalTotalItems = document.getElementById('modalTotalItems');
+  const modalTotalPrice = document.getElementById('modalTotalPrice');
+  const modalBtnSubmit = document.getElementById('modalBtnSubmit');
+
+  if (modalItemSubtitle) modalItemSubtitle.textContent = `${totalItems} item dipilih`;
+  if (modalTotalItems) modalTotalItems.textContent = `${totalItems} pcs`;
+  if (modalTotalPrice) modalTotalPrice.textContent = formatRupiah(totalPrice);
+
+  const qrisAmount = document.getElementById('qrisTotalAmount');
+  if (qrisAmount) qrisAmount.textContent = formatRupiah(totalPrice);
+
+  if (!listEl) return;
+
+  if (items.length === 0) {
+    if (modalBtnSubmit) modalBtnSubmit.disabled = true;
+    listEl.innerHTML = `
+      <div class="py-8 text-center flex flex-col items-center justify-center">
+        <span class="text-3xl mb-1.5">🛒</span>
+        <p class="font-bold text-stone-700 text-xs">Keranjang Belanja Masih Kosong</p>
+        <p class="text-[11px] text-stone-400 mt-0.5 max-w-xs">Pilih varian Es Gabin favoritmu untuk melanjutkan pemesanan.</p>
+        <button onclick="closeCartModal()" class="mt-3 px-3.5 py-1.5 text-xs font-bold text-white bg-brand-500 rounded-xl shadow-xs hover:bg-brand-600 transition">
+          Lihat Menu Es Gabin
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  if (modalBtnSubmit) {
+    const open = isStoreOpen();
+    if (!open) {
+      modalBtnSubmit.disabled = true;
+      modalBtnSubmit.innerHTML = `<span>Toko Tutup (Buka 08.00 WIB)</span>`;
+    } else {
+      modalBtnSubmit.disabled = false;
+      modalBtnSubmit.innerHTML = `
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <span>Buat Pesanan & Lihat Struk</span>
+      `;
+    }
+  }
+
+  listEl.innerHTML = items.map(item => `
+    <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-stone-50 border border-stone-200/70">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-10 h-10 rounded-lg overflow-hidden shrink-0 ${item.flavorBg} flex items-center justify-center shadow-xs">
+          <span class="text-xs">🥪</span>
+        </div>
+        <div class="min-w-0">
+          <h5 class="font-bold text-stone-900 text-xs truncate">${item.name}</h5>
+          <div class="text-[10px] text-stone-500">
+            ${formatRupiah(item.price)} × ${item.qty}
+          </div>
+          <span class="text-xs font-black text-brand-600">${formatRupiah(item.subtotal)}</span>
+        </div>
+      </div>
+
+      <div class="flex items-center bg-white rounded-lg p-0.5 border border-stone-200 shrink-0">
+        <button 
+          onclick="updateQty('${item.id}', -1)"
+          class="w-6 h-6 rounded bg-stone-100 text-stone-700 hover:bg-rose-50 hover:text-rose-600 flex items-center justify-center font-bold text-xs"
+          aria-label="Kurangi"
+        >
+          -
+        </button>
+        <span class="w-7 text-center text-xs font-bold text-stone-800">${item.qty}</span>
+        <button 
+          onclick="updateQty('${item.id}', 1)"
+          class="w-6 h-6 rounded bg-brand-500 text-white hover:bg-brand-600 flex items-center justify-center font-bold text-xs"
+          aria-label="Tambah"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 15. Pilihan Metode Pesanan & Pembayaran
+function setOrderMethod(method) {
+  selectedOrderMethod = method;
+  const tabPickup = document.getElementById('tabMethodPickup');
+  const tabDelivery = document.getElementById('tabMethodDelivery');
+  const pickupSection = document.getElementById('pickupSection');
+  const deliverySection = document.getElementById('deliverySection');
+
+  if (method === 'pickup') {
+    tabPickup?.classList.add('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
+    tabPickup?.classList.remove('border-stone-200', 'bg-white', 'text-stone-700');
+    tabDelivery?.classList.add('border-stone-200', 'bg-white', 'text-stone-700');
+    tabDelivery?.classList.remove('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
+
+    pickupSection?.classList.remove('hidden');
+    deliverySection?.classList.add('hidden');
+    clearFieldError('deliveryAddress');
+  } else {
+    tabDelivery?.classList.add('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
+    tabDelivery?.classList.remove('border-stone-200', 'bg-white', 'text-stone-700');
+    tabPickup?.classList.add('border-stone-200', 'bg-white', 'text-stone-700');
+    tabPickup?.classList.remove('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
+
+    pickupSection?.classList.add('hidden');
+    deliverySection?.classList.remove('hidden');
+    clearFieldError('pickupTime');
+  }
+  clearFieldError('orderMethod');
+}
+
+function setPaymentMethod(method) {
+  selectedPaymentMethod = method;
+  const tabQris = document.getElementById('tabPaymentQris');
+  const tabTunai = document.getElementById('tabPaymentTunai');
+  const qrisBox = document.getElementById('qrisPaymentBox');
+  const tunaiBox = document.getElementById('tunaiPaymentBox');
+
+  if (method === 'qris') {
+    tabQris?.classList.add('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
+    tabQris?.classList.remove('border-stone-200', 'bg-white', 'text-stone-700');
+    tabTunai?.classList.add('border-stone-200', 'bg-white', 'text-stone-700');
+    tabTunai?.classList.remove('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
+
+    qrisBox?.classList.remove('hidden');
+    tunaiBox?.classList.add('hidden');
+  } else {
+    tabTunai?.classList.add('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
+    tabTunai?.classList.remove('border-stone-200', 'bg-white', 'text-stone-700');
+    tabQris?.classList.add('border-stone-200', 'bg-white', 'text-stone-700');
+    tabQris?.classList.remove('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
+
+    qrisBox?.classList.add('hidden');
+    tunaiBox?.classList.remove('hidden');
+  }
+  clearFieldError('paymentMethod');
+}
+
+// 15b. Handler Input Jam Manual (Ketik Langsung, Format 24 Jam)
+function onPickupHourInput(el) {
+  // Hanya izinkan angka, maksimal 2 digit
+  let v = el.value.replace(/\D/g, '').slice(0, 2);
+  // Clamp langsung: digit pertama hanya 0,1,2 (jam maks 20)
+  if (v.length === 1 && parseInt(v, 10) > 2) {
+    v = ''; // angka pertama 3-9 tidak valid untuk range 08-20
+  }
+  if (v.length === 2) {
+    let n = parseInt(v, 10);
+    if (n < 8)  n = 8;
+    if (n > 20) n = 20;
+    v = String(n).padStart(2, '0');
+  }
+  el.value = v;
+  clearFieldError('pickupTime');
+  // Auto-fokus ke menit setelah 2 digit jam valid diketik
+  if (v.length === 2) {
+    document.getElementById('pickupMinute')?.focus();
+    document.getElementById('pickupMinute')?.select();
+  }
+}
+
+function onPickupMinuteInput(el) {
+  // Hanya izinkan angka, maksimal 2 digit
+  let v = el.value.replace(/\D/g, '').slice(0, 2);
+  // Clamp langsung: digit pertama maks 5 (menit 00-59)
+  if (v.length === 1 && parseInt(v, 10) > 5) {
+    v = '5';
+  }
+  if (v.length === 2) {
+    let n = parseInt(v, 10);
+    if (n > 59) n = 59;
+    v = String(n).padStart(2, '0');
+  }
+  el.value = v;
+  clearFieldError('pickupTime');
+}
+
+// 16. Helper Tampilan Error Validasi
+function setFieldError(fieldId, msg) {
+  // pickupTime kini terdiri dari dua input teks: pickupHour & pickupMinute
+  if (fieldId === 'pickupTime') {
+    ['pickupHour', 'pickupMinute'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('border-rose-500', 'ring-1', 'ring-rose-200');
+        el.classList.remove('border-stone-200');
+      }
+    });
+  } else {
+    const input = document.getElementById(fieldId);
+    if (input) {
+      input.classList.add('border-rose-500', 'ring-1', 'ring-rose-200');
+      input.classList.remove('border-stone-200');
+    }
+  }
+  const errEl = document.getElementById(`err-${fieldId}`);
+  if (errEl) {
+    errEl.textContent = msg;
+    errEl.classList.remove('hidden');
+  }
+}
+
+function clearFieldError(fieldId) {
+  // pickupTime kini terdiri dari dua select: pickupHour & pickupMinute
+  if (fieldId === 'pickupTime') {
+    ['pickupHour', 'pickupMinute'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('border-rose-500', 'ring-1', 'ring-rose-200');
+        el.classList.add('border-stone-200');
+      }
+    });
+  } else {
+    const input = document.getElementById(fieldId);
+    if (input) {
+      input.classList.remove('border-rose-500', 'ring-1', 'ring-rose-200');
+      input.classList.add('border-stone-200');
+    }
+  }
+  const errEl = document.getElementById(`err-${fieldId}`);
+  if (errEl) {
+    errEl.textContent = '';
+    errEl.classList.add('hidden');
+  }
+}
+
+// 17. Validasi Error Handling Sebelum Checkout
+function validateCheckoutForm() {
+  if (!isStoreOpen()) {
+    showToast('Toko sedang tutup. Fitur checkout dibuka kembali pukul 08.00 WIB');
+    return false;
+  }
+
+  const { totalItems, totalPrice, items } = getCartSummary();
+  if (totalItems === 0) {
+    showToast('Keranjang belanja Anda masih kosong');
+    return false;
+  }
+
+  let hasError = false;
+  let firstErrorEl = null;
+
+  // 1. Validasi Nama Pemesan
+  const nameInput = document.getElementById('customerName');
+  const nameVal = (nameInput?.value || '').trim();
+  if (nameVal.length < 2) {
+    setFieldError('customerName', 'Nama pemesan wajib diisi (minimal 2 karakter)');
+    hasError = true;
+    if (!firstErrorEl) firstErrorEl = nameInput;
+  } else {
+    clearFieldError('customerName');
+  }
+
+  // 2. Validasi Metode Pesanan
+  if (selectedOrderMethod === 'pickup') {
+    const hourEl = document.getElementById('pickupHour');
+    const minEl  = document.getElementById('pickupMinute');
+    const hourRaw = (hourEl?.value || '').trim();
+    const minRaw  = (minEl?.value || '').trim();
+    const h = parseInt(hourRaw, 10);
+    const m = parseInt(minRaw, 10);
+
+    if (hourRaw === '' || minRaw === '') {
+      setFieldError('pickupTime', 'Jam & menit rencana ambil wajib diisi');
+      hasError = true;
+      if (!firstErrorEl) firstErrorEl = hourRaw === '' ? hourEl : minEl;
+    } else if (isNaN(h) || isNaN(m) || m < 0 || m > 59) {
+      setFieldError('pickupTime', 'Format jam tidak valid (cth: jam 14, menit 30)');
+      hasError = true;
+      if (!firstErrorEl) firstErrorEl = isNaN(h) ? hourEl : minEl;
+    } else if (h * 60 + m < 8 * 60 || h * 60 + m > 20 * 60) {
+      setFieldError('pickupTime', 'Jam ambil harus dalam jam operasional toko (08:00 – 20:00 WIB)');
+      hasError = true;
+      if (!firstErrorEl) firstErrorEl = hourEl;
+    } else {
+      clearFieldError('pickupTime');
+    }
+  } else if (selectedOrderMethod === 'delivery') {
+    const addrInput = document.getElementById('deliveryAddress');
+    const addrVal = (addrInput?.value || '').trim();
+    if (addrVal.length < 10) {
+      setFieldError('deliveryAddress', 'Alamat pengiriman & patokan wajib diisi lengkap (minimal 10 karakter)');
+      hasError = true;
+      if (!firstErrorEl) firstErrorEl = addrInput;
+    } else {
+      clearFieldError('deliveryAddress');
+    }
+  }
+
+  // 3. Validasi Metode Pembayaran
+  if (!selectedPaymentMethod) {
+    setFieldError('paymentMethod', 'Silakan pilih metode pembayaran');
+    hasError = true;
+  } else {
+    clearFieldError('paymentMethod');
+  }
+
+  if (hasError) {
+    if (firstErrorEl) {
+      firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstErrorEl.focus();
+    }
+    return false;
+  }
+
+  // Format jam rencana ambil jika metode pickup
+  let pickupTimeFormatted = null;
+  if (selectedOrderMethod === 'pickup') {
+    const h = parseInt(document.getElementById('pickupHour').value, 10);
+    const m = parseInt(document.getElementById('pickupMinute').value, 10);
+    pickupTimeFormatted = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
+  // Semua Validasi Lolos: Buat Data Sementara untuk Konfirmasi
+  pendingOrder = {
+    customerName: nameVal,
+    orderMethod: selectedOrderMethod,
+    pickupTime: pickupTimeFormatted,
+    deliveryAddress: selectedOrderMethod === 'delivery' ? document.getElementById('deliveryAddress').value.trim() : null,
+    paymentMethod: selectedPaymentMethod,
+    items: [...items],
+    totalItems: totalItems,
+    totalPrice: totalPrice
+  };
+
+  // Tampilkan Modal Konfirmasi sebelum membuat pesanan & struk
+  renderConfirmModal(pendingOrder);
+  openConfirmModal();
+
+  return true;
+}
+
+// 17b. Modal Konfirmasi Data Pesanan (#confirmModal)
+let pendingOrder = null;
+
+function openConfirmModal() {
+  const modal = document.getElementById('confirmModal');
+  const box = document.getElementById('confirmContentBox');
+  if (!modal || !box) return;
+
+  modal.classList.remove('opacity-0', 'pointer-events-none');
+  modal.classList.add('opacity-100');
+  box.classList.remove('scale-95');
+  box.classList.add('scale-100');
+}
+
+function closeConfirmModal() {
+  const modal = document.getElementById('confirmModal');
+  const box = document.getElementById('confirmContentBox');
+  if (!modal || !box) return;
+
+  modal.classList.add('opacity-0', 'pointer-events-none');
+  modal.classList.remove('opacity-100');
+  box.classList.add('scale-95');
+  box.classList.remove('scale-100');
+}
+
+function renderConfirmModal(order) {
+  if (!order) return;
+
+  document.getElementById('cfmCustomerName').textContent = order.customerName;
+
+  const methodText = order.orderMethod === 'pickup' ? 'Ambil Sendiri (Pickup)' : 'Diantar / COD (Delivery)';
+  document.getElementById('cfmOrderMethod').textContent = methodText;
+
+  const detailBox = document.getElementById('cfmDetailBox');
+  if (order.orderMethod === 'pickup') {
+    detailBox.innerHTML = `<strong>Rencana Ambil:</strong> Pukul ${order.pickupTime} WIB di Kedai Mellowbites`;
+  } else {
+    detailBox.innerHTML = `<strong>Alamat Pengiriman:</strong> ${order.deliveryAddress}`;
+  }
+
+  const payBadge = document.getElementById('cfmPaymentMethod');
+  if (order.paymentMethod === 'qris') {
+    payBadge.textContent = 'QRIS';
+    payBadge.className = 'font-extrabold px-2 py-0.5 rounded text-[10px] bg-brand-100 text-brand-800';
+  } else {
+    payBadge.textContent = 'Tunai (COD)';
+    payBadge.className = 'font-extrabold px-2 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800';
+  }
+
+  document.getElementById('cfmOrderTotal').textContent = `${order.totalItems} pcs · ${formatRupiah(order.totalPrice)}`;
+}
+
+// 17c. Lanjutkan Pembuatan Pesanan Setelah Data Dikonfirmasi Benar
+function proceedCreateOrder() {
+  if (!pendingOrder) {
+    showToast('Data pesanan tidak ditemukan');
+    return;
+  }
+
+  if (!isStoreOpen()) {
+    showToast('Toko sedang tutup. Fitur checkout dibuka kembali pukul 08.00 WIB');
+    closeConfirmModal();
+    return;
+  }
+
+  // Buat Snapshot Pesanan Final dengan Nomor Order & Timestamp
+  const orderNum = generateOrderNumber();
+  const orderDate = new Date();
+
+  currentOrder = {
+    ...pendingOrder,
+    orderNumber: orderNum,
+    timestamp: orderDate
+  };
+
+  // Simpan customerName di STORAGE_NAME_KEY agar pembeli tidak perlu mengetik ulang nanti
+  try {
+    localStorage.setItem(STORAGE_NAME_KEY, currentOrder.customerName);
+  } catch (_) {}
+
+  // Kosongkan cart dan STORAGE_CART_KEY di localStorage setelah pesanan dibuat
+  const productIds = Object.keys(cart);
+  cart = {};
+  saveCartToStorage();
+
+  // Reset tampilan kuantitas kartu produk & keranjang di background
+  productIds.forEach(id => updateProductCardState(id));
+  updateUI();
+
+  // Tutup konfirmasi modal & cart modal
+  closeConfirmModal();
+  closeCartModal();
+
+  // Render & buka struk digital
+  renderReceiptModal(currentOrder);
+  openReceiptModal();
+
+  showToast('Pesanan berhasil dibuat!');
+}
+
+// 18. Helper Format Nomor Order & Tanggal
+function generateOrderNumber() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `MB-${y}${m}${d}-${rand}`;
+}
+
+function formatDateTime(d) {
+  const date = new Date(d);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${day} ${month} ${year}, ${hours}:${minutes} WIB`;
+}
+
+// 19. Modal Struk Digital (#receiptModal & #receiptPaper)
+function openReceiptModal() {
+  const modal = document.getElementById('receiptModal');
+  const box = document.getElementById('receiptContentBox');
+  if (!modal || !box) return;
+
+  modal.classList.remove('opacity-0', 'pointer-events-none');
+  modal.classList.add('opacity-100');
+  box.classList.remove('scale-95');
+  box.classList.add('scale-100');
+}
+
+function closeReceiptModal() {
+  const modal = document.getElementById('receiptModal');
+  const box = document.getElementById('receiptContentBox');
+  if (!modal || !box) return;
+
+  modal.classList.add('opacity-0', 'pointer-events-none');
+  modal.classList.remove('opacity-100');
+  box.classList.add('scale-95');
+  box.classList.remove('scale-100');
+}
+
+function renderReceiptModal(order) {
+  if (!order) return;
+
+  document.getElementById('rcptOrderNumber').textContent = order.orderNumber;
+  document.getElementById('rcptDateTime').textContent = formatDateTime(order.timestamp);
+  document.getElementById('rcptCustomerName').textContent = order.customerName;
+
+  const methodText = order.orderMethod === 'pickup' ? 'Ambil Sendiri (Pickup)' : 'Diantar / COD (Delivery)';
+  document.getElementById('rcptOrderMethod').textContent = methodText;
+
+  const detailRow = document.getElementById('rcptDetailRow');
+  if (order.orderMethod === 'pickup') {
+    detailRow.innerHTML = `<strong>Jam Rencana Ambil:</strong> Pukul ${order.pickupTime} WIB di Kedai Mellowbites`;
+  } else {
+    detailRow.innerHTML = `<strong>Alamat Pengiriman:</strong> ${order.deliveryAddress}`;
+  }
+
+  const payBadge = document.getElementById('rcptPaymentMethod');
+  if (order.paymentMethod === 'qris') {
+    payBadge.textContent = 'QRIS';
+    payBadge.className = 'font-extrabold px-2 py-0.5 rounded text-[10px] bg-brand-100 text-brand-800';
+  } else {
+    payBadge.textContent = 'Tunai (COD)';
+    payBadge.className = 'font-extrabold px-2 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800';
+  }
+
+  // Render daftar item menu dengan layout stabil bebas terpotong
+  const itemsList = document.getElementById('rcptItemsList');
+  itemsList.innerHTML = order.items.map(item => `
+    <div class="rcpt-item-row">
+      <div style="min-width: 0; flex: 1;">
+        <p class="rcpt-item-name">${item.name}</p>
+        <p class="rcpt-item-sub">${formatRupiah(item.price)} × ${item.qty}</p>
+      </div>
+      <span class="rcpt-item-price">${formatRupiah(item.subtotal)}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('rcptTotalItems').textContent = `${order.totalItems} pcs`;
+  document.getElementById('rcptTotalPrice').textContent = formatRupiah(order.totalPrice);
+}
+
+// Unduh Struk Digital sebagai Gambar PNG via html2canvas (Bebas Terpotong)
+async function downloadReceiptPng() {
+  if (typeof html2canvas === 'undefined') {
+    showToast('Library pembuat gambar sedang dimuat, silakan coba sesaat lagi...');
+    return;
+  }
+  const paper = document.getElementById('receiptPaper');
+  if (!paper || !currentOrder) return;
+
+  showToast('Membuat struk gambar PNG...');
+
+  try {
+    // 1. Tunggu web font selesai dimuat agar ukuran teks dihitung sempurna
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
+
+    // 2. Render dengan html2canvas menggunakan clone yang dinormalisasi
+    const canvas = await html2canvas(paper, {
+      scale: 2.5, // Hasil sangat jernih dan tajam
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      onclone: (clonedDoc) => {
+        const clonedPaper = clonedDoc.getElementById('receiptPaper');
+        if (clonedPaper) {
+          // Reset transform pada modal agar tidak menimbulkan pergeseran posisi koordinat
+          clonedPaper.style.transform = 'none';
+          clonedPaper.style.margin = '0 auto';
+          clonedPaper.style.boxShadow = 'none';
+          clonedPaper.style.width = '360px';
+          clonedPaper.style.maxWidth = '360px';
+          clonedPaper.style.overflow = 'visible';
+
+          // Netralkan parent agar tidak memotong struk
+          let p = clonedPaper.parentElement;
+          while (p) {
+            p.style.transform = 'none';
+            p.style.overflow = 'visible';
+            p = p.parentElement;
+          }
+        }
+      }
+    });
+
+    const link = document.createElement('a');
+    link.download = `Struk-Mellowbites-${currentOrder.orderNumber}.png`;
+    link.href = canvas.toDataURL('image/png', 1.0);
+    link.click();
+    showToast('Struk berhasil diunduh (PNG)!');
+  } catch (err) {
+    console.error('Gagal membuat gambar struk:', err);
+    showToast('Gagal mengunduh struk gambar');
+  }
+}
+
+// 20. Sanitasi Teks WhatsApp
+function sanitizeForWhatsApp(text) {
+  if (!text) return '';
+  return text.replace(/[\uFE00-\uFE0F\u200B-\u200D]/g, '');
+}
+
+// 21. Generator Teks Ringkasan Pesanan (Format WhatsApp Lengkap dengan No. Order & Kalimat Dinamis)
+function buildOrderString() {
+  const o = currentOrder;
+  if (!o) return null;
+
+  const formattedDate = formatDateTime(o.timestamp);
+
+  let text = `Halo Kak, saya mau konfirmasi pesanan *Es Gabin - Mellowbites*:\n\n`;
+  text += `*No. Order:* ${o.orderNumber}\n`;
+  text += `*Waktu Pesan:* ${formattedDate}\n`;
+  text += `*Nama Pemesan:* ${o.customerName}\n\n`;
+
+  text += `*Metode Pesanan:* ${o.orderMethod === 'pickup' ? `Ambil Sendiri (Pickup) - Jam ${o.pickupTime} WIB` : `Diantar / COD (Delivery)`}\n`;
+  if (o.orderMethod === 'delivery') {
+    text += `*Alamat Pengiriman:* ${o.deliveryAddress}\n`;
+  }
+  text += `*Metode Pembayaran:* ${o.paymentMethod === 'qris' ? 'QRIS' : 'Tunai (COD)'}\n\n`;
+
+  text += `*Rincian Item:*\n`;
+  o.items.forEach((item, index) => {
+    text += `${index + 1}. *${item.name}* (${item.qty} pcs) = ${formatRupiah(item.subtotal)}\n`;
+  });
+  text += `\n*Total Item:* ${o.totalItems} pcs\n`;
+  text += `*Total Tagihan:* *${formatRupiah(o.totalPrice)}*\n\n`;
+
+  // Kalimat penutup dinamis sesuai metode pembayaran
+  if (o.paymentMethod === 'qris') {
+    text += `Saya sudah melakukan pembayaran via QRIS, berikut saya lampirkan bukti transfer & struk pesanannya ya kak 🙏😇`;
+  } else {
+    text += `Pembayaran Tunai (COD) saat pesanan diterima/diambil ya kak, berikut struk pesanannya 🙏😇`;
+  }
+
+  return sanitizeForWhatsApp(text);
+}
+
+// 22. Kirim Konfirmasi ke WhatsApp
+function submitWhatsAppOrder() {
+  if (!currentOrder) {
+    showToast('Silakan buat pesanan terlebih dahulu');
+    return;
+  }
+
+  const text = buildOrderString();
+  if (!text) return;
+
+  // Nomor WhatsApp Penjual (Preserved)
+  const waNumber = '6285646409023';
+  const waUrl = `https://api.whatsapp.com/send?phone=${waNumber}&text=${encodeURIComponent(text)}`;
+
+  window.open(waUrl, '_blank');
+  showToast('Membuka WhatsApp untuk mengirim konfirmasi...');
+}
+
+// 23. Salin Rincian Pesanan ke Clipboard
+function copyOrderText() {
+  const text = buildOrderString();
+  if (!text) return;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('📋 Rincian pesanan berhasil disalin!');
+    }).catch(() => {
+      showToast('Gagal menyalin ke clipboard');
+    });
+  } else {
+    showToast('Clipboard tidak didukung di browser ini');
+  }
+}
+
+// 24. Notifikasi Toast
+let toastTimeout;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toastMessage');
+  if (!toast || !toastMsg) return;
+
+  toastMsg.textContent = msg;
+  toast.classList.remove('opacity-0');
+  toast.classList.add('opacity-100');
+
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.classList.add('opacity-0');
+    toast.classList.remove('opacity-100');
+  }, 1600);
+}
+
+// 25. Logika Jam Buka/Tutup Toko (berbasis WIB UTC+7)
+function getWIBMinutes() {
+  // Konversi waktu saat ini ke menit dalam zona WIB (UTC+7),
+  // terlepas dari zona lokal perangkat customer (WIT/WITA/WIB sekalipun)
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const wibMs = utcMs + 7 * 3600000; // UTC+7
+  const wib = new Date(wibMs);
+  return wib.getHours() * 60 + wib.getMinutes();
+}
+
+function isStoreOpen() {
+  const currentMinutes = getWIBMinutes();
+  const openMinutes  = 8 * 60;   // 08:00 WIB (480 menit)
+  const closeMinutes = 20 * 60;  // 20:00 WIB (1200 menit)
+
+  return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+}
+
+function updateStoreStatus() {
+  const badge = document.getElementById('storeStatusBadge');
+  const closedNotice = document.getElementById('storeClosedNotice');
+  if (!badge) return;
+
+  const open = isStoreOpen();
+
+  if (open) {
+    badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200/70 transition-all';
+    badge.innerHTML = `
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+      <span>Buka</span>
+    `;
+    badge.title = 'Toko sedang buka (08.00 - 20.00 WIB)';
+
+    if (closedNotice) {
+      closedNotice.classList.add('hidden');
+    }
+  } else {
+    badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200/70 transition-all';
+    badge.innerHTML = `
+      <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>
+      <span>Tutup</span>
+    `;
+    badge.title = 'Toko sedang tutup (Buka kembali pukul 08.00 WIB)';
+
+    if (closedNotice) {
+      closedNotice.classList.remove('hidden');
+    }
+  }
+
+  // Sinkronkan status tombol checkout dengan jam operasional toko
+  const btnCheckout = document.getElementById('btnCheckout');
+  const { totalItems } = getCartSummary();
+  if (btnCheckout) {
+    if (!open) {
+      btnCheckout.disabled = true;
+      btnCheckout.innerHTML = `<span>Toko Tutup (Buka 08.00 WIB)</span>`;
+    } else {
+      btnCheckout.disabled = totalItems === 0;
+      btnCheckout.innerHTML = `
+        <span>Lihat Pesanan</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+        </svg>
+      `;
+    }
+  }
+}
+
+// 26. Inisialisasi Saat Dokumen Siap
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Muat data keranjang & formulir dari localStorage
+  loadCartFromStorage();
+
+  // 2. Render kartu produk SEKALI SAJA (foto tetap di-cache oleh browser)
+  initProductGrid();
+
+  // 3. Perbarui bilah total & status toko
+  updateUI();
+  updateStoreStatus();
+
+  // 4. Pasang listener otomatis hapus error saat user mengetik/mengubah input
+  document.getElementById('customerName')?.addEventListener('input', (e) => {
+    clearFieldError('customerName');
+    try {
+      localStorage.setItem(STORAGE_NAME_KEY, e.target.value);
+    } catch (_) {}
+  });
+
+  // Handler clearError sudah ditangani langsung via oninput di HTML (onPickupHourInput / onPickupMinuteInput)
+  // Listener tambahan di sini sebagai fallback
+
+  document.getElementById('pickupHour')?.addEventListener('input', () => {
+    clearFieldError('pickupTime');
+  });
+
+  document.getElementById('pickupMinute')?.addEventListener('input', () => {
+    clearFieldError('pickupTime');
+  });
+
+  document.getElementById('deliveryAddress')?.addEventListener('input', () => {
+    clearFieldError('deliveryAddress');
+  });
+
+  // 5. Periksa status buka/tutup berkala setiap 30 detik
+  setInterval(updateStoreStatus, 30000);
+});

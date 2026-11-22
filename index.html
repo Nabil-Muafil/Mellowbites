@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Katalog Es Gabin - Mellowbites</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- html2canvas CDN for Digital Receipt Image Export -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+
+  <!-- External Application Logic -->
+  <script src="js/main.js"></script>
+</head>
+<body class="bg-stone-50 font-sans text-stone-800 antialiased min-h-screen pb-32">
+
+  <!-- TOP HEADER / BANNER -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-stone-200/80 transition-all">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+      
+      <!-- Brand Logo & Status -->
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-500 via-amber-500 to-yellow-400 flex items-center justify-center text-white shadow-md shadow-brand-500/25">
+          <!-- Ice Cream Gabin SVG Icon -->
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="5" rx="1.5" fill="#fde047" stroke="#b45309" />
+            <rect x="4" y="8" width="16" height="8" rx="1" fill="#fed7aa" stroke="#ea580c" />
+            <rect x="3" y="16" width="18" height="5" rx="1.5" fill="#fde047" stroke="#b45309" />
+            <circle cx="7" cy="5.5" r="0.75" fill="#b45309" />
+            <circle cx="12" cy="5.5" r="0.75" fill="#b45309" />
+            <circle cx="17" cy="5.5" r="0.75" fill="#b45309" />
+            <circle cx="7" cy="18.5" r="0.75" fill="#b45309" />
+            <circle cx="12" cy="18.5" r="0.75" fill="#b45309" />
+            <circle cx="17" cy="18.5" r="0.75" fill="#b45309" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-stone-900 leading-tight">Es Gabin - Mellowbites</h1>
+            <span id="storeStatusBadge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200/70 transition-all" title="Jam Operasional 08.00 - 20.00 WIB">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>
+              <span>Buka</span>
+            </span>
+          </div>
+          <p class="text-xs text-stone-500 font-medium">Biskuit Renyah, Fla Creamy Lumer ❄️</p>
+        </div>
+      </div>
+
+      <!-- Quick Cart Button in Header -->
+      <button 
+        onclick="openCartModal()" 
+        class="relative p-2.5 text-stone-600 hover:text-brand-600 rounded-2xl hover:bg-stone-100 transition active:scale-95" 
+        aria-label="Buka Keranjang"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+        </svg>
+        <span id="headerCartCount" class="hidden absolute top-1 right-1 bg-brand-500 text-white text-[10px] font-bold w-4 h-4 rounded-full items-center justify-center ring-2 ring-white">0</span>
+      </button>
+    </div>
+
+    <!-- Search & Category Filters -->
+    <div class="max-w-3xl mx-auto px-4 pb-3">
+      <!-- Search Bar -->
+      <div class="relative mb-2.5">
+        <input 
+          type="text" 
+          id="searchInput" 
+          oninput="handleSearch(this.value)"
+          placeholder="Cari varian rasa (Double choco, matcha, durian...)" 
+          class="w-full pl-10 pr-9 py-2 text-xs sm:text-sm bg-stone-100 hover:bg-stone-100/80 focus:bg-white border border-transparent focus:border-brand-400 rounded-xl focus:ring-2 focus:ring-brand-200 outline-none transition placeholder-stone-400"
+        >
+        <svg class="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 text-xs bg-stone-200/80 w-5 h-5 rounded-full items-center justify-center">✕</button>
+      </div>
+
+      <!-- Categories Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 text-xs font-semibold">
+        <button onclick="setCategory('all', this)" class="cat-pill active px-3.5 py-1.5 rounded-full whitespace-nowrap">
+          Semua Rasa (8)
+        </button>
+        <button onclick="setCategory('bestseller', this)" class="cat-pill px-3.5 py-1.5 rounded-full whitespace-nowrap">
+          ⭐ Terlaris
+        </button>
+        <button onclick="setCategory('choco', this)" class="cat-pill px-3.5 py-1.5 rounded-full whitespace-nowrap">
+          🍫 Cokelat
+        </button>
+        <button onclick="setCategory('fruity', this)" class="cat-pill px-3.5 py-1.5 rounded-full whitespace-nowrap">
+          🍓 Fruity
+        </button>
+        <button onclick="setCategory('special', this)" class="cat-pill px-3.5 py-1.5 rounded-full whitespace-nowrap">
+          ✨ Spesial Mix
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- BANNER STATUS TOKO TUTUP (OTOMATIS MUNCUL SAAT PUKUL 20:01 - 07:59 WIB) -->
+  <div id="storeClosedNotice" class="hidden max-w-3xl mx-auto px-4 pt-2.5">
+    <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center justify-between gap-2 shadow-xs">
+      <div class="flex items-center gap-2">
+        <span class="text-base">🌙</span>
+        <p>
+          <span class="font-bold">Toko Sedang Tutup:</span> Jam operasional 08.00 - 20.00 WIB. checkout dapat diakses kembali pukul 08.00 WIB.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO PROMO CARD -->
+  <main class="max-w-3xl mx-auto px-4 pt-3">
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-rose-400 p-4 text-white shadow-md mb-5">
+      <div class="relative z-10 flex items-center justify-between gap-3">
+        <div class="max-w-[70%]">
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-sm text-[10px] font-bold tracking-wide uppercase mb-1">
+            <span>❄️</span> 100% Homemade & Halal
+          </span>
+          <h2 class="text-base sm:text-lg font-black leading-tight">Sensasi Es Krim Gabin Lumer!</h2>
+          <p class="text-xs text-orange-50 mt-1 leading-snug">Renyah di luar, creamy dingin lumer di dalam. Praktis & bikin nagih!</p>
+        </div>
+        <div class="shrink-0 w-20 sm:w-24 bg-white/20 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center p-2.5 text-center border border-white/30 shadow-inner">
+          <span class="text-[9px] font-bold uppercase tracking-wider text-amber-100">Harga Mulai</span>
+          <span class="text-sm sm:text-base font-extrabold text-white">Rp.8000</span>
+          <span class="text-[9px] text-orange-100">per bungkus</span>
+        </div>
+      </div>
+      <!-- Decorative background blur -->
+      <div class="absolute -right-6 -bottom-8 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+    </div>
+
+    <!-- CATALOG HEADER -->
+    <div class="flex items-center justify-between mb-3 px-0.5">
+      <div>
+        <h3 class="font-extrabold text-stone-900 text-base flex items-center gap-1.5">
+          <span>Katalog Varian Es Gabin</span>
+          <span id="filteredCountBadge" class="text-xs font-semibold text-stone-400"></span>
+        </h3>
+        <p class="text-xs text-stone-500">Pilih rasa favorit dan sesuaikan jumlah yang diinginkan</p>
+      </div>
+      <span class="text-[11px] font-semibold text-brand-700 bg-brand-50 border border-brand-200/60 px-2.5 py-0.5 rounded-full">
+        8 Pilihan Rasa
+      </span>
+    </div>
+
+    <!-- PRODUCT GRID CONTAINER -->
+    <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+      <!-- Cards rendered dynamically via js/main.js -->
+    </div>
+
+    <!-- EMPTY STATE FOR SEARCH -->
+    <div id="emptyState" class="hidden flex-col items-center justify-center py-12 text-center bg-white rounded-2xl border border-dashed border-stone-200 mt-2">
+      <div class="w-14 h-14 bg-stone-100 rounded-full flex items-center justify-center text-stone-400 mb-2 text-2xl">
+        🔍
+      </div>
+      <p class="font-bold text-stone-700 text-sm">Varian rasa tidak ditemukan</p>
+      <p class="text-xs text-stone-400 mt-1 max-w-xs">Coba kata kunci lain atau pilih dari kategori rasa di atas.</p>
+      <button onclick="clearSearch()" class="mt-3 px-4 py-1.5 text-xs font-semibold text-brand-600 bg-brand-50 rounded-lg hover:bg-brand-100 transition">
+        Lihat Semua 8 Varian
+      </button>
+    </div>
+
+    <!-- TIPS / EDU FOOTNOTE -->
+    <div class="mt-7 p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/70 text-xs text-amber-900 flex items-start gap-3">
+      <div class="w-7 h-7 rounded-xl bg-amber-200 text-amber-800 flex items-center justify-center shrink-0 font-bold text-sm shadow-xs">
+        💡
+      </div>
+      <div>
+        <p class="font-bold text-amber-950">Saran Penyajian Es Gabin:</p>
+        <p class="text-amber-900/90 mt-0.5 leading-relaxed">
+          Simpan di freezer lemari es. Langsung nikmati selagi dingin beku untuk sensasi <em>crispy ice cream sandwich</em>, atau diamkan 2 menit agar flanya semakin lembut & lumer!
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <!-- FLOATING BOTTOM BAR (CART SUMMARY) -->
+  <aside id="floatingBar" class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200/90 shadow-float px-4 py-3 transition-all duration-300">
+    <div class="max-w-3xl mx-auto flex items-center justify-between gap-3">
+      
+      <!-- Cart Info Left -->
+      <div class="flex items-center gap-3 cursor-pointer group select-none" onclick="openCartModal()">
+        <div class="relative">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-500 to-amber-500 text-white flex items-center justify-center shadow-md shadow-brand-500/30 group-hover:from-brand-600 group-hover:to-amber-600 transition active:scale-95">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+            </svg>
+          </div>
+          <span id="floatCartBadge" class="absolute -top-1.5 -right-1.5 bg-rose-500 text-white font-extrabold text-[11px] min-w-[20px] h-[20px] px-1 rounded-full flex items-center justify-center border-2 border-white shadow-sm transition">
+            0
+          </span>
+        </div>
+        
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[11px] font-medium text-stone-500">Total Belanja:</span>
+            <span id="floatItemCountText" class="text-[11px] font-bold text-brand-600 bg-brand-50 px-1.5 py-0.2 rounded">0 item</span>
+          </div>
+          <div id="floatTotalPrice" class="text-base sm:text-lg font-extrabold text-stone-900 tracking-tight leading-tight">
+            Rp 0
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button Right -->
+      <button 
+        id="btnCheckout"
+        onclick="openCartModal()" 
+        disabled
+        class="flex-1 sm:flex-none sm:min-w-[180px] py-2.5 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition flex items-center justify-center gap-2"
+      >
+        <span>Lihat Pesanan</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+        </svg>
+      </button>
+
+    </div>
+  </aside>
+
+  <!-- CART & CHECKOUT MODAL DRAWER -->
+  <div id="cartModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-end sm:items-center justify-center">
+    
+    <!-- Modal Backdrop Click Dismiss -->
+    <div class="absolute inset-0" onclick="closeCartModal()"></div>
+
+    <!-- Modal Content Box -->
+    <div id="cartContentBox" class="relative z-10 w-full max-w-lg bg-white rounded-t-3xl sm:rounded-2xl max-h-[90vh] flex flex-col shadow-2xl transform translate-y-full sm:translate-y-4 transition-transform duration-300">
+      
+      <!-- Drawer Handle for Mobile -->
+      <div class="sm:hidden flex justify-center pt-3 pb-1" onclick="closeCartModal()">
+        <div class="w-12 h-1.5 bg-stone-300 rounded-full cursor-pointer"></div>
+      </div>
+
+      <!-- Modal Header -->
+      <div class="px-5 py-3 border-b border-stone-100 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-brand-100 text-brand-600 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-stone-900 text-base leading-tight">Keranjang Pesanan</h3>
+            <p id="modalItemSubtitle" class="text-xs text-stone-500">0 item dipilih</p>
+          </div>
+        </div>
+
+        <button onclick="closeCartModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-500 font-bold transition">
+          ✕
+        </button>
+      </div>
+
+      <!-- Scrollable Cart Item List -->
+      <div class="overflow-y-auto px-5 py-2.5 max-h-[22vh] space-y-2 border-b border-stone-100" id="cartItemList">
+        <!-- Rendered by js/main.js -->
+      </div>
+
+      <!-- Checkout Form Area (Scrollable & Mobile-friendly) -->
+      <div class="overflow-y-auto px-5 py-3.5 bg-stone-50/90 space-y-3.5 max-h-[46vh] text-xs">
+        
+        <!-- Input Nama Pemesan -->
+        <div>
+          <label for="customerName" class="block text-xs font-bold text-stone-700 mb-1">
+            Nama Pemesan <span class="text-rose-500">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="customerName" 
+            placeholder="Masukkan nama Anda (cth: Budi)" 
+            class="w-full text-xs px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition"
+          >
+          <p id="err-customerName" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
+        </div>
+
+        <!-- Pilihan Metode Pesanan (Tab / Radio Card) -->
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1.5">
+            Metode Pesanan <span class="text-rose-500">*</span>
+          </label>
+          <div class="grid grid-cols-2 gap-2" id="orderMethodTabs">
+            <button 
+              type="button" 
+              onclick="setOrderMethod('pickup')" 
+              id="tabMethodPickup" 
+              class="p-2.5 rounded-xl border-2 text-left transition flex items-center gap-2 select-none border-brand-500 bg-brand-50/80 text-brand-900 shadow-xs"
+            >
+              <span class="text-base">🏬</span>
+              <div class="min-w-0">
+                <p class="font-extrabold text-xs leading-tight">Ambil Sendiri</p>
+                <p class="text-[10px] text-stone-500 truncate">Pickup di Toko</p>
+              </div>
+            </button>
+
+            <button 
+              type="button" 
+              onclick="setOrderMethod('delivery')" 
+              id="tabMethodDelivery" 
+              class="p-2.5 rounded-xl border-2 text-left transition flex items-center gap-2 select-none border-stone-200 bg-white text-stone-700 hover:border-stone-300"
+            >
+              <span class="text-base">🛵</span>
+              <div class="min-w-0">
+                <p class="font-extrabold text-xs leading-tight">Diantar / COD</p>
+                <p class="text-[10px] text-stone-500 truncate">Antar ke Rumah</p>
+              </div>
+            </button>
+          </div>
+          <p id="err-orderMethod" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
+        </div>
+
+        <!-- Sub-form Pickup (Ambil Sendiri) -->
+        <div id="pickupSection" class="space-y-2.5 p-3 rounded-xl bg-white border border-stone-200/90 shadow-2xs">
+          <!-- Alamat Toko Statis & Maps Link -->
+          <div id="storeLocationBox" class="p-2.5 rounded-lg bg-amber-50/80 border border-amber-200/70 text-amber-950">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <p class="font-bold text-[11px] flex items-center gap-1 text-amber-900">
+                  <span>📍</span> Kedai Es Gabin - Mellowbites
+                </p>
+                <p class="text-[10px] text-stone-600 mt-0.5 leading-snug">
+                  Jl. Mawar No. 14, RT 02 / RW 05 (Samping Masjid Al-Hidayah)
+                </p>
+              </div>
+              <a 
+                href="https://maps.google.com" 
+                target="_blank" 
+                class="shrink-0 px-2 py-1 text-[10px] font-bold bg-white text-brand-700 border border-brand-300 rounded-md hover:bg-brand-50 transition shadow-2xs"
+              >
+                Maps ↗
+              </a>
+            </div>
+          </div>
+
+          <!-- Input Jam Rencana Ambil (Ketik Manual, Format 24 Jam) -->
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">
+              Jam Rencana Ambil (08:00 – 20:00 WIB) <span class="text-rose-500">*</span>
+            </label>
+            <!-- Kotak jam mirip Google Forms: dua input angka + separator titik dua -->
+            <div class="flex items-center gap-1.5">
+              <input
+                type="text"
+                id="pickupHour"
+                inputmode="numeric"
+                maxlength="2"
+                placeholder="08"
+                autocomplete="off"
+                oninput="onPickupHourInput(this)"
+                class="w-14 text-center text-sm font-bold px-2 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition placeholder-stone-300"
+              >
+              <span class="text-stone-600 font-black text-base select-none">:</span>
+              <input
+                type="text"
+                id="pickupMinute"
+                inputmode="numeric"
+                maxlength="2"
+                placeholder="00"
+                autocomplete="off"
+                oninput="onPickupMinuteInput(this)"
+                class="w-14 text-center text-sm font-bold px-2 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition placeholder-stone-300"
+              >
+              <span class="text-xs text-stone-400 font-semibold ml-1">WIB</span>
+            </div>
+            <p class="text-[10px] text-stone-400 mt-1">Ketik angka langsung · Format 24 jam (cth: 14 : 30)</p>
+            <p id="err-pickupTime" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
+          </div>
+        </div>
+
+        <!-- Sub-form Delivery (Diantar / COD) -->
+        <div id="deliverySection" class="hidden space-y-2.5 p-3 rounded-xl bg-white border border-stone-200/90 shadow-2xs">
+          <div>
+            <label for="deliveryAddress" class="block text-xs font-bold text-stone-700 mb-1">
+              Alamat Lengkap & Patokan Rumah <span class="text-rose-500">*</span>
+            </label>
+            <textarea 
+              id="deliveryAddress" 
+              rows="2" 
+              placeholder="Tuliskan nama jalan, RT/RW, nomor rumah, dan patokan (cth: pagar hijau depan pos ronda)..." 
+              class="w-full text-xs px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition"
+            ></textarea>
+            <p id="err-deliveryAddress" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
+          </div>
+        </div>
+
+        <!-- Pilihan Metode Pembayaran (Tab / Radio Card) -->
+        <div>
+          <label class="block text-xs font-bold text-stone-700 mb-1.5">
+            Metode Pembayaran <span class="text-rose-500">*</span>
+          </label>
+          <div class="grid grid-cols-2 gap-2" id="paymentMethodTabs">
+            <button 
+              type="button" 
+              onclick="setPaymentMethod('qris')" 
+              id="tabPaymentQris" 
+              class="p-2.5 rounded-xl border-2 text-left transition flex items-center gap-2 select-none border-brand-500 bg-brand-50/80 text-brand-900 shadow-xs"
+            >
+              <span class="text-base">📱</span>
+              <div class="min-w-0">
+                <p class="font-extrabold text-xs leading-tight">QRIS</p>
+                <p class="text-[10px] text-stone-500 truncate">Scan QR / E-Wallet</p>
+              </div>
+            </button>
+
+            <button 
+              type="button" 
+              onclick="setPaymentMethod('tunai')" 
+              id="tabPaymentTunai" 
+              class="p-2.5 rounded-xl border-2 text-left transition flex items-center gap-2 select-none border-stone-200 bg-white text-stone-700 hover:border-stone-300"
+            >
+              <span class="text-base">💵</span>
+              <div class="min-w-0">
+                <p class="font-extrabold text-xs leading-tight">Tunai (COD)</p>
+                <p class="text-[10px] text-stone-500 truncate">Bayar di Tempat</p>
+              </div>
+            </button>
+          </div>
+          <p id="err-paymentMethod" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
+        </div>
+
+        <!-- Container Box QRIS (Tampil jika QRIS dipilih) -->
+        <div id="qrisPaymentBox" class="p-3.5 rounded-2xl bg-white border border-brand-200 space-y-2.5 shadow-2xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-stone-700">Scan QRIS Mellowbites:</span>
+            <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-brand-100 text-brand-800">Semua E-Wallet & M-Banking</span>
+          </div>
+
+          <!-- Gambar QRIS Statis dengan Fallback SVG -->
+          <div class="relative w-44 sm:w-48 mx-auto bg-stone-50 rounded-xl p-2 border border-stone-200">
+            <img 
+              src="img/qris.png" 
+              alt="QRIS Es Gabin Mellowbites" 
+              class="w-full aspect-square object-contain mx-auto rounded-lg"
+              onerror="this.classList.add('hidden'); document.getElementById('qrisSvgFallback').classList.remove('hidden');"
+            />
+            <div id="qrisSvgFallback" class="hidden w-full aspect-square bg-gradient-to-tr from-stone-100 to-amber-50 rounded-lg flex flex-col items-center justify-center p-3 text-center border border-dashed border-stone-300">
+              <svg class="w-20 h-20 text-stone-800" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 13h6v6H3v-6zm2 2v2h2v-2H5zm13-2h3v3h-3v-3zm0 5h3v3h-3v-3zm-5-5h3v3h-3v-3zm0 3h3v3h-3v-3zm3 0h2v2h-2v-2zm-3-8h2v2h-2V7zm2 2h2v2h-2V9zm-2 2h2v2h-2v-2zM7 7h2v2H7V7zm0 8h2v2H7v-2z"/>
+              </svg>
+              <p class="text-[10px] font-bold text-stone-700 mt-1">QRIS Mellowbites</p>
+              <p class="text-[9px] text-stone-400">NMID: ID10293847561</p>
+            </div>
+          </div>
+
+          <!-- Total Nominal Tagihan -->
+          <div class="p-2 rounded-xl bg-brand-50 border border-brand-200/80 text-center">
+            <span class="text-[10px] text-stone-500 font-medium">Nominal yang harus dibayar:</span>
+            <p id="qrisTotalAmount" class="text-base font-black text-brand-600 tracking-tight leading-tight">Rp 0</p>
+          </div>
+
+          <!-- Peringatan Amber Wajib Lampirkan Bukti Transfer -->
+          <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 flex items-start gap-2">
+            <span class="text-sm shrink-0">⚠️</span>
+            <p class="leading-snug">
+              <span class="font-bold">Wajib:</span> Simpan bukti transfer QRIS dan lampirkan screenshot foto saat mengirim konfirmasi ke WhatsApp.
+            </p>
+          </div>
+        </div>
+
+        <!-- Container Box Tunai / COD (Tampil jika Tunai dipilih) -->
+        <div id="tunaiPaymentBox" class="hidden p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-[11px] flex items-start gap-2">
+          <span class="text-sm shrink-0">💵</span>
+          <p class="leading-snug">
+            <span class="font-bold">Pembayaran Tunai di Tempat:</span> Mohon siapkan uang pas saat pesanan diambil atau diantar agar transaksi lebih cepat dan nyaman.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Summary & CTA Footer -->
+      <div class="p-4 border-t border-stone-200 bg-white space-y-2.5">
+        <!-- Subtotal calculation -->
+        <div class="space-y-1 text-xs">
+          <div class="flex justify-between text-stone-500">
+            <span>Total Item:</span>
+            <span id="modalTotalItems" class="font-semibold text-stone-700">0 pcs</span>
+          </div>
+          <div class="flex justify-between text-stone-900 text-sm font-black pt-1 border-t border-dashed border-stone-200">
+            <span>Total Tagihan:</span>
+            <span id="modalTotalPrice" class="text-brand-600 text-base font-extrabold">Rp 0</span>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex items-center gap-2 pt-1">
+          <button 
+            onclick="clearEntireCart()" 
+            class="px-3 py-2.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition flex items-center justify-center gap-1 active:scale-95"
+            title="Kosongkan Keranjang"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            <span>Reset</span>
+          </button>
+
+          <!-- Tombol Buat Pesanan & Lihat Struk -->
+          <button 
+            onclick="validateCheckoutForm()" 
+            id="modalBtnSubmit"
+            disabled
+            class="flex-1 py-3 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-extrabold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition flex items-center justify-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span>Buat Pesanan & Lihat Struk</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL KONFIRMASI DATA PESANAN (#confirmModal) -->
+  <div id="confirmModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
+    <!-- Backdrop dismiss -->
+    <div class="absolute inset-0" onclick="closeConfirmModal()"></div>
+
+    <!-- Modal Box -->
+    <div id="confirmContentBox" class="relative z-10 w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-stone-200 transform scale-95 transition-transform duration-300">
+      
+      <!-- Header -->
+      <div class="px-5 py-3.5 bg-gradient-to-r from-amber-500 to-brand-500 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📋</span>
+          <div>
+            <h3 class="font-extrabold text-sm leading-tight">Konfirmasi Data Pesanan</h3>
+            <p class="text-[11px] text-amber-100">Pastikan data Anda sudah benar</p>
+          </div>
+        </div>
+        <button onclick="closeConfirmModal()" class="w-6 h-6 rounded-full bg-black/20 hover:bg-black/30 flex items-center justify-center text-white text-xs transition">✕</button>
+      </div>
+
+      <!-- Content / Data Summary -->
+      <div class="p-4 space-y-3 text-xs text-stone-700">
+        <p class="text-[11px] text-stone-500 leading-snug">
+          Silakan periksa kembali rincian data Anda sebelum pesanan dibuat dan diproses ke WhatsApp:
+        </p>
+
+        <!-- Summary Card -->
+        <div class="p-3.5 rounded-2xl bg-stone-50 border border-stone-200/90 space-y-2 text-xs">
+          <!-- Nama -->
+          <div class="flex justify-between items-start gap-2">
+            <span class="text-stone-500 font-medium shrink-0">Nama Pemesan:</span>
+            <span id="cfmCustomerName" class="font-bold text-stone-900 text-right">-</span>
+          </div>
+
+          <!-- Metode Pesanan -->
+          <div class="flex justify-between items-start gap-2">
+            <span class="text-stone-500 font-medium shrink-0">Metode:</span>
+            <span id="cfmOrderMethod" class="font-bold text-stone-900 text-right">-</span>
+          </div>
+
+          <!-- Detail Metode (Jam Ambil atau Alamat) -->
+          <div id="cfmDetailBox" class="p-2.5 bg-white rounded-xl border border-stone-200 text-[11px] text-stone-700 leading-snug">
+            -
+          </div>
+
+          <!-- Metode Pembayaran -->
+          <div class="flex justify-between items-center gap-2 pt-1.5 border-t border-stone-200/70">
+            <span class="text-stone-500 font-medium">Pembayaran:</span>
+            <span id="cfmPaymentMethod" class="font-extrabold px-2 py-0.5 rounded text-[10px] bg-brand-100 text-brand-800">QRIS</span>
+          </div>
+
+          <!-- Total Ringkasan -->
+          <div class="flex justify-between items-center gap-2 pt-1.5 border-t border-stone-200/70">
+            <span class="text-stone-500 font-medium">Total Tagihan:</span>
+            <span id="cfmOrderTotal" class="font-black text-brand-600 text-sm">Rp 0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="p-3.5 bg-stone-50 border-t border-stone-100 flex items-center gap-2">
+        <button 
+          type="button" 
+          onclick="closeConfirmModal()" 
+          class="flex-1 py-2.5 px-3 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs transition active:scale-95 text-center"
+        >
+          Periksa Lagi
+        </button>
+        <button 
+          type="button" 
+          onclick="proceedCreateOrder()" 
+          class="flex-1 py-2.5 px-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-md shadow-brand-500/20 transition active:scale-95 text-center flex items-center justify-center gap-1.5"
+        >
+          <span>Ya, Sudah Benar</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DIGITAL RECEIPT MODAL (#receiptModal) -->
+  <div id="receiptModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-3 sm:p-4">
+    <!-- Backdrop dismiss -->
+    <div class="absolute inset-0" onclick="closeReceiptModal()"></div>
+
+    <!-- Modal Box -->
+    <div id="receiptContentBox" class="relative z-10 w-full max-w-sm max-h-[95vh] flex flex-col bg-stone-100 rounded-3xl shadow-2xl overflow-hidden border border-stone-300 transform scale-95 transition-transform duration-300">
+      
+      <!-- Modal Header Bar -->
+      <div class="px-4 py-2.5 bg-stone-900 text-white flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-1.5">
+          <span class="text-sm">🧾</span>
+          <span class="text-xs font-bold tracking-tight">Struk Digital Pesanan</span>
+        </div>
+        <button onclick="closeReceiptModal()" class="w-6 h-6 rounded-full bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-300 text-xs transition">✕</button>
+      </div>
+
+      <!-- Scrollable Receipt Body -->
+      <div class="overflow-y-auto p-3.5 sm:p-4 flex-1 flex justify-center bg-stone-100">
+        <!-- Physical Receipt Paper (#receiptPaper) -->
+        <div id="receiptPaper" class="w-full bg-white text-stone-800 p-5 rounded-2xl shadow-sm border border-stone-200/90 font-sans text-xs relative">
+          
+          <!-- Shop Header -->
+          <div class="text-center pb-1">
+            <h4 class="font-black text-stone-900 text-base tracking-tight uppercase leading-snug">Es Gabin - Mellowbites</h4>
+            <p class="text-[10px] text-stone-500 font-medium mt-0.5">Biskuit Renyah, Fla Creamy Lumer</p>
+            <p class="text-[9px] text-stone-400 mt-0.5">Jl. Mawar No. 14 • WA: 0856-4640-9023</p>
+          </div>
+
+          <!-- Divider 1 -->
+          <div class="rcpt-divider"></div>
+
+          <!-- Order Metadata -->
+          <div class="text-[11px] leading-relaxed">
+            <div class="flex justify-between py-0.5">
+              <span class="text-stone-500">No. Order:</span>
+              <span id="rcptOrderNumber" class="font-extrabold text-stone-900 font-mono">MB-00000000-0000</span>
+            </div>
+            <div class="flex justify-between py-0.5">
+              <span class="text-stone-500">Tanggal:</span>
+              <span id="rcptDateTime" class="font-semibold text-stone-700">-</span>
+            </div>
+            <div class="flex justify-between py-0.5">
+              <span class="text-stone-500">Nama Pemesan:</span>
+              <span id="rcptCustomerName" class="font-bold text-stone-900">-</span>
+            </div>
+            <div class="flex justify-between py-0.5">
+              <span class="text-stone-500">Metode Pesanan:</span>
+              <span id="rcptOrderMethod" class="font-bold text-stone-800">-</span>
+            </div>
+            <!-- Detail Row (Alamat atau Jam Ambil) -->
+            <div id="rcptDetailRow" class="text-[10px] text-stone-600 bg-stone-50 p-2 rounded-lg border border-stone-200/60 leading-normal my-1.5">
+              -
+            </div>
+            <div class="flex justify-between items-center py-0.5 mt-1">
+              <span class="text-stone-500">Pembayaran:</span>
+              <span id="rcptPaymentMethod" class="font-extrabold px-2 py-0.5 rounded text-[10px] bg-stone-100 text-stone-800">QRIS</span>
+            </div>
+          </div>
+
+          <!-- Divider 2 -->
+          <div class="rcpt-divider"></div>
+
+          <!-- Items Table -->
+          <div>
+            <div class="flex justify-between text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">
+              <span>Item Menu</span>
+              <span>Subtotal</span>
+            </div>
+            <div id="rcptItemsList" class="text-xs">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Divider 3 -->
+          <div class="rcpt-divider"></div>
+
+          <!-- Total Calculation -->
+          <div class="text-xs leading-normal">
+            <div class="flex justify-between text-stone-500 py-0.5">
+              <span>Jumlah Item:</span>
+              <span id="rcptTotalItems" class="font-semibold text-stone-800">0 pcs</span>
+            </div>
+            <div class="flex justify-between text-sm font-extrabold text-stone-900 pt-1.5 mt-1 border-t border-stone-200">
+              <span>Total Tagihan:</span>
+              <span id="rcptTotalPrice" class="text-brand-600 font-black">Rp 0</span>
+            </div>
+          </div>
+
+          <!-- Divider 4 -->
+          <div class="rcpt-divider"></div>
+
+          <!-- Receipt Footer Note -->
+          <div class="text-center text-[10px] text-stone-400 pt-0.5">
+            <p class="font-semibold text-stone-600">Terima kasih atas pesanan Anda!</p>
+            <p class="mt-0.5">Simpan struk ini sebagai bukti pemesanan.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Bottom Actions (3 Buttons) -->
+      <div class="p-3.5 bg-white border-t border-stone-200 space-y-2 shrink-0">
+        <div class="grid grid-cols-2 gap-2">
+          <!-- 1. Download PNG Button -->
+          <button 
+            type="button" 
+            onclick="downloadReceiptPng()" 
+            class="py-2.5 px-3 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            <span>Download Struk (PNG)</span>
+          </button>
+
+          <!-- 2. Salin Pesanan Button -->
+          <button 
+            type="button" 
+            onclick="copyOrderText()" 
+            class="py-2.5 px-3 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
+            </svg>
+            <span>Salin Pesanan</span>
+          </button>
+        </div>
+
+        <!-- 3. WhatsApp Confirmation Button -->
+        <button 
+          type="button" 
+          onclick="submitWhatsAppOrder()" 
+          class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-emerald-600/20 active:scale-95 transition flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+          </svg>
+          <span>Konfirmasi ke WhatsApp</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-stone-900/90 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-xl pointer-events-none opacity-0 transition-opacity duration-200 flex items-center gap-2">
+    <span id="toastMessage">Tersimpan</span>
+  </div>
+
+</body>
+</html>

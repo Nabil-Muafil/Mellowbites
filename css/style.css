@@ -1,0 +1,139 @@
+/* ============================================================
+   Katalog Es Gabin Kress - Custom Stylesheet
+   ============================================================ */
+
+/* Touch & tap highlight optimization */
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide scrollbar for category pills / horizontal scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Category Pill Styling with Active & Hover states */
+.cat-pill {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  border: 1px solid transparent;
+  user-select: none;
+}
+
+.cat-pill:not(.active) {
+  background-color: #f5f5f4; /* stone-100 */
+  color: #57534e;            /* stone-600 */
+}
+
+.cat-pill:not(.active):hover {
+  background-color: #ffedd5; /* brand-100 */
+  color: #ea580c;            /* brand-600 */
+  transform: translateY(-1px);
+}
+
+.cat-pill.active {
+  background-color: #f97316; /* brand-500 */
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 14px -2px rgba(249, 115, 22, 0.4);
+  border-color: #ea580c;
+  transform: translateY(-1px) scale(1.04);
+}
+
+.cat-pill.active:hover {
+  background-color: #ea580c; /* brand-600 */
+  box-shadow: 0 6px 16px -2px rgba(234, 88, 12, 0.45);
+}
+
+/* Subtle micro-animations */
+@keyframes pulse-subtle {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.animate-pop {
+  animation: pulse-subtle 0.25s ease-in-out 1;
+}
+
+/* Floating bottom bar custom shadow */
+.shadow-float {
+  box-shadow: 0 -4px 25px -3px rgba(0, 0, 0, 0.08), 0 -1px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Modal Drawer transition helpers */
+#cartModal,
+#confirmModal,
+#receiptModal {
+  transition: opacity 0.25s ease-in-out;
+}
+
+#cartContentBox,
+#confirmContentBox,
+#receiptContentBox {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================================
+   Receipt Paper - Optimized for html2canvas Export
+   ============================================================ */
+#receiptPaper {
+  box-sizing: border-box;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  line-height: 1.45;
+  color: #1c1917;
+  background-color: #ffffff;
+}
+
+/* Standalone dashed divider line - immune to html2canvas margin collapse */
+.rcpt-divider {
+  border: none !important;
+  border-top: 1.5px dashed #cbd5e1 !important;
+  height: 0 !important;
+  margin: 10px 0 !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+.rcpt-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 5px 0;
+  line-height: 1.4;
+}
+
+.rcpt-item-name {
+  font-weight: 700;
+  font-size: 12px;
+  color: #1c1917;
+  line-height: 1.35;
+  margin: 0;
+  overflow: visible;
+  word-break: break-word;
+}
+
+.rcpt-item-sub {
+  font-size: 10px;
+  color: #78716c;
+  line-height: 1.25;
+  margin-top: 2px;
+  margin-bottom: 0;
+}
+
+.rcpt-item-price {
+  font-weight: 700;
+  font-size: 12px;
+  color: #1c1917;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.35;
+}
