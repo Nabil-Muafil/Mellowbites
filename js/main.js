@@ -1952,7 +1952,15 @@ function getWIBMinutes() {
 }
 
 function isStoreOpen() {
-  return isStoreManuallyOpen;
+  // 1. Jika admin menutup toko secara manual, langsung tutup
+  if (!isStoreManuallyOpen) return false;
+
+  // 2. Cek jam operasional otomatis: 08:00 (480 menit) sampai 20:00 (1200 menit) WIB
+  const nowMinutes = getWIBMinutes();
+  const openMinutes = 8 * 60;   // 08:00 WIB
+  const closeMinutes = 20 * 60; // 20:00 WIB
+
+  return nowMinutes >= openMinutes && nowMinutes < closeMinutes;
 }
 
 function updateStoreStatus() {
