@@ -144,6 +144,7 @@ const STORAGE_NAME_KEY = 'mellowbites_customer_name';
 const STORAGE_ADDRESS_KEY = 'mellowbites_customer_address';
 const STORAGE_ORDER_HISTORY_KEY = 'mellowbites_order_history_v1';
 let isStoreManuallyOpen = true;
+let storeSettingsUpdatedAt = null;
 
 let cart = {};
 let currentCategory = 'all';
@@ -1030,21 +1031,22 @@ function setPaymentMethod(method) {
 
 // 15b. Handler Input Jam Manual (Ketik Langsung, Format 24 Jam)
 function onPickupHourInput(el) {
-  // Hanya izinkan angka, maksimal 2 digit
   let v = el.value.replace(/\D/g, '').slice(0, 2);
-  // Clamp langsung: digit pertama hanya 0,1,2 (jam maks 20)
   if (v.length === 1 && parseInt(v, 10) > 2) {
-    v = ''; // angka pertama 3-9 tidak valid untuk range 08-20
+    v = '';
   }
   if (v.length === 2) {
     let n = parseInt(v, 10);
-    if (n < 8)  n = 8;
-    if (n > 20) n = 20;
+    if (n > 23) n = 23;
+    const nowMin = getWIBMinutes();
+    if (nowMin >= 8 * 60 && nowMin < 20 * 60) {
+      if (n < 8)  n = 8;
+      if (n > 20) n = 20;
+    }
     v = String(n).padStart(2, '0');
   }
   el.value = v;
   clearFieldError('pickupTime');
-  // Auto-fokus ke menit setelah 2 digit jam valid diketik
   if (v.length === 2) {
     document.getElementById('pickupMinute')?.focus();
     document.getElementById('pickupMinute')?.select();
@@ -1144,40 +1146,24 @@ function validateCheckoutForm() {
   }
 
   // 2. Validasi Metode Pesanan
-  if (selectedOrderMethod === 'pickup') {
-    const hourEl = document.getElementById('pickupHour');
-    const minEl  = document.getElementById('pickupMinute');
-    const hourRaw = (hourEl?.value || '').trim();
-    const minRaw  = (minEl?.value || '').trim();
-    const h = parseInt(hourRaw, 10);
-    const m = parseInt(minRaw, 10);
+  const nowMin = getWIBMinutes();
+    const inNormalHours = nowMin >= 8 * 60 && nowMin < 20 * 60;
 
     if (hourRaw === '' || minRaw === '') {
       setFieldError('pickupTime', 'Jam & menit rencana ambil wajib diisi');
       hasError = true;
       if (!firstErrorEl) firstErrorEl = hourRaw === '' ? hourEl : minEl;
-    } else if (isNaN(h) || isNaN(m) || m < 0 || m > 59) {
+    } else if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) {
       setFieldError('pickupTime', 'Format jam tidak valid (cth: jam 14, menit 30)');
       hasError = true;
       if (!firstErrorEl) firstErrorEl = isNaN(h) ? hourEl : minEl;
-    } else if (h * 60 + m < 8 * 60 || h * 60 + m > 20 * 60) {
+    } else if (inNormalHours && (h * 60 + m < 8 * 60 || h * 60 + m > 20 * 60)) {
       setFieldError('pickupTime', 'Jam ambil harus dalam jam operasional toko (08:00 – 20:00 WIB)');
       hasError = true;
       if (!firstErrorEl) firstErrorEl = hourEl;
     } else {
       clearFieldError('pickupTime');
     }
-  } else if (selectedOrderMethod === 'delivery') {
-    const addrInput = document.getElementById('deliveryAddress');
-    const addrVal = (addrInput?.value || '').trim();
-    if (addrVal.length < 10) {
-      setFieldError('deliveryAddress', 'Alamat pengiriman & patokan wajib diisi lengkap (minimal 10 karakter)');
-      hasError = true;
-      if (!firstErrorEl) firstErrorEl = addrInput;
-    } else {
-      clearFieldError('deliveryAddress');
-    }
-  }
 
   // 3. Validasi Metode Pembayaran
   if (!selectedPaymentMethod) {
@@ -1952,15 +1938,42 @@ function getWIBMinutes() {
 }
 
 function isStoreOpen() {
-  // 1. Jika admin menutup toko secara manual, langsung tutup
+  // 1. Jika saklar admin dimatikan (false), toko PASTI tutup kapan pun jamnya
   if (!isStoreManuallyOpen) return false;
 
-  // 2. Cek jam operasional otomatis: 08:00 (480 menit) sampai 20:00 (1200 menit) WIB
+  // 2. Cek jam operasional normal: 08:00 - 20:00 WIB
   const nowMinutes = getWIBMinutes();
   const openMinutes = 8 * 60;   // 08:00 WIB
   const closeMinutes = 20 * 60; // 20:00 WIB
 
-  return nowMinutes >= openMinutes && nowMinutes < closeMinutes;
+  if (nowMinutes >= openMinutes && nowMinutes < closeMinutes) {
+    return true;
+  }
+
+  // 3. Di luar jam operasional (20:00 - 07:59 WIB):
+  // Tetap BUKA hanya jika admin menyalakan saklar secara manual SETELAH jam tutup terakhir (20:00 WIB)
+  if (storeSettingsUpdatedAt) {
+    const updatedMs = new Date(storeSettingsUpdatedAt).getTime();
+    if (!isNaN(updatedMs)) {
+      const now = new Date();
+      const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+      const wibNow = new Date(utcMs + 7 * 3600000);
+
+      // Titik jam 20:00 WIB terakhir
+      const lastCloseWib = new Date(wibNow);
+      lastCloseWib.setHours(20, 0, 0, 0);
+      if (wibNow.getHours() < 8) {
+        lastCloseWib.setDate(lastCloseWib.getDate() - 1);
+      }
+
+      const lastCloseUtcMs = lastCloseWib.getTime() - 7 * 3600000 - now.getTimezoneOffset() * 60000;
+      if (updatedMs >= lastCloseUtcMs) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 function updateStoreStatus() {
@@ -2024,6 +2037,7 @@ async function syncFromSupabase() {
       if (typeof settings.is_open === 'boolean') {
         isStoreManuallyOpen = settings.is_open;
       }
+      storeSettingsUpdatedAt = settings.updated_at || null;
 
       // Perbarui teks banner promo secara dinamis
       const badgeEl = document.getElementById('heroPromoBadge');
