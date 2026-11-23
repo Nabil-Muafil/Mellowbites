@@ -71,13 +71,17 @@ body {
 /* Modal Drawer transition helpers */
 #cartModal,
 #confirmModal,
-#receiptModal {
+#orderHistoryModal,
+#receiptModal,
+#productDetailModal {
   transition: opacity 0.25s ease-in-out;
 }
 
 #cartContentBox,
 #confirmContentBox,
-#receiptContentBox {
+#orderHistoryContentBox,
+#receiptContentBox,
+#productDetailContentBox {
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -147,7 +151,7 @@ button, a, input, select, textarea {
 .product-card {
   content-visibility: auto;
   contain-intrinsic-size: 250px;
-  contain: layout style paint;
+  contain: layout style;
 }
 
 /* Matikan efek backdrop-blur berat khusus di layar HP */

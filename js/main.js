@@ -281,11 +281,12 @@ function initProductGrid() {
         data-category="${product.category}"
         data-bestseller="${product.isBestSeller}"
         data-search="${searchTokens}"
-        class="product-card relative bg-white rounded-2xl p-3 border border-stone-200 shadow-xs flex flex-col justify-between ${!isAvail ? 'opacity-75' : ''}"
+        class="product-card group relative bg-white rounded-2xl p-3 border border-stone-200 shadow-xs flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-lg hover:border-brand-300 ${!isAvail ? 'opacity-75' : ''}"
       >
-        <div>
+        <!-- Area Klik untuk Buka Pop-up Detail Produk -->
+        <div onclick="openProductDetailModal('${product.id}')" class="cursor-pointer select-none">
           <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden ${product.flavorBg} mb-3 flex items-center justify-center">
-            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none transition-transform duration-300 group-hover:scale-105">
               ${getGabinSvg(product.creamColor)}
             </div>
 
@@ -294,7 +295,7 @@ function initProductGrid() {
               alt="${product.name}" 
               loading="${idx < 4 ? 'eager' : 'lazy'}"
               decoding="async"
-              class="absolute inset-0 w-full h-full object-cover ${!isAvail ? 'grayscale-[60%]' : ''}"
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${!isAvail ? 'grayscale-[60%]' : ''}"
               onerror="this.remove()"
             />
 
@@ -316,7 +317,7 @@ function initProductGrid() {
           </div>
 
           <div class="flex items-start justify-between gap-1 mb-1">
-            <h4 class="font-bold text-stone-900 text-sm leading-tight">${product.name}</h4>
+            <h4 class="font-bold text-stone-900 text-sm leading-tight group-hover:text-brand-600 transition-colors">${product.name}</h4>
             <span class="text-xs font-black text-brand-600 whitespace-nowrap">${formatRupiah(product.price)}</span>
           </div>
           <p class="text-[11px] text-stone-500 leading-relaxed line-clamp-2 mb-3">
@@ -324,7 +325,7 @@ function initProductGrid() {
           </p>
         </div>
 
-        <div class="pt-2 border-t border-stone-100 flex items-center justify-between">
+        <div class="pt-2 border-t border-stone-100 flex items-center justify-between" onclick="event.stopPropagation()">
           <span class="text-[10px] text-stone-400 font-medium">Satuan / pcs</span>
           <div id="card-action-${product.id}" class="flex items-center"></div>
         </div>
@@ -349,7 +350,7 @@ function updateProductCardState(productId) {
       delete cart[productId];
       saveCartToStorage();
     }
-    card.classList.remove('border-brand-500', 'ring-2', 'ring-brand-100', 'shadow-md');
+    card.classList.remove('border-brand-500', 'ring-2', 'ring-brand-100');
     card.classList.add('border-stone-200');
 
     const badgeEl = document.getElementById(`card-badge-${productId}`);
@@ -363,6 +364,10 @@ function updateProductCardState(productId) {
         </span>
       `;
     }
+
+    if (activeDetailProductId === productId) {
+      renderProductDetailAction();
+    }
     return;
   }
 
@@ -371,11 +376,11 @@ function updateProductCardState(productId) {
 
   // Toggle border kartu
   if (isSelected) {
-    card.classList.add('border-brand-500', 'ring-2', 'ring-brand-100', 'shadow-md');
-    card.classList.remove('border-stone-200', 'shadow-sm');
+    card.classList.add('border-brand-500', 'ring-2', 'ring-brand-100');
+    card.classList.remove('border-stone-200');
   } else {
-    card.classList.remove('border-brand-500', 'ring-2', 'ring-brand-100', 'shadow-md');
-    card.classList.add('border-stone-200', 'shadow-sm');
+    card.classList.remove('border-brand-500', 'ring-2', 'ring-brand-100');
+    card.classList.add('border-stone-200');
   }
 
   // Update badge kuantitas pada foto
@@ -399,7 +404,7 @@ function updateProductCardState(productId) {
     if (qty === 0) {
       actionEl.innerHTML = `
         <button 
-          onclick="addToCart('${productId}')"
+          onclick="event.stopPropagation(); addToCart('${productId}')"
           class="px-3.5 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-500 text-brand-600 hover:text-white text-xs font-bold transition flex items-center gap-1 active:scale-95 shadow-xs"
           aria-label="Tambah item"
         >
@@ -411,9 +416,9 @@ function updateProductCardState(productId) {
       `;
     } else {
       actionEl.innerHTML = `
-        <div class="flex items-center bg-stone-100 rounded-xl p-0.5 border border-stone-200">
+        <div class="flex items-center bg-stone-100 rounded-xl p-0.5 border border-stone-200" onclick="event.stopPropagation()">
           <button 
-            onclick="updateQty('${productId}', -1)"
+            onclick="event.stopPropagation(); updateQty('${productId}', -1)"
             class="w-7 h-7 rounded-lg bg-white text-stone-700 hover:bg-rose-50 hover:text-rose-600 shadow-xs flex items-center justify-center font-black text-sm active:scale-90 transition"
             aria-label="Kurangi"
           >
@@ -423,7 +428,7 @@ function updateProductCardState(productId) {
             ${qty}
           </span>
           <button 
-            onclick="updateQty('${productId}', 1)"
+            onclick="event.stopPropagation(); updateQty('${productId}', 1)"
             class="w-7 h-7 rounded-lg bg-brand-500 text-white hover:bg-brand-600 shadow-xs flex items-center justify-center font-black text-sm active:scale-90 transition"
             aria-label="Tambah"
           >
@@ -433,6 +438,200 @@ function updateProductCardState(productId) {
       `;
     }
   }
+
+  // Sinkronkan tombol aksi di modal detail produk jika sedang terbuka untuk produk ini
+  if (activeDetailProductId === productId) {
+    renderProductDetailAction();
+  }
+}
+
+// ============================================================
+// 8b. Pop-up Modal Detail Produk (#productDetailModal)
+// ============================================================
+let activeDetailProductId = null;
+
+function getCategoryDisplayName(cat) {
+  if (cat === 'choco') return 'Cokelat';
+  if (cat === 'fruity') return 'Fruity Segar';
+  if (cat === 'special') return 'Spesial Mix';
+  return 'Es Gabin';
+}
+
+function openProductDetailModal(productId) {
+  const product = PRODUCTS.find(p => p.id === productId);
+  if (!product) return;
+
+  activeDetailProductId = productId;
+  const isAvail = product.isAvailable !== false;
+
+  const modal = document.getElementById('productDetailModal');
+  const box = document.getElementById('productDetailContentBox');
+  if (!modal || !box) return;
+
+  // 1. Tampilkan Gambar & Fallback SVG
+  const imgEl = document.getElementById('detailProdImage');
+  const flavorBg = document.getElementById('detailProdFlavorBg');
+  const svgEl = document.getElementById('detailProdSvg');
+
+  if (flavorBg) {
+    flavorBg.className = `relative w-full aspect-[16/10] rounded-2xl overflow-hidden shadow-inner flex items-center justify-center ${product.flavorBg || 'bg-stone-800'}`;
+  }
+  if (svgEl) {
+    svgEl.innerHTML = getGabinSvg(product.creamColor || '#f59e0b');
+  }
+  if (imgEl) {
+    imgEl.classList.remove('hidden');
+    imgEl.src = product.image || '';
+    imgEl.alt = product.name;
+    if (!isAvail) {
+      imgEl.classList.add('grayscale-[60%]');
+    } else {
+      imgEl.classList.remove('grayscale-[60%]');
+    }
+  }
+
+  // 2. Tag & Category Badges
+  const tagEl = document.getElementById('detailProdTag');
+  if (tagEl) {
+    tagEl.className = `absolute top-3 left-3 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-xs z-10 ${product.tagColor || 'bg-amber-100 text-amber-900'}`;
+    tagEl.textContent = product.tag || 'Favorit';
+  }
+
+  const catBadge = document.getElementById('detailProdCategoryBadge');
+  if (catBadge) {
+    catBadge.textContent = getCategoryDisplayName(product.category);
+  }
+
+  // 3. Status Stok Badge (Ready vs Habis)
+  const stockBadge = document.getElementById('detailProdStockBadge');
+  if (stockBadge) {
+    if (isAvail) {
+      stockBadge.innerHTML = `
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/90 text-white backdrop-blur-md shadow-sm gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+          <span>Ready Stok</span>
+        </span>
+      `;
+    } else {
+      stockBadge.innerHTML = `
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-600/90 text-white backdrop-blur-md shadow-sm gap-1">
+          <span>⚠️ Stok Habis</span>
+        </span>
+      `;
+    }
+  }
+
+  // 4. Nama, Harga & Kategori
+  const nameEl = document.getElementById('detailProdName');
+  if (nameEl) nameEl.textContent = product.name;
+
+  const priceEl = document.getElementById('detailProdPrice');
+  if (priceEl) priceEl.textContent = formatRupiah(product.price);
+
+  const catTextEl = document.getElementById('detailProdCategoryText');
+  if (catTextEl) catTextEl.textContent = `Varian ${getCategoryDisplayName(product.category)}`;
+
+  // 5. Deskripsi
+  const descEl = document.getElementById('detailProdDesc');
+  if (descEl) descEl.textContent = product.desc || 'Kombinasi biskuit gabin renyah dengan isian fla lembut yang manis dingin menyegarkan.';
+
+  // 6. Render Tombol Aksi Keranjang
+  renderProductDetailAction();
+
+  // 7. Buka Modal dengan Animasi (Bottom sheet di HP, Card pop di Desktop)
+  modal.classList.remove('opacity-0', 'pointer-events-none');
+  modal.classList.add('opacity-100');
+  box.classList.remove('translate-y-full', 'sm:scale-95');
+  box.classList.add('translate-y-0', 'sm:scale-100');
+}
+
+function closeProductDetailModal() {
+  const modal = document.getElementById('productDetailModal');
+  const box = document.getElementById('productDetailContentBox');
+  if (!modal || !box) return;
+
+  activeDetailProductId = null;
+
+  modal.classList.remove('opacity-100');
+  modal.classList.add('opacity-0', 'pointer-events-none');
+  box.classList.remove('translate-y-0', 'sm:scale-100');
+  box.classList.add('translate-y-full', 'sm:scale-95');
+}
+
+function renderProductDetailAction() {
+  const container = document.getElementById('detailProdActionContainer');
+  if (!container || !activeDetailProductId) return;
+
+  const product = PRODUCTS.find(p => p.id === activeDetailProductId);
+  if (!product) return;
+
+  const isAvail = product.isAvailable !== false;
+  const qty = cart[activeDetailProductId] || 0;
+
+  if (!isAvail) {
+    container.innerHTML = `
+      <button disabled class="w-full py-3 rounded-2xl bg-stone-100 text-stone-400 font-extrabold text-xs sm:text-sm cursor-not-allowed flex items-center justify-center gap-1.5">
+        <span>⚠️</span>
+        <span>Varian Sedang Habis</span>
+      </button>
+    `;
+    return;
+  }
+
+  if (qty === 0) {
+    container.innerHTML = `
+      <button 
+        type="button" 
+        onclick="addToCartFromDetail()"
+        class="w-full py-3 px-4 rounded-2xl bg-brand-500 hover:bg-brand-600 active:scale-95 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-brand-500/20 transition flex items-center justify-center gap-2"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <span>Tambah ke Keranjang • ${formatRupiah(product.price)}</span>
+      </button>
+    `;
+  } else {
+    container.innerHTML = `
+      <div class="flex items-center justify-between gap-3 bg-stone-50 p-1.5 rounded-2xl border border-stone-200">
+        <div class="pl-2">
+          <span class="text-[10px] text-stone-400 block -mb-0.5 font-bold uppercase tracking-wider">Subtotal (${qty} pcs)</span>
+          <span class="text-sm font-black text-brand-600">${formatRupiah(product.price * qty)}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button 
+            type="button" 
+            onclick="updateQtyFromDetail(-1)"
+            class="w-9 h-9 rounded-xl bg-white hover:bg-rose-50 hover:text-rose-600 text-stone-700 shadow-xs flex items-center justify-center font-black text-base active:scale-90 transition border border-stone-200"
+            aria-label="Kurangi kuantitas"
+          >
+            -
+          </button>
+          <span class="min-w-6 text-center text-sm font-black text-stone-900">${qty}</span>
+          <button 
+            type="button" 
+            onclick="updateQtyFromDetail(1)"
+            class="w-9 h-9 rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-xs flex items-center justify-center font-black text-base active:scale-90 transition"
+            aria-label="Tambah kuantitas"
+          >
+            +
+          </button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function addToCartFromDetail() {
+  if (!activeDetailProductId) return;
+  addToCart(activeDetailProductId);
+  renderProductDetailAction();
+}
+
+function updateQtyFromDetail(delta) {
+  if (!activeDetailProductId) return;
+  updateQty(activeDetailProductId, delta);
+  renderProductDetailAction();
 }
 
 // 9. Filter Produk Berdasarkan Kategori & Pencarian (Toggle CSS .hidden, Foto Tidak Di-reload)
@@ -658,6 +857,8 @@ function clearSearch() {
 
 // 14. Modal Keranjang
 function openCartModal() {
+  closeProductDetailModal();
+
   if (!isStoreOpen()) {
     showToast('Toko sedang tutup. Fitur checkout dibuka kembali pukul 08.00 WIB');
     return;
@@ -1809,10 +2010,26 @@ function updateStoreStatus() {
 async function syncFromSupabase() {
   if (!sbClient) return;
   try {
-    // 1. Ambil status buka/tutup manual dari admin
-    const { data: settings } = await sbClient.from('store_settings').select('is_open').eq('id', 1).single();
+    // 1. Ambil status buka/tutup manual & banner promo dari admin
+    const { data: settings } = await sbClient.from('store_settings').select('*').eq('id', 1).single();
     if (settings) {
-      isStoreManuallyOpen = settings.is_open;
+      if (typeof settings.is_open === 'boolean') {
+        isStoreManuallyOpen = settings.is_open;
+      }
+
+      // Perbarui teks banner promo secara dinamis
+      const badgeEl = document.getElementById('heroPromoBadge');
+      const titleEl = document.getElementById('heroPromoTitle');
+      const descEl = document.getElementById('heroPromoDesc');
+      if (badgeEl && settings.promo_badge) {
+        badgeEl.textContent = settings.promo_badge;
+      }
+      if (titleEl && settings.promo_title) {
+        titleEl.textContent = settings.promo_title;
+      }
+      if (descEl && settings.promo_desc) {
+        descEl.textContent = settings.promo_desc;
+      }
     }
 
     // 1.5. Dorong perubahan dari VS Code HANYA 1X saat halaman pertama kali dibuka
@@ -1871,6 +2088,181 @@ async function syncFromSupabase() {
   }
 }
 
+// ==========================================
+// 25.5 Progressive Web App (PWA) & Service Worker
+// ==========================================
+
+let deferredInstallPrompt = null;
+
+// Registrasi Service Worker untuk Caching & Offline
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => {
+        console.log('[PWA] Service Worker aktif dengan scope:', reg.scope);
+      })
+      .catch((err) => {
+        console.warn('[PWA] Service Worker gagal didaftarkan:', err);
+      });
+  });
+}
+
+// Tangkap event sebelum instalasi browser (Chrome, Edge, Android)
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  console.log('[PWA] Event beforeinstallprompt berhasil ditangkap');
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (!isStandalone) {
+    const btnInstall = document.getElementById('btnInstallApp');
+    if (btnInstall) {
+      btnInstall.classList.remove('hidden');
+      btnInstall.classList.add('flex');
+    }
+
+    const banner = document.getElementById('pwaInstallBanner');
+    const isDismissed = localStorage.getItem('mellowbites_pwa_dismissed');
+    if (banner && !isDismissed) {
+      banner.classList.remove('hidden');
+    }
+  }
+});
+
+// Event saat aplikasi selesai dipasang oleh user
+window.addEventListener('appinstalled', () => {
+  console.log('[PWA] Aplikasi Mellowbites sukses terpasang di perangkat');
+  deferredInstallPrompt = null;
+  const btnInstall = document.getElementById('btnInstallApp');
+  if (btnInstall) btnInstall.classList.add('hidden');
+  const banner = document.getElementById('pwaInstallBanner');
+  if (banner) banner.classList.add('hidden');
+  closePwaGuideModal();
+  showToast('🎉 Aplikasi Mellowbites berhasil dipasang!');
+});
+
+// Fungsi penanganan saat tombol Download / Install diklik
+async function handleInstallAppClick() {
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (isStandalone) {
+    showToast('Aplikasi Mellowbites sudah terpasang di perangkat ini ✨');
+    return;
+  }
+
+  // Jika browser mendukung programmatic prompt dan event sudah tersedia
+  if (deferredInstallPrompt) {
+    try {
+      deferredInstallPrompt.prompt();
+      const choiceResult = await deferredInstallPrompt.userChoice;
+      console.log('[PWA] Pilihan user:', choiceResult.outcome);
+      if (choiceResult.outcome === 'accepted') {
+        showToast('Memasang aplikasi Mellowbites...');
+      }
+      deferredInstallPrompt = null;
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.classList.add('hidden');
+      return;
+    } catch (err) {
+      console.warn('[PWA] Gagal menampilkan install prompt:', err);
+    }
+  }
+
+  // Jika di iOS Safari atau prompt browser belum siap, tampilkan modal panduan interaktif
+  const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  openPwaGuideModal(isIos);
+}
+
+// Buka modal panduan download / install
+function openPwaGuideModal(isIos = false) {
+  const modal = document.getElementById('pwaGuideModal');
+  const iosGuide = document.getElementById('pwaIosGuide');
+  const androidGuide = document.getElementById('pwaAndroidGuide');
+  const btnDirect = document.getElementById('btnPwaPromptDirect');
+
+  if (!modal) return;
+
+  if (isIos) {
+    if (iosGuide) iosGuide.classList.remove('hidden');
+    if (androidGuide) androidGuide.classList.add('hidden');
+  } else {
+    if (iosGuide) iosGuide.classList.add('hidden');
+    if (androidGuide) androidGuide.classList.remove('hidden');
+    if (btnDirect) {
+      if (deferredInstallPrompt) {
+        btnDirect.classList.remove('hidden');
+      } else {
+        btnDirect.classList.add('hidden');
+      }
+    }
+  }
+
+  modal.classList.remove('hidden');
+}
+
+// Tutup modal panduan
+function closePwaGuideModal() {
+  const modal = document.getElementById('pwaGuideModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// Tombol pasang langsung dari dalam modal Android/PC
+async function triggerNativePwaPrompt() {
+  if (deferredInstallPrompt) {
+    try {
+      deferredInstallPrompt.prompt();
+      const choiceResult = await deferredInstallPrompt.userChoice;
+      console.log('[PWA] Pilihan user dari modal:', choiceResult.outcome);
+      deferredInstallPrompt = null;
+      closePwaGuideModal();
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.classList.add('hidden');
+    } catch (err) {
+      console.warn('[PWA] Error prompt direct:', err);
+    }
+  } else {
+    showToast('Silakan gunakan menu browser (titik 3 ⋮) lalu pilih "Instal aplikasi"');
+  }
+}
+
+// Tutup banner atas & simpan status agar tidak mengganggu
+function dismissInstallBanner() {
+  const banner = document.getElementById('pwaInstallBanner');
+  if (banner) banner.classList.add('hidden');
+  try {
+    localStorage.setItem('mellowbites_pwa_dismissed', 'true');
+  } catch (_) {}
+}
+
+// Inisialisasi status PWA saat halaman dimuat
+function initPwaUI() {
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const btnInstall = document.getElementById('btnInstallApp');
+  const banner = document.getElementById('pwaInstallBanner');
+
+  if (isStandalone) {
+    if (btnInstall) btnInstall.classList.add('hidden');
+    if (banner) banner.classList.add('hidden');
+    return;
+  }
+
+  if (btnInstall) {
+    btnInstall.classList.remove('hidden');
+    btnInstall.classList.add('flex');
+  }
+
+  const isDismissed = localStorage.getItem('mellowbites_pwa_dismissed');
+  if (banner && !isDismissed) {
+    banner.classList.remove('hidden');
+  }
+}
+
+window.handleInstallAppClick = handleInstallAppClick;
+window.openPwaGuideModal = openPwaGuideModal;
+window.closePwaGuideModal = closePwaGuideModal;
+window.triggerNativePwaPrompt = triggerNativePwaPrompt;
+window.dismissInstallBanner = dismissInstallBanner;
+window.initPwaUI = initPwaUI;
+
 // 26. Inisialisasi Saat Dokumen Siap
 document.addEventListener('DOMContentLoaded', async () => {
   // 1. Muat data keranjang & formulir dari localStorage
@@ -1887,6 +2279,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 27. Perbarui bilah total & status toko
   updateUI();
   updateStoreStatus();
+
+  // Inisialisasi tombol & banner PWA download
+  initPwaUI();
 
   // Realtime update dari Supabase jika ada perubahan stok atau setting toko
   if (sbClient) {
@@ -1946,20 +2341,36 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (numEl) numEl.textContent = savedOrder.orderNumber;
       if (banner) banner.classList.remove('hidden');
     }
-  } catch (_) {}
+  } catch (err) {
+    console.warn('Gagal membaca pesanan pending:', err);
+  }
 }
 
 function resumeUnconfirmedOrder() {
   try {
     const raw = localStorage.getItem('mellowbites_pending_wa_order');
-    if (!raw) return;
+    if (!raw) {
+      showToast('Data pesanan tidak ditemukan');
+      return;
+    }
+
     const savedOrder = JSON.parse(raw);
-    currentOrder = { ...savedOrder, timestamp: new Date(savedOrder.timestamp) };
+    currentOrder = {
+      ...savedOrder,
+      items: Array.isArray(savedOrder.items) ? savedOrder.items : [],
+      timestamp: savedOrder.timestamp ? new Date(savedOrder.timestamp) : new Date()
+    };
+
     hasConfirmedWhatsApp = false;
     updateReceiptConfirmationState();
     renderReceiptModal(currentOrder);
     openReceiptModal();
-  } catch (_) {}
+  } catch (err) {
+    console.error('Gagal membuka struk pending:', err);
+    showToast('Gagal membuka struk pesanan');
+  }
 }
 
+window.checkUnconfirmedOrder = checkUnconfirmedOrder;
+window.resumeUnconfirmedOrder = resumeUnconfirmedOrder;
 });

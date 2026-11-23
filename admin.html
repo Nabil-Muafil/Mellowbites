@@ -5,7 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Admin Panel - Es Gabin Mellowbites</title>
   <link rel="icon" type="image/webp" href="img/logo.webp">
-  <link rel="apple-touch-icon" href="img/logo.webp">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ea580c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Mellowbites">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="img/icon-512.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -170,8 +177,8 @@
 
     <main class="max-w-3xl mx-auto px-4 pt-4 space-y-4">
       
-      <!-- Saklar Buka / Tutup Toko Manual -->
-      <section class="bg-white rounded-2xl p-4 border border-stone-200 shadow-2xs flex items-center justify-between gap-3">
+      <!-- Saklar Buka / Tutup Toko Manual & Notifikasi HP -->
+      <section class="bg-white rounded-2xl p-4 border border-stone-200 shadow-2xs flex flex-wrap items-center justify-between gap-3">
         <div>
           <div class="flex items-center gap-2">
             <h2 class="font-extrabold text-sm text-stone-900">Status Operasional Toko</h2>
@@ -182,11 +189,67 @@
           </p>
         </div>
 
-        <label class="relative inline-flex items-center cursor-pointer shrink-0">
-          <input type="checkbox" id="toggleStoreOpen" onchange="toggleStoreStatus(this.checked)" class="sr-only peer" checked>
-          <div class="w-12 h-7 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-        </label>
+        <div class="flex items-center gap-2.5 shrink-0">
+          <!-- Tombol Izin Notifikasi HP Admin -->
+          <button id="btnEnableAdminNotif" onclick="requestAdminNotificationPermission()"
+            class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300/80 text-xs font-bold transition flex items-center gap-1.5 active:scale-95 shadow-2xs"
+            title="Aktifkan Notifikasi Pop-up HP saat ada pesanan baru">
+            <span>🔔</span> <span>Aktifkan Notif HP</span>
+          </button>
+
+          <label class="relative inline-flex items-center cursor-pointer shrink-0">
+            <input type="checkbox" id="toggleStoreOpen" onchange="toggleStoreStatus(this.checked)" class="sr-only peer" checked>
+            <div class="w-12 h-7 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+          </label>
+        </div>
       </section>
+
+      <!-- Collapsible Card: Edit Banner Promo Toko -->
+      <details class="group bg-white rounded-2xl border border-stone-200 shadow-2xs overflow-hidden transition">
+        <summary class="p-4 cursor-pointer flex items-center justify-between text-sm font-extrabold text-stone-900 select-none hover:bg-stone-50/80 transition list-none">
+          <div class="flex items-center gap-2">
+            <span>📣 Edit Banner Promo Toko</span>
+          </div>
+          <span class="text-xs text-stone-400 group-open:rotate-180 transition-transform duration-200">▼</span>
+        </summary>
+        
+        <form onsubmit="savePromoBanner(event)" class="px-4 pb-4 pt-1 space-y-3 text-xs border-t border-stone-100">
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Label Kecil Atas (Badge)</label>
+            <input 
+              type="text" 
+              id="adminPromoBadge" 
+              placeholder="❄️ 100% Homemade & Halal"
+              class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200"
+            >
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Judul Utama Banner</label>
+            <input 
+              type="text" 
+              id="adminPromoTitle" 
+              placeholder="Sensasi Es Krim Gabin Lumer!"
+              class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200"
+            >
+          </div>
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Deskripsi Singkat</label>
+            <textarea 
+              id="adminPromoDesc" 
+              rows="2" 
+              placeholder="Renyah di luar, creamy dingin lumer di dalam. Praktis & bikin nagih!"
+              class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200"
+            ></textarea>
+          </div>
+          <button 
+            type="submit" 
+            id="btnSavePromoBanner"
+            class="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm transition active:scale-95 flex items-center justify-center gap-1.5"
+          >
+            💾 Simpan Banner Promo
+          </button>
+        </form>
+      </details>
 
       <!-- Tab Navigasi: Kelola Menu vs Rekap Pesanan -->
       <div class="grid grid-cols-2 gap-2 bg-stone-200/70 p-1 rounded-2xl">
@@ -271,6 +334,41 @@
               <p id="statTotalSold" class="text-base sm:text-lg font-black text-brand-600 mt-1">0 pcs</p>
               <p id="statTopProduct" class="text-[10px] text-stone-400 truncate mt-0.5">Terlaris: -</p>
             </div>
+          </div>
+        </div>
+
+        <!-- FILTER STATUS & PENCARIAN PESANAN -->
+        <div class="bg-white p-3 rounded-2xl border border-stone-200 shadow-2xs space-y-2.5">
+          <!-- Kotak Cari Nama / No. Order -->
+          <div class="relative">
+            <input 
+              type="text" 
+              id="adminOrderSearch" 
+              oninput="renderFilteredAdminOrders()"
+              placeholder="Cari nama pembeli atau No. Order (cth: MB-2026...)" 
+              class="w-full pl-9 pr-8 py-2 text-xs bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 transition"
+            >
+            <svg class="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <button type="button" onclick="document.getElementById('adminOrderSearch').value=''; renderFilteredAdminOrders();"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 text-xs">✕</button>
+          </div>
+
+          <!-- Tombol Filter Status -->
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[11px] font-bold">
+            <button type="button" id="filterOrderAll" onclick="setAdminOrderFilter('all')"
+              class="px-3 py-1.5 rounded-xl bg-brand-500 text-white shadow-2xs transition whitespace-nowrap">
+              Semua
+            </button>
+            <button type="button" id="filterOrderPending" onclick="setAdminOrderFilter('Menunggu Konfirmasi')"
+              class="px-3 py-1.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition whitespace-nowrap">
+              ⏳ Menunggu Konfirmasi
+            </button>
+            <button type="button" id="filterOrderDone" onclick="setAdminOrderFilter('Selesai')"
+              class="px-3 py-1.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition whitespace-nowrap">
+              ✅ Selesai
+            </button>
           </div>
         </div>
 
@@ -783,6 +881,7 @@
       loadAdminProducts();
       loadAdminOrders();
       subscribeRealtimeOrders();
+      checkAdminNotificationState();
     }
 
     function openProfileModal() {
@@ -894,12 +993,33 @@
         : 'py-2 px-3 rounded-xl text-xs font-bold text-stone-600 hover:text-stone-900 transition flex items-center justify-center gap-1.5';
     }
 
-    // 2. Kelola Status Buka / Tutup Toko
+    // 2. Kelola Status Buka / Tutup Toko & Banner Promo
     async function loadStoreSettings() {
       const { data } = await sbClient.from('store_settings').select('*').eq('id', 1).single();
       if (data) {
         document.getElementById('toggleStoreOpen').checked = data.is_open;
         updateAdminStoreBadge(data.is_open);
+
+        // Isi form input banner promo dari Supabase
+        const badgeInput = document.getElementById('adminPromoBadge');
+        const titleInput = document.getElementById('adminPromoTitle');
+        const descInput = document.getElementById('adminPromoDesc');
+
+        if (badgeInput) {
+          badgeInput.value = data.promo_badge !== undefined && data.promo_badge !== null && data.promo_badge !== ''
+            ? data.promo_badge
+            : '❄️ 100% Homemade & Halal';
+        }
+        if (titleInput) {
+          titleInput.value = data.promo_title !== undefined && data.promo_title !== null && data.promo_title !== ''
+            ? data.promo_title
+            : 'Sensasi Es Krim Gabin Lumer!';
+        }
+        if (descInput) {
+          descInput.value = data.promo_desc !== undefined && data.promo_desc !== null && data.promo_desc !== ''
+            ? data.promo_desc
+            : 'Renyah di luar, creamy dingin lumer di dalam. Praktis & bikin nagih!';
+        }
       }
     }
 
@@ -923,6 +1043,44 @@
 
       if (error) showAdminToast('Gagal mengubah status toko');
       else showAdminToast(isOpen ? 'Toko diaktifkan kembali' : 'Toko berhasil ditutup sementara');
+    }
+
+    async function savePromoBanner(e) {
+      if (e) e.preventDefault();
+      const badgeInput = document.getElementById('adminPromoBadge');
+      const titleInput = document.getElementById('adminPromoTitle');
+      const descInput = document.getElementById('adminPromoDesc');
+
+      const promo_badge = badgeInput?.value.trim() || '❄️ 100% Homemade & Halal';
+      const promo_title = titleInput?.value.trim() || 'Sensasi Es Krim Gabin Lumer!';
+      const promo_desc = descInput?.value.trim() || 'Renyah di luar, creamy dingin lumer di dalam. Praktis & bikin nagih!';
+
+      const btn = document.getElementById('btnSavePromoBanner');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan...';
+      }
+
+      const { error } = await sbClient
+        .from('store_settings')
+        .update({
+          promo_badge,
+          promo_title,
+          promo_desc,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', 1);
+
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '💾 Simpan Banner Promo';
+      }
+
+      if (error) {
+        showAdminToast('Gagal menyimpan banner: ' + error.message);
+      } else {
+        showAdminToast('Banner promo berhasil diperbarui!');
+      }
     }
 
     // 3. Kelola Produk (Stok Ready/Habis, Edit Harga & Hapus)
@@ -1082,39 +1240,43 @@
       return `${day} ${month} ${year}, ${hours}:${minutes} WIB`;
     }
 
-    // 4. Kelola Rekap Pesanan Masuk
-    async function loadAdminOrders() {
-      const { data, error } = await sbClient
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
+    let adminOrderStatusFilter = 'all';
 
-      adminOrdersCache = data || [];
-      updateOrderStats();
+    function setAdminOrderFilter(status) {
+      adminOrderStatusFilter = status;
+      const mapBtn = {
+        'all': document.getElementById('filterOrderAll'),
+        'Menunggu Konfirmasi': document.getElementById('filterOrderPending'),
+        'Selesai': document.getElementById('filterOrderDone')
+      };
 
+      for (const [key, btn] of Object.entries(mapBtn)) {
+        if (!btn) continue;
+        btn.className = key === status
+          ? 'px-3 py-1.5 rounded-xl bg-brand-500 text-white shadow-2xs transition whitespace-nowrap'
+          : 'px-3 py-1.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition whitespace-nowrap';
+      }
+      renderFilteredAdminOrders();
+    }
+
+    function renderFilteredAdminOrders() {
       const container = document.getElementById('adminOrderList');
-      const badge = document.getElementById('pendingOrderBadge');
+      const query = (document.getElementById('adminOrderSearch')?.value || '').toLowerCase().trim();
 
-      if (error || !data) {
-        container.innerHTML = '<p class="text-xs text-rose-600 text-center py-6">Gagal memuat pesanan.</p>';
+      const filtered = (adminOrdersCache || []).filter(o => {
+        const matchStatus = adminOrderStatusFilter === 'all' || o.status === adminOrderStatusFilter;
+        const matchQuery = !query ||
+          (o.customer_name || '').toLowerCase().includes(query) ||
+          (o.order_number || '').toLowerCase().includes(query);
+        return matchStatus && matchQuery;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="bg-white p-8 rounded-2xl border border-stone-200 text-center text-xs text-stone-400">Tidak ada pesanan yang cocok dengan filter/pencarian.</div>';
         return;
       }
 
-      const pendingCount = data.filter(o => o.status === 'Menunggu Konfirmasi').length;
-      if (pendingCount > 0) {
-        badge.textContent = pendingCount;
-        badge.classList.remove('hidden');
-      } else {
-        badge.classList.add('hidden');
-      }
-
-      if (data.length === 0) {
-        container.innerHTML = '<div class="bg-white p-8 rounded-2xl border border-stone-200 text-center text-xs text-stone-400">Belum ada pesanan masuk.</div>';
-        return;
-      }
-
-      container.innerHTML = data.map(o => {
+      container.innerHTML = filtered.map(o => {
         const itemsText = (o.items || []).map(i => `${i.name} (${i.qty}x)`).join(', ');
         const isDone = o.status === 'Selesai';
         return `
@@ -1163,6 +1325,36 @@
           </div>
         `;
       }).join('');
+    }
+
+    // 4. Kelola Rekap Pesanan Masuk
+    async function loadAdminOrders() {
+      const { data, error } = await sbClient
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      adminOrdersCache = data || [];
+      updateOrderStats();
+
+      const container = document.getElementById('adminOrderList');
+      const badge = document.getElementById('pendingOrderBadge');
+
+      if (error || !data) {
+        container.innerHTML = '<p class="text-xs text-rose-600 text-center py-6">Gagal memuat pesanan.</p>';
+        return;
+      }
+
+      const pendingCount = data.filter(o => o.status === 'Menunggu Konfirmasi').length;
+      if (pendingCount > 0) {
+        badge.textContent = pendingCount;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+
+      renderFilteredAdminOrders();
     }
 
     // 4b. Modal Cek Struk & Cetak untuk Admin
@@ -1443,7 +1635,7 @@
       }
     }
 
-    // ==================== FITUR 4: REALTIME ORDERS + SUARA ====================
+    // ==================== FITUR 4: REALTIME ORDERS + SUARA & NOTIFIKASI ====================
     function playOrderBell() {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -1462,14 +1654,124 @@
       } catch (_) {}
     }
 
+    // 4a. Cek Status Izin Notifikasi Browser / HP
+    function checkAdminNotificationState() {
+      const btn = document.getElementById('btnEnableAdminNotif');
+      if (!btn) return;
+
+      if (!('Notification' in window)) {
+        btn.classList.add('hidden');
+        return;
+      }
+
+      if (Notification.permission === 'granted') {
+        btn.className = 'px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1.5 select-none transition';
+        btn.innerHTML = '<span>🔔</span> <span>Notif HP Aktif</span>';
+        btn.title = 'Notifikasi sistem HP sudah aktif saat ada pesanan baru';
+        btn.onclick = () => {
+          showAdminToast('Notifikasi HP sudah aktif untuk pesanan baru');
+        };
+      } else if (Notification.permission === 'denied') {
+        btn.className = 'px-2.5 sm:px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 border border-stone-300 text-xs font-bold flex items-center gap-1.5 transition active:scale-95';
+        btn.innerHTML = '<span>🔕</span> <span>Aktifkan Notif HP</span>';
+        btn.title = 'Izin notifikasi diblokir di browser. Klik untuk melihat petunjuk cara mengizinkan.';
+        btn.onclick = requestAdminNotificationPermission;
+      } else {
+        btn.className = 'px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300/80 text-xs font-bold transition flex items-center gap-1.5 active:scale-95 shadow-2xs';
+        btn.innerHTML = '<span>🔔</span> <span>Aktifkan Notif HP</span>';
+        btn.title = 'Aktifkan Notifikasi Pop-up HP saat ada pesanan baru';
+        btn.onclick = requestAdminNotificationPermission;
+      }
+    }
+
+    // 4b. Minta Izin Notifikasi Browser / HP
+    async function requestAdminNotificationPermission() {
+      if (!('Notification' in window)) {
+        showAdminToast('Browser Anda tidak mendukung Web Notification');
+        return;
+      }
+
+      if (Notification.permission === 'granted') {
+        showAdminToast('Notifikasi HP sudah aktif!');
+        checkAdminNotificationState();
+        return;
+      }
+
+      if (Notification.permission === 'denied') {
+        alert('Izin notifikasi saat ini diblokir di browser Anda.\n\nUntuk mengaktifkannya:\n1. Klik ikon setelan / gembok di sebelah kiri bilah URL browser.\n2. Ubah setelan "Notifikasi" menjadi "Izinkan" (Allow).\n3. Muat ulang halaman ini.');
+        return;
+      }
+
+      try {
+        const permission = await Notification.requestPermission();
+        checkAdminNotificationState();
+
+        if (permission === 'granted') {
+          showAdminToast('Notifikasi HP berhasil diaktifkan!');
+          // Tampilkan notifikasi percobaan singkat untuk memastikan suara & banner HP berjalan
+          try {
+            const testNotif = new Notification('🔔 Notifikasi Mellowbites Aktif!', {
+              body: 'Notifikasi pesanan baru akan muncul di layar & berdering otomatis saat ada order masuk.',
+              icon: 'img/logo.webp',
+              badge: 'img/logo.webp',
+              tag: 'mellowbites-test-notif',
+              silent: false
+            });
+            testNotif.onclick = () => {
+              window.focus();
+              testNotif.close();
+            };
+          } catch (e) {
+            console.warn('Gagal memicu test notification:', e);
+          }
+        } else {
+          showAdminToast('Izin notifikasi belum diberikan');
+        }
+      } catch (err) {
+        console.warn('Error saat requestPermission:', err);
+      }
+    }
+
+    window.requestAdminNotificationPermission = requestAdminNotificationPermission;
+
+    // 4c. Langganan Realtime Supabase untuk Pesanan Baru
     let ordersSubscription = null;
     function subscribeRealtimeOrders() {
       if (ordersSubscription || !sbClient) return;
       ordersSubscription = sbClient
         .channel('admin-orders-realtime')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+          // 1. Suara bel dering (AudioContext fallback)
           playOrderBell();
-          showAdminToast(`🔔 Pesanan baru dari ${payload.new.customer_name}!`);
+
+          // 2. Notifikasi Toast di dalam layar
+          showAdminToast(`🔔 Pesanan baru dari ${payload?.new?.customer_name || 'Pembeli'}!`);
+
+          // 3. Notifikasi Sistem Browser / HP
+          if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+              const customerName = payload?.new?.customer_name || 'Pembeli';
+              const totalPrice = formatRupiah(payload?.new?.total_price || 0);
+
+              const notif = new Notification('🛎️ Pesanan Baru Mellowbites!', {
+                body: `Order baru dari ${customerName} • ${totalPrice}`,
+                icon: 'img/logo.webp',
+                badge: 'img/logo.webp',
+                tag: 'mellowbites-new-order',
+                silent: false
+              });
+
+              notif.onclick = () => {
+                window.focus();
+                switchAdminTab('orders');
+                notif.close();
+              };
+            } catch (err) {
+              console.warn('Gagal memicu browser notification:', err);
+            }
+          }
+
+          // 4. Muat ulang daftar pesanan
           loadAdminOrders();
         })
         .subscribe();
