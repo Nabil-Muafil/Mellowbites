@@ -1161,6 +1161,7 @@ function proceedCreateOrder() {
 
   // Reset status wajib konfirmasi WA untuk pesanan baru
   hasConfirmedWhatsApp = false;
+  localStorage.setItem('mellowbites_pending_wa_order', JSON.stringify(currentOrder));
   updateReceiptConfirmationState();
 
   // Render & buka struk digital
@@ -1201,7 +1202,34 @@ function openReceiptModal() {
   modal.classList.add('opacity-100');
   box.classList.remove('scale-95');
   box.classList.add('scale-100');
+
+  // Kunci tombol Back di HP selama struk terbuka & belum konfirmasi WA
+  if (!hasConfirmedWhatsApp) {
+    history.pushState({ receiptLocked: true }, '', location.href);
+  }
 }
+
+// Tangkap tombol Back / gesture swipe back di HP
+window.addEventListener('popstate', () => {
+  const modal = document.getElementById('receiptModal');
+  const isReceiptOpen = modal && !modal.classList.contains('pointer-events-none');
+
+  if (isReceiptOpen && !hasConfirmedWhatsApp) {
+    history.pushState({ receiptLocked: true }, '', location.href);
+    showToast('⚠️ Wajib konfirmasi pesanan ke WhatsApp terlebih dahulu!');
+    flashWaNotice();
+  }
+});
+
+// Cegah tutup tab / pull-to-refresh tidak sengaja sebelum konfirmasi WA
+window.addEventListener('beforeunload', (e) => {
+  const modal = document.getElementById('receiptModal');
+  const isReceiptOpen = modal && !modal.classList.contains('pointer-events-none');
+
+  if (isReceiptOpen && !hasConfirmedWhatsApp) {
+    e.preventDefault();
+  }
+});
 
 function closeReceiptModal(force = false) {
   // Jika belum konfirmasi ke WhatsApp, tolak penutupan struk & beri peringatan
@@ -1495,6 +1523,8 @@ function submitWhatsAppOrder() {
 
   // Tandai sudah konfirmasi ke WhatsApp (Membuka izin tutup struk)
   hasConfirmedWhatsApp = true;
+  localStorage.removeItem('mellowbites_pending_wa_order');
+  document.getElementById('unconfirmedOrderBanner')?.classList.add('hidden');
   updateReceiptConfirmationState();
 
   // Nomor WhatsApp Penjual (Preserved)
@@ -1846,6 +1876,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 1. Muat data keranjang & formulir dari localStorage
   loadCartFromStorage();
   updateHistoryBadge();
+  checkUnconfirmedOrder();
 
   // 1.5. Ambil status toko & data produk terbaru dari Supabase
   await syncFromSupabase();
@@ -1903,4 +1934,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 5. Periksa status buka/tutup berkala setiap 30 detik
   setInterval(updateStoreStatus, 30000);
+
+  function checkUnconfirmedOrder() {
+  try {
+    const raw = localStorage.getItem('mellowbites_pending_wa_order');
+    if (!raw) return;
+    const savedOrder = JSON.parse(raw);
+    if (savedOrder && savedOrder.orderNumber) {
+      const banner = document.getElementById('unconfirmedOrderBanner');
+      const numEl = document.getElementById('bannerOrderNumber');
+      if (numEl) numEl.textContent = savedOrder.orderNumber;
+      if (banner) banner.classList.remove('hidden');
+    }
+  } catch (_) {}
+}
+
+function resumeUnconfirmedOrder() {
+  try {
+    const raw = localStorage.getItem('mellowbites_pending_wa_order');
+    if (!raw) return;
+    const savedOrder = JSON.parse(raw);
+    currentOrder = { ...savedOrder, timestamp: new Date(savedOrder.timestamp) };
+    hasConfirmedWhatsApp = false;
+    updateReceiptConfirmationState();
+    renderReceiptModal(currentOrder);
+    openReceiptModal();
+  } catch (_) {}
+}
+
 });
