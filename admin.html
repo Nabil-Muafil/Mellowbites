@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Admin Panel - Es Gabin Mellowbites</title>
+  <link rel="icon" type="image/webp" href="img/logo.webp">
+  <link rel="apple-touch-icon" href="img/logo.webp">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -84,8 +86,8 @@
   <div id="loginView" class="min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-sm bg-white rounded-3xl shadow-xl border border-stone-200/80 p-6 space-y-5">
       <div class="text-center space-y-1.5">
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-brand-500 to-amber-400 text-white flex items-center justify-center text-2xl shadow-md shadow-brand-500/25">
-          🔐
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-[#fbf6ea] border border-amber-200/80 p-1.5 shadow-md flex items-center justify-center overflow-hidden">
+          <img src="img/logo.webp" alt="Logo Mellowbites" class="w-full h-full object-contain">
         </div>
         <h1 class="text-lg font-extrabold text-stone-900 pt-1">Admin Mellowbites</h1>
         <p class="text-xs text-stone-500">Masuk untuk kelola toko</p>
@@ -98,25 +100,25 @@
             class="w-full text-xs px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
         </div>
         <div>
-  <label class="block text-xs font-bold text-stone-700 mb-1">Password</label>
-  <div class="relative">
-    <input type="password" id="adminPassword" required placeholder="••••••••"
-      class="w-full text-xs pl-3.5 pr-10 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
-    
-    <button type="button" onclick="toggleAdminPassword()" aria-label="Lihat atau sembunyikan password"
-      class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none">
-      <!-- Ikon Mata Terbuka (Default) -->
-      <svg id="eyeIconShow" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-      </svg>
-      <!-- Ikon Mata Dicoret (Muncul saat password terlihat) -->
-      <svg id="eyeIconHide" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
-      </svg>
-    </button>
-  </div>
-</div>
+          <label class="block text-xs font-bold text-stone-700 mb-1">Password</label>
+          <div class="relative">
+            <input type="password" id="adminPassword" required placeholder="••••••••"
+              class="w-full text-xs pl-3.5 pr-10 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
+            
+            <button type="button" onclick="toggleAdminPassword()" aria-label="Lihat atau sembunyikan password"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none">
+              <!-- Ikon Mata Terbuka (Default) -->
+              <svg id="eyeIconShow" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+              <!-- Ikon Mata Dicoret (Muncul saat password terlihat) -->
+              <svg id="eyeIconHide" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
 
         <p id="loginError" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl font-semibold"></p>
 
@@ -138,22 +140,28 @@
   <div id="dashboardView" class="hidden pb-16">
     <!-- Top Header -->
     <header class="sticky top-0 z-30 bg-white border-b border-stone-200 shadow-2xs">
-      <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div>
-          <h1 class="text-base font-extrabold text-stone-900 leading-tight">Dashboard Mellowbites</h1>
-          <p id="adminUserEmail" class="text-[11px] text-stone-500 font-medium">admin</p>
+      <div class="max-w-3xl mx-auto px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+          <div class="w-10 h-10 rounded-xl bg-[#fbf6ea] border border-amber-200/80 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+            <img src="img/logo.webp" alt="Logo Mellowbites" class="w-full h-full object-contain">
+          </div>
+          <div class="min-w-0 flex-1">
+            <h1 class="text-sm sm:text-base font-extrabold text-stone-900 leading-tight truncate">Dashboard Mellowbites</h1>
+            <p id="adminUserEmail" class="text-[11px] text-stone-500 font-medium truncate">admin</p>
+          </div>
         </div>
-        <div class="flex items-center gap-2">
+
+        <div class="flex items-center gap-1.5 shrink-0">
           <a href="index.html"
-            class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1">
-            ← Ke Toko
+            class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1">
+            ← <span class="hidden sm:inline">Ke</span> Toko
           </a>
           <button onclick="openProfileModal()"
-            class="px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold transition">
-            👤 Profil
+            class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold transition">
+            👤 <span class="hidden sm:inline">Profil</span>
           </button>
           <button onclick="handleAdminLogout()"
-            class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition">
+            class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition">
             Keluar
           </button>
         </div>
@@ -425,6 +433,13 @@
           
           <!-- Shop Header -->
           <div class="text-center pb-1">
+            <img 
+              src="img/logo.webp" 
+              alt="Logo Mellowbites" 
+              width="64" 
+              height="64"
+              class="w-16 h-16 object-contain mx-auto mb-1.5 rounded-2xl border border-stone-200/80 bg-[#fbf6ea] p-1"
+            >
             <h4 class="font-black text-stone-900 text-base tracking-tight uppercase leading-snug">Es Gabin - Mellowbites</h4>
             <p class="text-[10px] text-stone-500 font-medium mt-0.5">Biskuit Renyah, Fla Creamy Lumer</p>
             <p class="text-[9px] text-stone-400 mt-0.5">Jl. Mawar No. 14 • WA: 0856-4640-9023</p>
