@@ -43,7 +43,7 @@ let PRODUCTS = [
     tagColor: 'bg-amber-100 text-amber-900',
     flavorBg: 'bg-gradient-to-tr from-amber-950 via-amber-800 to-amber-700',
     creamColor: '#5c3826',
-    image: 'https://images.unsplash.com/photo-1570476922354-81227cdbb76c?auto=format&fit=crop&w=600&q=80'
+    image: 'img/Double Choco.webp'
   },
   {
     id: 'gabin-strawberry',
@@ -56,7 +56,7 @@ let PRODUCTS = [
     tagColor: 'bg-rose-100 text-rose-800',
     flavorBg: 'bg-gradient-to-tr from-rose-600 via-pink-500 to-rose-400',
     creamColor: '#f43f5e',
-    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80'
+    image: 'img/Strawberry.webp'
   },
   {
     id: 'gabin-vanilla-oreo',
@@ -69,7 +69,7 @@ let PRODUCTS = [
     tagColor: 'bg-slate-200 text-slate-800',
     flavorBg: 'bg-gradient-to-tr from-slate-800 via-stone-700 to-slate-600',
     creamColor: '#f1f5f9',
-    image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=600&q=80'
+    image: 'img/vanilla oreo.webp'
   },
   {
     id: 'gabin-matcha-regal',
@@ -82,7 +82,7 @@ let PRODUCTS = [
     tagColor: 'bg-emerald-100 text-emerald-800',
     flavorBg: 'bg-gradient-to-tr from-emerald-800 via-teal-700 to-emerald-600',
     creamColor: '#059669',
-    image: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=600&q=80'
+    image: 'img/Matcha regal.webp'
   },
   {
     id: 'gabin-mango',
@@ -95,7 +95,7 @@ let PRODUCTS = [
     tagColor: 'bg-amber-100 text-amber-900',
     flavorBg: 'bg-gradient-to-tr from-amber-600 via-yellow-500 to-orange-400',
     creamColor: '#f59e0b',
-    image: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=600&q=80'
+    image: 'img/Mango.webp'
   },
   {
     id: 'gabin-strawberry-matcha',
@@ -108,7 +108,7 @@ let PRODUCTS = [
     tagColor: 'bg-pink-100 text-pink-800',
     flavorBg: 'bg-gradient-to-tr from-pink-600 via-emerald-700 to-rose-500',
     creamColor: '#ec4899',
-    image: 'https://images.unsplash.com/photo-1505394033641-40c6ad1178d7?auto=format&fit=crop&w=600&q=80'
+    image: 'img/Strawberry Matcha.webp'
   },
   {
     id: 'gabin-durian-choco',
@@ -121,20 +121,20 @@ let PRODUCTS = [
     tagColor: 'bg-yellow-100 text-yellow-900',
     flavorBg: 'bg-gradient-to-tr from-yellow-700 via-amber-800 to-amber-950',
     creamColor: '#ca8a04',
-    image: 'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=600&q=80'
+    image: 'img/Durian Choco.webp'
   },
   {
-    id: 'gabin-keju-creamy',
+    id: 'gabin-Taro',
     name: 'Taro',
     category: 'special',
     isBestSeller: false,
     price: 8000,
-    desc: 'Fla keju cheddar gurih dipadukan susu kental manis lembut yang menggugah selera.',
-    tag: 'Gurih Manis',
+    desc: 'Aroma khas taro manis lembut dengan tekstur fla dingin lumer dan gabin renyah.',
+    tag: 'Sweet & Creamy',
     tagColor: 'bg-orange-100 text-orange-900',
     flavorBg: 'bg-gradient-to-tr from-amber-500 via-orange-400 to-yellow-400',
     creamColor: '#fbbf24',
-    image: 'https://images.unsplash.com/photo-1514849302-984523450ce4?auto=format&fit=crop&w=600&q=80'
+    image: 'img/Taro.webp'
   }
 ];
 
@@ -270,7 +270,7 @@ function initProductGrid() {
   const grid = document.getElementById('productGrid');
   if (!grid) return;
 
-  grid.innerHTML = PRODUCTS.map(product => {
+  grid.innerHTML = PRODUCTS.map((product, idx) => {
     const isAvail = product.isAvailable !== false;
     const searchTokens = `${product.name} ${product.desc} ${product.tag}`.toLowerCase();
 
@@ -281,27 +281,26 @@ function initProductGrid() {
         data-category="${product.category}"
         data-bestseller="${product.isBestSeller}"
         data-search="${searchTokens}"
-        class="product-card group relative bg-white rounded-2xl p-3 border transition-all duration-200 flex flex-col justify-between border-stone-200 hover:border-stone-300 shadow-sm ${!isAvail ? 'opacity-75' : ''}"
+        class="product-card relative bg-white rounded-2xl p-3 border border-stone-200 shadow-xs flex flex-col justify-between ${!isAvail ? 'opacity-75' : ''}"
       >
         <div>
-          <!-- Wadah Gambar Foto & Ilustrasi Fallback (Hanya di-load 1x seumur sesi) -->
-          <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden ${product.flavorBg} mb-3 flex items-center justify-center shadow-inner">
-            
-            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none transition-transform group-hover:scale-105 duration-300">
+          <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden ${product.flavorBg} mb-3 flex items-center justify-center">
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               ${getGabinSvg(product.creamColor)}
             </div>
 
             <img 
               src="${product.image}" 
               alt="${product.name}" 
-              loading="lazy"
-              class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${!isAvail ? 'grayscale-[60%]' : ''}"
+              loading="${idx < 4 ? 'eager' : 'lazy'}"
+              decoding="async"
+              class="absolute inset-0 w-full h-full object-cover ${!isAvail ? 'grayscale-[60%]' : ''}"
               onerror="this.remove()"
             />
 
             ${!isAvail ? `
-              <div class="absolute inset-0 bg-stone-900/40 backdrop-blur-[1px] flex items-center justify-center z-20">
-                <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black bg-rose-600 text-white shadow-md uppercase tracking-wider">
+              <div class="absolute inset-0 bg-stone-900/50 flex items-center justify-center z-20">
+                <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black bg-rose-600 text-white shadow-sm uppercase tracking-wider">
                   Habis
                 </span>
               </div>
@@ -309,15 +308,13 @@ function initProductGrid() {
 
             <div class="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
 
-            <span class="absolute top-2 left-2 ${product.tagColor} text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm backdrop-blur-sm z-10">
+            <span class="absolute top-2 left-2 ${product.tagColor} text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs z-10">
               ${product.tag}
             </span>
 
-            <!-- Badge Kuantitas di Foto (Hanya teks di sini yang di-update saat klik) -->
             <div id="card-badge-${product.id}"></div>
           </div>
 
-          <!-- Rincian Produk -->
           <div class="flex items-start justify-between gap-1 mb-1">
             <h4 class="font-bold text-stone-900 text-sm leading-tight">${product.name}</h4>
             <span class="text-xs font-black text-brand-600 whitespace-nowrap">${formatRupiah(product.price)}</span>
@@ -327,17 +324,14 @@ function initProductGrid() {
           </p>
         </div>
 
-        <!-- Tombol Aksi (+ / -) (Hanya elemen ini yang diperbarui secara in-place) -->
         <div class="pt-2 border-t border-stone-100 flex items-center justify-between">
           <span class="text-[10px] text-stone-400 font-medium">Satuan / pcs</span>
           <div id="card-action-${product.id}" class="flex items-center"></div>
         </div>
-
       </div>
     `;
   }).join('');
 
-  // Perbarui status tombol dan badge sesuai data cart dari localStorage
   PRODUCTS.forEach(p => updateProductCardState(p.id));
   applyFilters();
 }
@@ -511,6 +505,8 @@ function getCartSummary() {
 }
 
 // 11. Perbarui Antarmuka Pengguna (UI Keranjang & Floating Bar)
+let saveCartTimer = null;
+
 function updateUI() {
   const { totalItems, totalPrice } = getCartSummary();
 
@@ -539,9 +535,7 @@ function updateUI() {
     const open = isStoreOpen();
     if (!open) {
       btnCheckout.disabled = true;
-      btnCheckout.innerHTML = `
-        <span>Toko Tutup (Buka 08.00 WIB)</span>
-      `;
+      btnCheckout.innerHTML = `<span>Toko Tutup (Buka 08.00 WIB)</span>`;
     } else {
       btnCheckout.disabled = totalItems === 0;
       btnCheckout.innerHTML = `
@@ -553,15 +547,15 @@ function updateUI() {
     }
   }
 
-  // Simpan status keranjang ke localStorage
-  saveCartToStorage();
+  clearTimeout(saveCartTimer);
+  saveCartTimer = setTimeout(saveCartToStorage, 300);
 
-  // Sinkronkan nominal pada box QRIS jika elemen tersedia
-  const qrisAmount = document.getElementById('qrisTotalAmount');
-  if (qrisAmount) qrisAmount.textContent = formatRupiah(totalPrice);
-
-  // Perbarui daftar di modal jika sedang terbuka
-  renderModalCart();
+  const cartModal = document.getElementById('cartModal');
+  if (cartModal && !cartModal.classList.contains('pointer-events-none')) {
+    const qrisAmount = document.getElementById('qrisTotalAmount');
+    if (qrisAmount) qrisAmount.textContent = formatRupiah(totalPrice);
+    renderModalCart();
+  }
 }
 
 // 12. Aksi Keranjang
@@ -1780,7 +1774,9 @@ function updateStoreStatus() {
   }
 }
 
- async function syncFromSupabase() {
+ let hasSyncedCodeProducts = false;
+
+async function syncFromSupabase() {
   if (!sbClient) return;
   try {
     // 1. Ambil status buka/tutup manual dari admin
@@ -1789,23 +1785,25 @@ function updateStoreStatus() {
       isStoreManuallyOpen = settings.is_open;
     }
 
-    // 1.5. Dorong perubahan nama, harga, deskripsi & foto dari VS Code (PRODUCTS) ke Supabase
-    // (is_available tidak dikirim agar status Ready/Habis dari kakakmu tetap aman)
-    const codeProducts = PRODUCTS.map((p, idx) => ({
-      id: p.id,
-      name: p.name,
-      category: p.category,
-      is_best_seller: p.isBestSeller,
-      price: p.price,
-      description: p.desc || '',
-      tag: p.tag || 'Favorit',
-      tag_color: p.tagColor || 'bg-amber-100 text-amber-900',
-      flavor_bg: p.flavorBg || 'bg-gradient-to-tr from-amber-800 to-amber-600',
-      cream_color: p.creamColor || '#f59e0b',
-      image_url: p.image || '',
-      sort_order: idx + 1
-    }));
-    await sbClient.from('products').upsert(codeProducts, { onConflict: 'id' });
+    // 1.5. Dorong perubahan dari VS Code HANYA 1X saat halaman pertama kali dibuka
+    if (!hasSyncedCodeProducts) {
+      hasSyncedCodeProducts = true;
+      const codeProducts = PRODUCTS.map((p, idx) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        is_best_seller: p.isBestSeller,
+        price: p.price,
+        description: p.desc || '',
+        tag: p.tag || 'Favorit',
+        tag_color: p.tagColor || 'bg-amber-100 text-amber-900',
+        flavor_bg: p.flavorBg || 'bg-gradient-to-tr from-amber-800 to-amber-600',
+        cream_color: p.creamColor || '#f59e0b',
+        image_url: p.image || '',
+        sort_order: idx + 1
+      }));
+      await sbClient.from('products').upsert(codeProducts, { onConflict: 'id' });
+    }
 
     // 2. Ambil daftar menu & status stok terbaru
     const { data: dbProducts } = await sbClient.from('products').select('*').order('sort_order', { ascending: true });

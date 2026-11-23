@@ -258,13 +258,13 @@
   </aside>
 
   <!-- CART & CHECKOUT MODAL DRAWER -->
-  <div id="cartModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-end sm:items-center justify-center">
+  <div id="cartModal" class="fixed inset-0 z-50 bg-black/60 opacity-0 pointer-events-none transition-opacity duration-150 flex items-end sm:items-center justify-center">
     
     <!-- Modal Backdrop Click Dismiss -->
     <div class="absolute inset-0" onclick="closeCartModal()"></div>
 
     <!-- Modal Content Box -->
-    <div id="cartContentBox" class="relative z-10 w-full max-w-lg bg-white rounded-t-3xl sm:rounded-2xl max-h-[90vh] flex flex-col shadow-2xl transform translate-y-full sm:translate-y-4 transition-transform duration-300">
+    <div id="cartContentBox" class="relative z-10 w-full max-w-lg bg-white rounded-t-3xl sm:rounded-2xl max-h-[90vh] flex flex-col shadow-2xl">
       
       <!-- Drawer Handle for Mobile -->
       <div class="sm:hidden flex justify-center pt-3 pb-1" onclick="closeCartModal()">
@@ -290,13 +290,16 @@
         </button>
       </div>
 
-      <!-- Scrollable Cart Item List -->
-      <div class="overflow-y-auto px-5 py-2.5 max-h-[22vh] space-y-2 border-b border-stone-100" id="cartItemList">
-        <!-- Rendered by js/main.js -->
-      </div>
+      <!-- Gabungan Area Scroll Tunggal -->
+      <div class="overflow-y-auto flex-1 divide-y divide-stone-100 overscroll-contain">
+        
+        <!-- Scrollable Cart Item List -->
+        <div class="px-5 py-2.5 space-y-2" id="cartItemList">
+          <!-- Rendered by js/main.js -->
+        </div>
 
-      <!-- Checkout Form Area (Scrollable & Mobile-friendly) -->
-      <div class="overflow-y-auto px-5 py-3.5 bg-stone-50/90 space-y-3.5 max-h-[46vh] text-xs">
+        <!-- Checkout Form Area (Scrollable & Mobile-friendly) -->
+        <div class="px-5 py-3.5 bg-stone-50/90 space-y-3.5 text-xs">
         
         <!-- Input Nama Pemesan -->
         <div>
@@ -464,12 +467,14 @@
           </div>
 
           <!-- Gambar QRIS Statis dengan Fallback SVG -->
-          <div id="qrisDownloadArea" class="relative w-44 sm:w-48 mx-auto bg-stone-50 rounded-xl p-2 border border-stone-200">
+          <!-- Gambar QRIS Statis dengan Fallback SVG -->
+          <div id="qrisDownloadArea" class="relative w-64 sm:w-72 mx-auto bg-stone-50 rounded-xl p-2.5 border border-stone-200">
             <img 
               id="qrisImgElement"
-              src="img/qris.png" 
+              src="img/QRIS.webp" 
               alt="QRIS Es Gabin Mellowbites" 
-              class="w-full aspect-square object-contain mx-auto rounded-lg"
+              decoding="async"
+              class="w-full h-auto object-contain mx-auto rounded-lg"
               onerror="this.classList.add('hidden'); document.getElementById('qrisSvgFallback').classList.remove('hidden');"
             />
             <div id="qrisSvgFallback" class="hidden w-full aspect-square bg-gradient-to-tr from-stone-100 to-amber-50 rounded-lg flex flex-col items-center justify-center p-3 text-center border border-dashed border-stone-300">
@@ -518,7 +523,7 @@
             <span class="font-bold">Pembayaran Tunai di Tempat:</span> Mohon siapkan uang pas saat pesanan diambil atau diantar agar transaksi lebih cepat dan nyaman.
           </p>
         </div>
-
+      </div>
       </div>
 
       <!-- Summary & CTA Footer -->
@@ -567,7 +572,7 @@
   </div>
 
   <!-- MODAL KONFIRMASI DATA PESANAN (#confirmModal) -->
-  <div id="confirmModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
+  <div id="confirmModal" class="fixed inset-0 z-50 bg-black/70 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
     <!-- Backdrop dismiss -->
     <div class="absolute inset-0" onclick="closeConfirmModal()"></div>
 
@@ -650,7 +655,7 @@
   </div>
 
   <!-- CUSTOMER ORDER HISTORY MODAL (#orderHistoryModal) -->
-  <div id="orderHistoryModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-3 sm:p-4">
+  <div id="orderHistoryModal" class="fixed inset-0 z-50 bg-black/70 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-3 sm:p-4">
     <!-- Backdrop dismiss -->
     <div class="absolute inset-0" onclick="closeOrderHistoryModal()"></div>
 
@@ -680,7 +685,7 @@
   </div>
 
   <!-- DIGITAL RECEIPT MODAL (#receiptModal) -->
-  <div id="receiptModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-3 sm:p-4">
+  <div id="receiptModal" class="fixed inset-0 z-50 bg-black/70 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-3 sm:p-4">
     <!-- Backdrop dismiss -->
     <div class="absolute inset-0" onclick="closeReceiptModal()"></div>
 

@@ -137,3 +137,25 @@ body {
   flex-shrink: 0;
   line-height: 1.35;
 }
+
+/* Hilangkan 300ms tap delay di browser HP saat klik Tambah / + / - */
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Isolasi render per kartu agar scroll 60fps di HP */
+.product-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 250px;
+  contain: layout style paint;
+}
+
+/* Matikan efek backdrop-blur berat khusus di layar HP */
+@media (max-width: 768px) {
+  .backdrop-blur-xs,
+  .backdrop-blur-sm,
+  .backdrop-blur-md {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
