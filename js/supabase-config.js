@@ -21,13 +21,13 @@ const dynamicAuthStorage = {
         sessionStorage.setItem(key, value);
         localStorage.removeItem(key);
       }
-    } catch (_) {}
+    } catch (_) { }
   },
   removeItem: (key) => {
     try {
       localStorage.removeItem(key);
       sessionStorage.removeItem(key);
-    } catch (_) {}
+    } catch (_) { }
   }
 };
 
@@ -39,10 +39,10 @@ const isSupabaseConfigured =
 
 const sbClient = isSupabaseConfigured
   ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        storage: dynamicAuthStorage,
-        persistSession: true,
-        autoRefreshToken: true
-      }
-    })
+    auth: {
+      storage: dynamicAuthStorage,
+      persistSession: true,
+      autoRefreshToken: true
+    }
+  })
   : null;

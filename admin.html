@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -16,7 +17,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -47,15 +49,20 @@
 
   <!-- Main CSS for Thermal Receipt Styles -->
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
     @media print {
       body * {
         visibility: hidden !important;
       }
-      #adminReceiptModal, #adminReceiptModal * {
+
+      #adminReceiptModal,
+      #adminReceiptModal * {
         visibility: visible !important;
       }
+
       #adminReceiptModal {
         position: fixed !important;
         inset: 0 !important;
@@ -66,6 +73,7 @@
         justify-content: center !important;
         z-index: 99999 !important;
       }
+
       #adminReceiptContentBox {
         box-shadow: none !important;
         border: none !important;
@@ -73,6 +81,7 @@
         max-width: 100% !important;
         width: 100% !important;
       }
+
       #adminReceiptPaper {
         border: none !important;
         box-shadow: none !important;
@@ -81,19 +90,22 @@
         margin: 0 auto !important;
         padding: 10px !important;
       }
+
       .no-print {
         display: none !important;
       }
     }
   </style>
 </head>
+
 <body class="bg-stone-100 font-sans text-stone-800 antialiased min-h-screen">
 
   <!-- ==================== 1. HALAMAN LOGIN ADMIN ==================== -->
   <div id="loginView" class="min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-sm bg-white rounded-3xl shadow-xl border border-stone-200/80 p-6 space-y-5">
       <div class="text-center space-y-1.5">
-        <div class="w-16 h-16 mx-auto rounded-2xl bg-[#fbf6ea] border border-amber-200/80 p-1.5 shadow-md flex items-center justify-center overflow-hidden">
+        <div
+          class="w-16 h-16 mx-auto rounded-2xl bg-[#fbf6ea] border border-amber-200/80 p-1.5 shadow-md flex items-center justify-center overflow-hidden">
           <img src="img/logo.webp" alt="Logo Mellowbites" class="w-full h-full object-contain">
         </div>
         <h1 class="text-lg font-extrabold text-stone-900 pt-1">Admin Mellowbites</h1>
@@ -103,25 +115,32 @@
       <form id="loginForm" onsubmit="handleAdminLogin(event)" class="space-y-3.5">
         <div>
           <label for="adminEmail" class="block text-xs font-bold text-stone-700 mb-1">Email Admin</label>
-          <input type="email" id="adminEmail" name="email" autocomplete="username" required placeholder="admin@mellowbites.com"
+          <input type="email" id="adminEmail" name="email" autocomplete="username" required
+            placeholder="admin@mellowbites.com"
             class="w-full text-xs px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
         </div>
         <div>
           <label for="adminPassword" class="block text-xs font-bold text-stone-700 mb-1">Password</label>
           <div class="relative">
-            <input type="password" id="adminPassword" name="password" autocomplete="current-password" required placeholder="••••••••"
+            <input type="password" id="adminPassword" name="password" autocomplete="current-password" required
+              placeholder="••••••••"
               class="w-full text-xs pl-3.5 pr-10 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
-            
+
             <button type="button" onclick="toggleAdminPassword()" aria-label="Lihat atau sembunyikan password"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none">
               <!-- Ikon Mata Terbuka (Default) -->
               <svg id="eyeIconShow" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                </path>
               </svg>
               <!-- Ikon Mata Dicoret (Muncul saat password terlihat) -->
               <svg id="eyeIconHide" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21">
+                </path>
               </svg>
             </button>
           </div>
@@ -130,17 +149,14 @@
         <!-- Checkbox Ingat Saya -->
         <div class="flex items-center justify-between pt-0.5">
           <label for="rememberMeCheckbox" class="inline-flex items-center gap-2 cursor-pointer select-none">
-            <input 
-              type="checkbox" 
-              id="rememberMeCheckbox" 
-              checked
-              class="w-4 h-4 rounded border-stone-300 text-brand-500 focus:ring-brand-500/30 cursor-pointer accent-orange-500"
-            />
+            <input type="checkbox" id="rememberMeCheckbox" checked
+              class="w-4 h-4 rounded border-stone-300 text-brand-500 focus:ring-brand-500/30 cursor-pointer accent-orange-500" />
             <span class="text-xs font-semibold text-stone-600">Ingat saya di perangkat ini</span>
           </label>
         </div>
 
-        <p id="loginError" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl font-semibold"></p>
+        <p id="loginError"
+          class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl font-semibold"></p>
 
         <button type="submit" id="btnLogin"
           class="w-full py-3 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition">
@@ -162,11 +178,13 @@
     <header class="sticky top-0 z-30 bg-white border-b border-stone-200 shadow-2xs">
       <div class="max-w-3xl mx-auto px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5 min-w-0 flex-1">
-          <div class="w-10 h-10 rounded-xl bg-[#fbf6ea] border border-amber-200/80 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+          <div
+            class="w-10 h-10 rounded-xl bg-[#fbf6ea] border border-amber-200/80 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
             <img src="img/logo.webp" alt="Logo Mellowbites" class="w-full h-full object-contain">
           </div>
           <div class="min-w-0 flex-1">
-            <h1 class="text-sm sm:text-base font-extrabold text-stone-900 leading-tight truncate">Dashboard Mellowbites</h1>
+            <h1 class="text-sm sm:text-base font-extrabold text-stone-900 leading-tight truncate">Dashboard Mellowbites
+            </h1>
             <p id="adminUserEmail" class="text-[11px] text-stone-500 font-medium truncate">admin</p>
           </div>
         </div>
@@ -189,13 +207,15 @@
     </header>
 
     <main class="max-w-3xl mx-auto px-4 pt-4 space-y-4">
-      
+
       <!-- Saklar Buka / Tutup Toko Manual & Notifikasi HP -->
-      <section class="bg-white rounded-2xl p-4 border border-stone-200 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+      <section
+        class="bg-white rounded-2xl p-4 border border-stone-200 shadow-2xs flex flex-wrap items-center justify-between gap-3">
         <div>
           <div class="flex items-center gap-2">
             <h2 class="font-extrabold text-sm text-stone-900">Status Operasional Toko</h2>
-            <span id="adminStoreBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Buka</span>
+            <span id="adminStoreBadge"
+              class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Buka</span>
           </div>
           <p class="text-[11px] text-stone-500 mt-0.5 leading-snug">
             Matikan saklar ini jika stok hari ini sudah habis sebelum pukul 20.00 WIB.
@@ -211,54 +231,44 @@
           </button>
 
           <label class="relative inline-flex items-center cursor-pointer shrink-0">
-            <input type="checkbox" id="toggleStoreOpen" onchange="toggleStoreStatus(this.checked)" class="sr-only peer" checked>
-            <div class="w-12 h-7 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+            <input type="checkbox" id="toggleStoreOpen" onchange="toggleStoreStatus(this.checked)" class="sr-only peer"
+              checked>
+            <div
+              class="w-12 h-7 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500">
+            </div>
           </label>
         </div>
       </section>
 
       <!-- Collapsible Card: Edit Banner Promo Toko -->
       <details class="group bg-white rounded-2xl border border-stone-200 shadow-2xs overflow-hidden transition">
-        <summary class="p-4 cursor-pointer flex items-center justify-between text-sm font-extrabold text-stone-900 select-none hover:bg-stone-50/80 transition list-none">
+        <summary
+          class="p-4 cursor-pointer flex items-center justify-between text-sm font-extrabold text-stone-900 select-none hover:bg-stone-50/80 transition list-none">
           <div class="flex items-center gap-2">
             <span>📣 Edit Banner Promo Toko</span>
           </div>
           <span class="text-xs text-stone-400 group-open:rotate-180 transition-transform duration-200">▼</span>
         </summary>
-        
+
         <form onsubmit="savePromoBanner(event)" class="px-4 pb-4 pt-1 space-y-3 text-xs border-t border-stone-100">
           <div>
             <label class="block font-bold text-stone-700 mb-1">Label Kecil Atas (Badge)</label>
-            <input 
-              type="text" 
-              id="adminPromoBadge" 
-              placeholder="❄️ 100% Homemade & Halal"
-              class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200"
-            >
+            <input type="text" id="adminPromoBadge" placeholder="❄️ 100% Homemade & Halal"
+              class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
           </div>
           <div>
             <label class="block font-bold text-stone-700 mb-1">Judul Utama Banner</label>
-            <input 
-              type="text" 
-              id="adminPromoTitle" 
-              placeholder="Sensasi Es Krim Gabin Lumer!"
-              class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200"
-            >
+            <input type="text" id="adminPromoTitle" placeholder="Sensasi Es Krim Gabin Lumer!"
+              class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
           </div>
           <div>
             <label class="block font-bold text-stone-700 mb-1">Deskripsi Singkat</label>
-            <textarea 
-              id="adminPromoDesc" 
-              rows="2" 
+            <textarea id="adminPromoDesc" rows="2"
               placeholder="Renyah di luar, creamy dingin lumer di dalam. Praktis & bikin nagih!"
-              class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200"
-            ></textarea>
+              class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200"></textarea>
           </div>
-          <button 
-            type="submit" 
-            id="btnSavePromoBanner"
-            class="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm transition active:scale-95 flex items-center justify-center gap-1.5"
-          >
+          <button type="submit" id="btnSavePromoBanner"
+            class="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm transition active:scale-95 flex items-center justify-center gap-1.5">
             💾 Simpan Banner Promo
           </button>
         </form>
@@ -273,7 +283,8 @@
         <button onclick="switchAdminTab('orders')" id="tabAdminOrders"
           class="py-2 px-3 rounded-xl text-xs font-bold text-stone-600 hover:text-stone-900 transition flex items-center justify-center gap-1.5">
           <span>🧾 Rekap Pesanan</span>
-          <span id="pendingOrderBadge" class="hidden px-1.5 py-0.2 rounded-full text-[10px] bg-brand-500 text-white font-extrabold">0</span>
+          <span id="pendingOrderBadge"
+            class="hidden px-1.5 py-0.2 rounded-full text-[10px] bg-brand-500 text-white font-extrabold">0</span>
         </button>
       </div>
 
@@ -300,7 +311,8 @@
             <button onclick="exportOrdersToExcel()"
               class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-95">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <span>Download Excel</span>
             </button>
@@ -339,20 +351,21 @@
             </div>
 
             <!-- Kartu Rekap Produksi / Packing (Pesanan Menunggu Konfirmasi) -->
-          <div class="bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200/80 shadow-2xs space-y-2">
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex items-center gap-1.5 text-[11px] font-extrabold text-amber-950">
-                <span>📦</span>
-                <span>Rekap Siap Packing (Belum Selesai)</span>
+            <div class="bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200/80 shadow-2xs space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 text-[11px] font-extrabold text-amber-950">
+                  <span>📦</span>
+                  <span>Rekap Siap Packing (Belum Selesai)</span>
+                </div>
+                <span id="prepTotalPcsBadge"
+                  class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-200/80 text-amber-950">
+                  0 pcs
+                </span>
               </div>
-              <span id="prepTotalPcsBadge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-200/80 text-amber-950">
-                0 pcs
-              </span>
+              <div id="prepVariantBreakdown" class="flex flex-wrap gap-1.5">
+                <span class="text-[11px] text-amber-800/70 italic">Semua pesanan sudah selesai 🎉</span>
+              </div>
             </div>
-            <div id="prepVariantBreakdown" class="flex flex-wrap gap-1.5">
-              <span class="text-[11px] text-amber-800/70 italic">Semua pesanan sudah selesai 🎉</span>
-            </div>
-          </div>
 
             <!-- Kartu Jumlah Terjual -->
             <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs">
@@ -369,7 +382,8 @@
         <!-- FILTER STATUS & PENCARIAN PESANAN -->
         <div id="adminOrderFilterBox" class="bg-white p-3 rounded-2xl border border-stone-200 shadow-2xs space-y-2.5">
           <!-- Tombol Filter Metode Pesanan (Pickup vs Delivery) -->
-          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[11px] font-bold pt-2 border-t border-stone-100">
+          <div
+            class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[11px] font-bold pt-2 border-t border-stone-100">
             <span class="text-[10px] text-stone-400 uppercase tracking-wider mr-0.5 shrink-0">Metode:</span>
             <button type="button" id="filterMethodAll" onclick="setAdminOrderMethodFilter('all')"
               class="px-3 py-1 rounded-xl bg-stone-800 text-white shadow-2xs transition whitespace-nowrap">
@@ -386,15 +400,13 @@
           </div>
           <!-- Kotak Cari Nama / No. Order -->
           <div class="relative">
-            <input 
-              type="text" 
-              id="adminOrderSearch" 
-              oninput="onAdminOrderSearchInput()"
-              placeholder="Cari nama pembeli atau No. Order (cth: MB-2026...)" 
-              class="w-full pl-9 pr-8 py-2 text-xs bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 transition"
-            >
-            <svg class="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            <input type="text" id="adminOrderSearch" oninput="onAdminOrderSearchInput()"
+              placeholder="Cari nama pembeli atau No. Order (cth: MB-2026...)"
+              class="w-full pl-9 pr-8 py-2 text-xs bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 transition">
+            <svg class="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none"
+              stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
             <button type="button" onclick="clearAdminOrderSearch()"
               class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 text-xs">✕</button>
@@ -428,19 +440,22 @@
   </div>
 
   <!-- MODAL PROFIL ADMIN ALA MEDSOS & GANTI SANDI -->
-  <div id="profileModal" class="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4">
+  <div id="profileModal"
+    class="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4">
     <div class="absolute inset-0" onclick="closeProfileModal()"></div>
-    <div class="relative z-10 bg-white w-full max-w-md max-h-[92vh] flex flex-col rounded-3xl shadow-2xl border border-stone-200 overflow-hidden">
-      
+    <div
+      class="relative z-10 bg-white w-full max-w-md max-h-[92vh] flex flex-col rounded-3xl shadow-2xl border border-stone-200 overflow-hidden">
+
       <!-- Scrollable Body (Banner ikut di dalam agar foto tidak terpotong) -->
       <div class="overflow-y-auto flex-1">
         <!-- Cover Banner & Header -->
         <div class="relative h-20 bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500">
-          <button type="button" onclick="closeProfileModal()" 
+          <button type="button" onclick="closeProfileModal()"
             class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/25 hover:bg-black/40 text-white text-xs font-bold flex items-center justify-center backdrop-blur-xs transition">
             ✕
           </button>
-          <span class="absolute top-3 left-4 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-white/20 text-white backdrop-blur-xs">
+          <span
+            class="absolute top-3 left-4 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-white/20 text-white backdrop-blur-xs">
             Profil Pengelola
           </span>
         </div>
@@ -449,23 +464,29 @@
           <!-- Avatar Bulat Kecil & Identitas Utama -->
           <div class="relative z-10 -mt-10 mb-4 flex flex-col items-center text-center">
             <div class="relative">
-              <div class="w-20 h-20 rounded-full border-4 border-white bg-amber-50 shadow-md overflow-hidden flex items-center justify-center">
+              <div
+                class="w-20 h-20 rounded-full border-4 border-white bg-amber-50 shadow-md overflow-hidden flex items-center justify-center">
                 <img id="profileAvatarPreview" src="img/logo.webp" alt="Foto Profil" class="w-full h-full object-cover">
               </div>
               <!-- Tombol Kamera Hanya Muncul Saat Mode Edit Aktif -->
-              <label id="profileAvatarEditBtn" for="profileAvatarInput" 
+              <label id="profileAvatarEditBtn" for="profileAvatarInput"
                 class="hidden absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-brand-500 hover:bg-brand-600 text-white border-2 border-white shadow-sm items-center justify-center cursor-pointer transition active:scale-90"
                 title="Ganti & atur posisi foto profil">
                 <span class="text-xs">📷</span>
               </label>
-              <input type="file" id="profileAvatarInput" accept="image/*" onchange="handleProfileAvatarChange(event)" class="hidden" disabled>
+              <input type="file" id="profileAvatarInput" accept="image/*" onchange="handleProfileAvatarChange(event)"
+                class="hidden" disabled>
             </div>
 
-            <h3 id="profileDisplayName" class="font-extrabold text-base text-stone-900 mt-2 leading-tight">Admin Mellowbites</h3>
+            <h3 id="profileDisplayName" class="font-extrabold text-base text-stone-900 mt-2 leading-tight">Admin
+              Mellowbites</h3>
             <div class="flex items-center justify-center gap-1.5 mt-1">
-              <span id="profileDisplayRole" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-brand-100 text-brand-700">Owner / Admin</span>
+              <span id="profileDisplayRole"
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-brand-100 text-brand-700">Owner /
+                Admin</span>
               <span class="text-[11px] text-stone-400">•</span>
-              <span id="profileUserEmail" class="text-[11px] font-medium text-stone-500 truncate max-w-[180px]">admin</span>
+              <span id="profileUserEmail"
+                class="text-[11px] font-medium text-stone-500 truncate max-w-[180px]">admin</span>
             </div>
             <p id="profileDisplayBio" class="text-[11px] text-stone-500 mt-1.5 max-w-xs leading-relaxed">
               Pengelola operasional & pesanan Es Gabin Mellowbites.
@@ -473,7 +494,8 @@
           </div>
 
           <!-- Form Informasi Profil (Default Terkunci / Read-Only) -->
-          <form id="profileBioForm" onsubmit="handleUpdateProfileData(event)" class="space-y-3 text-xs border-t border-stone-100 pt-3.5">
+          <form id="profileBioForm" onsubmit="handleUpdateProfileData(event)"
+            class="space-y-3 text-xs border-t border-stone-100 pt-3.5">
             <div class="flex items-center justify-between">
               <h4 class="font-extrabold text-stone-800 text-xs flex items-center gap-1.5">
                 <span>🪪</span> Informasi Profil
@@ -535,59 +557,80 @@
             </div>
           </form>
 
-        <!-- Accordion / Section Ganti Kata Sandi -->
-        <details class="mt-4 pt-3.5 border-t border-stone-200/80 group">
-          <summary class="cursor-pointer list-none flex items-center justify-between text-xs font-extrabold text-stone-800 select-none hover:text-brand-600 transition">
-            <span class="flex items-center gap-1.5">🔒 Ganti Kata Sandi Akun</span>
-            <span class="text-[10px] text-stone-400 group-open:rotate-180 transition-transform">▼</span>
-          </summary>
+          <!-- Accordion / Section Ganti Kata Sandi -->
+          <details class="mt-4 pt-3.5 border-t border-stone-200/80 group">
+            <summary
+              class="cursor-pointer list-none flex items-center justify-between text-xs font-extrabold text-stone-800 select-none hover:text-brand-600 transition">
+              <span class="flex items-center gap-1.5">🔒 Ganti Kata Sandi Akun</span>
+              <span class="text-[10px] text-stone-400 group-open:rotate-180 transition-transform">▼</span>
+            </summary>
 
-          <form id="profilePasswordForm" onsubmit="handleUpdatePassword(event)" class="space-y-3 text-xs pt-3">
-            <div>
-              <label class="block font-bold text-stone-700 mb-1">Kata Sandi Baru</label>
-              <div class="relative">
-                <input type="password" id="newAdminPassword" required minlength="6" placeholder="Minimal 6 karakter"
-                  class="w-full pl-3 pr-10 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
-                <button type="button" onclick="togglePasswordVisibility('newAdminPassword', 'eyeNewShow', 'eyeNewHide')" aria-label="Lihat kata sandi baru"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none">
-                  <svg id="eyeNewShow" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                  </svg>
-                  <svg id="eyeNewHide" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
-                  </svg>
-                </button>
+            <form id="profilePasswordForm" onsubmit="handleUpdatePassword(event)" class="space-y-3 text-xs pt-3">
+              <div>
+                <label class="block font-bold text-stone-700 mb-1">Kata Sandi Baru</label>
+                <div class="relative">
+                  <input type="password" id="newAdminPassword" required minlength="6" placeholder="Minimal 6 karakter"
+                    class="w-full pl-3 pr-10 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
+                  <button type="button"
+                    onclick="togglePasswordVisibility('newAdminPassword', 'eyeNewShow', 'eyeNewHide')"
+                    aria-label="Lihat kata sandi baru"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none">
+                    <svg id="eyeNewShow" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                      </path>
+                    </svg>
+                    <svg id="eyeNewHide" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21">
+                      </path>
+                    </svg>
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label class="block font-bold text-stone-700 mb-1">Konfirmasi Kata Sandi Baru</label>
-              <div class="relative">
-                <input type="password" id="confirmAdminPassword" required minlength="6" placeholder="Ketik ulang kata sandi baru"
-                  class="w-full pl-3 pr-10 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
-                <button type="button" onclick="togglePasswordVisibility('confirmAdminPassword', 'eyeConfirmShow', 'eyeConfirmHide')" aria-label="Lihat konfirmasi kata sandi"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none">
-                  <svg id="eyeConfirmShow" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                  </svg>
-                  <svg id="eyeConfirmHide" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
-                  </svg>
-                </button>
+              <div>
+                <label class="block font-bold text-stone-700 mb-1">Konfirmasi Kata Sandi Baru</label>
+                <div class="relative">
+                  <input type="password" id="confirmAdminPassword" required minlength="6"
+                    placeholder="Ketik ulang kata sandi baru"
+                    class="w-full pl-3 pr-10 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
+                  <button type="button"
+                    onclick="togglePasswordVisibility('confirmAdminPassword', 'eyeConfirmShow', 'eyeConfirmHide')"
+                    aria-label="Lihat konfirmasi kata sandi"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none">
+                    <svg id="eyeConfirmShow" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                      </path>
+                    </svg>
+                    <svg id="eyeConfirmHide" class="w-4 h-4 hidden" fill="none" stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21">
+                      </path>
+                    </svg>
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <p id="profileError" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl font-semibold"></p>
-            <p id="profileSuccess" class="hidden text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl font-semibold"></p>
+              <p id="profileError"
+                class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl font-semibold">
+              </p>
+              <p id="profileSuccess"
+                class="hidden text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl font-semibold">
+              </p>
 
-            <button type="submit" id="btnUpdatePassword"
-              class="w-full py-2.5 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-extrabold shadow-sm active:scale-95 transition">
-              Perbarui Kata Sandi
-            </button>
-          </form>
-        </details>
+              <button type="submit" id="btnUpdatePassword"
+                class="w-full py-2.5 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-extrabold shadow-sm active:scale-95 transition">
+                Perbarui Kata Sandi
+              </button>
+            </form>
+          </details>
         </div>
       </div>
     </div>
@@ -596,7 +639,8 @@
   <!-- MODAL ATUR POSISI & ZOOM FOTO PROFIL (ALA INSTAGRAM) -->
 
   <!-- MODAL ATUR POSISI & ZOOM FOTO PROFIL (ALA INSTAGRAM) -->
-  <div id="avatarCropModal" class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-xs hidden items-center justify-center p-4">
+  <div id="avatarCropModal"
+    class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-xs hidden items-center justify-center p-4">
     <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-4 text-center">
       <div class="space-y-1">
         <h3 class="font-extrabold text-sm text-stone-900">Sesuaikan Foto Profil</h3>
@@ -616,8 +660,7 @@
       <div class="flex items-center gap-2.5 px-2">
         <span class="text-xs text-stone-400 font-bold">−</span>
         <input type="range" id="avatarZoomRange" min="1" max="3" step="0.02" value="1"
-          oninput="onAvatarZoomChange(this.value)"
-          class="flex-1 accent-orange-500 cursor-pointer">
+          oninput="onAvatarZoomChange(this.value)" class="flex-1 accent-orange-500 cursor-pointer">
         <span class="text-xs text-stone-600 font-bold">+</span>
       </div>
 
@@ -635,11 +678,13 @@
   </div>
 
   <!-- MODAL TAMBAH VARIAN BARU -->
-  <div id="addProductModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
+  <div id="addProductModal"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-3.5">
       <div class="flex items-center justify-between">
         <h3 class="font-extrabold text-sm text-stone-900">Tambah Varian Baru</h3>
-        <button onclick="closeAddProductModal()" class="w-7 h-7 rounded-full bg-stone-100 text-stone-500 text-xs font-bold">✕</button>
+        <button onclick="closeAddProductModal()"
+          class="w-7 h-7 rounded-full bg-stone-100 text-stone-500 text-xs font-bold">✕</button>
       </div>
 
       <form onsubmit="handleAddProduct(event)" class="space-y-2.5 text-xs">
@@ -657,7 +702,8 @@
           </div>
           <div>
             <label class="block font-bold text-stone-700 mb-1">Kategori</label>
-            <select id="newProdCategory" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
+            <select id="newProdCategory"
+              class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
               <option value="special">Spesial Mix</option>
               <option value="choco">Cokelat</option>
               <option value="fruity">Fruity</option>
@@ -675,7 +721,8 @@
             class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
         </div>
 
-        <button type="submit" class="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm transition mt-2">
+        <button type="submit"
+          class="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm transition mt-2">
           Simpan Menu Baru
         </button>
       </form>
@@ -683,39 +730,41 @@
   </div>
 
   <!-- MODAL CEK STRUK PESANAN ADMIN (#adminReceiptModal) -->
-  <div id="adminReceiptModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4">
+  <div id="adminReceiptModal"
+    class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4">
     <!-- Backdrop dismiss (No Print) -->
     <div class="absolute inset-0 no-print" onclick="closeAdminReceiptModal()"></div>
 
     <!-- Modal Box -->
-    <div id="adminReceiptContentBox" class="relative z-10 w-full max-w-sm max-h-[95vh] flex flex-col bg-stone-100 rounded-3xl shadow-2xl overflow-hidden border border-stone-300">
-      
+    <div id="adminReceiptContentBox"
+      class="relative z-10 w-full max-w-sm max-h-[95vh] flex flex-col bg-stone-100 rounded-3xl shadow-2xl overflow-hidden border border-stone-300">
+
       <!-- Modal Header Bar (No Print) -->
       <div class="px-4 py-2.5 bg-stone-900 text-white flex items-center justify-between shrink-0 no-print">
         <div class="flex items-center gap-1.5">
           <span class="text-sm">🧾</span>
           <span class="text-xs font-bold tracking-tight">Struk Digital Pesanan</span>
         </div>
-        <button onclick="closeAdminReceiptModal()" class="w-6 h-6 rounded-full bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-300 text-xs transition" title="Tutup">✕</button>
+        <button onclick="closeAdminReceiptModal()"
+          class="w-6 h-6 rounded-full bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-300 text-xs transition"
+          title="Tutup">✕</button>
       </div>
 
       <!-- Scrollable Receipt Body -->
       <div class="overflow-y-auto p-3.5 sm:p-4 flex-1 flex justify-center bg-stone-100">
         <!-- Physical Receipt Paper (#adminReceiptPaper) -->
-        <div id="adminReceiptPaper" class="w-full bg-white text-stone-800 p-5 rounded-2xl shadow-sm border border-stone-200/90 font-sans text-xs relative">
-          
+        <div id="adminReceiptPaper"
+          class="w-full bg-white text-stone-800 p-5 rounded-2xl shadow-sm border border-stone-200/90 font-sans text-xs relative">
+
           <!-- Shop Header -->
           <div class="text-center pb-1">
-            <img 
-              src="img/logo.webp" 
-              alt="Logo Mellowbites" 
-              width="64" 
-              height="64"
-              class="w-16 h-16 object-contain mx-auto mb-1.5 rounded-2xl border border-stone-200/80 bg-[#fbf6ea] p-1"
-            >
-            <h4 class="font-black text-stone-900 text-base tracking-tight uppercase leading-snug">Es Gabin - Mellowbites</h4>
+            <img src="img/logo.webp" alt="Logo Mellowbites" width="64" height="64"
+              class="w-16 h-16 object-contain mx-auto mb-1.5 rounded-2xl border border-stone-200/80 bg-[#fbf6ea] p-1">
+            <h4 class="font-black text-stone-900 text-base tracking-tight uppercase leading-snug">Es Gabin - Mellowbites
+            </h4>
             <p class="text-[10px] text-stone-500 font-medium mt-0.5">Biskuit Renyah, Fla Creamy Lumer</p>
-            <p class="text-[9px] text-stone-400 mt-0.5">jl. bromo, RT/RW:001/006, Dsn. Karangtimongo, Ds. Denanyar, Jombang • WA: 0856-4640-9023</p>
+            <p class="text-[9px] text-stone-400 mt-0.5">jl. bromo, RT/RW:001/006, Dsn. Karangtimongo, Ds. Denanyar,
+              Jombang • WA: 0856-4640-9023</p>
           </div>
 
           <!-- Divider 1 -->
@@ -740,14 +789,17 @@
               <span id="adminRcptOrderMethod" class="font-bold text-stone-800">-</span>
             </div>
             <!-- Detail Row (Alamat atau Jam Ambil) -->
-            <div id="adminRcptDetailRow" class="text-[10px] text-stone-600 bg-stone-50 p-2 rounded-lg border border-stone-200/60 leading-normal my-1.5">
+            <div id="adminRcptDetailRow"
+              class="text-[10px] text-stone-600 bg-stone-50 p-2 rounded-lg border border-stone-200/60 leading-normal my-1.5">
               -
             </div>
             <div class="flex justify-between items-center py-0.5 mt-1">
               <span class="text-stone-500">Status & Bayar:</span>
               <div class="flex items-center gap-1.5">
-                <span id="adminRcptStatus" class="font-extrabold px-2 py-0.5 rounded text-[10px] bg-amber-100 text-amber-800">Menunggu</span>
-                <span id="adminRcptPaymentMethod" class="font-extrabold px-2 py-0.5 rounded text-[10px] bg-stone-100 text-stone-800">QRIS</span>
+                <span id="adminRcptStatus"
+                  class="font-extrabold px-2 py-0.5 rounded text-[10px] bg-amber-100 text-amber-800">Menunggu</span>
+                <span id="adminRcptPaymentMethod"
+                  class="font-extrabold px-2 py-0.5 rounded text-[10px] bg-stone-100 text-stone-800">QRIS</span>
               </div>
             </div>
           </div>
@@ -775,7 +827,12 @@
               <span>Jumlah Item:</span>
               <span id="adminRcptTotalItems" class="font-semibold text-stone-800">0 pcs</span>
             </div>
-            <div class="flex justify-between text-sm font-extrabold text-stone-900 pt-1.5 mt-1 border-t border-stone-200">
+            <div id="adminRcptDeliveryFeeRow" class="hidden flex justify-between text-stone-500 py-0.5">
+              <span id="adminRcptDeliveryFeeLabel">Ongkos Kirim:</span>
+              <span id="adminRcptDeliveryFee" class="font-semibold text-stone-800">Rp 0</span>
+            </div>
+            <div
+              class="flex justify-between text-sm font-extrabold text-stone-900 pt-1.5 mt-1 border-t border-stone-200">
               <span>Total Tagihan:</span>
               <span id="adminRcptTotalPrice" class="text-brand-600 font-black">Rp 0</span>
             </div>
@@ -794,27 +851,18 @@
 
       <!-- Modal Bottom Actions (No Print) -->
       <div class="p-3 bg-white border-t border-stone-200 grid grid-cols-3 gap-2 shrink-0 no-print">
-        <button 
-          type="button" 
-          onclick="printAdminReceipt()" 
-          class="py-2 px-2 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1"
-        >
+        <button type="button" onclick="printAdminReceipt()"
+          class="py-2 px-2 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1">
           <span>🖨</span>
           <span>Cetak</span>
         </button>
-        <button 
-          type="button" 
-          onclick="downloadAdminReceiptPng()" 
-          class="py-2 px-2 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1"
-        >
+        <button type="button" onclick="downloadAdminReceiptPng()"
+          class="py-2 px-2 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1">
           <span>📥</span>
           <span>PNG</span>
         </button>
-        <button 
-          type="button" 
-          onclick="closeAdminReceiptModal()" 
-          class="py-2 px-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-xs active:scale-95 transition flex items-center justify-center"
-        >
+        <button type="button" onclick="closeAdminReceiptModal()"
+          class="py-2 px-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-xs active:scale-95 transition flex items-center justify-center">
           Tutup
         </button>
       </div>
@@ -823,19 +871,22 @@
   </div>
 
   <!-- MODAL EDIT VARIAN MENU -->
-  <div id="editProductModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
+  <div id="editProductModal"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-3.5">
       <div class="flex items-center justify-between">
         <h3 class="font-extrabold text-sm text-stone-900 flex items-center gap-2">
           <span>✏️</span> Edit Detail Varian
         </h3>
-        <button onclick="closeEditProductModal()" class="w-7 h-7 rounded-full bg-stone-100 text-stone-500 text-xs font-bold hover:bg-stone-200 transition">✕</button>
+        <button onclick="closeEditProductModal()"
+          class="w-7 h-7 rounded-full bg-stone-100 text-stone-500 text-xs font-bold hover:bg-stone-200 transition">✕</button>
       </div>
 
       <!-- Preview Foto Saat Ini -->
       <div id="editProdImagePreviewBox" class="hidden">
         <p class="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Foto Saat Ini</p>
-        <div class="w-full h-28 rounded-xl border border-stone-200 overflow-hidden bg-stone-50 flex items-center justify-center">
+        <div
+          class="w-full h-28 rounded-xl border border-stone-200 overflow-hidden bg-stone-50 flex items-center justify-center">
           <img id="editProdImagePreview" src="" alt="Preview" class="w-full h-full object-cover">
         </div>
       </div>
@@ -856,7 +907,8 @@
           </div>
           <div>
             <label class="block font-bold text-stone-700 mb-1">Kategori</label>
-            <select id="editProdCategory" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
+            <select id="editProdCategory"
+              class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
               <option value="special">Spesial Mix</option>
               <option value="choco">Cokelat</option>
               <option value="fruity">Fruity</option>
@@ -881,23 +933,28 @@
           <input type="file" id="editProdFile" accept="image/*"
             class="w-full text-[11px] mt-1.5 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-brand-50 file:text-brand-700 file:font-bold file:cursor-pointer">
           <input type="hidden" id="editProdCurrentImage">
-          <p class="text-[10px] text-stone-400 mt-1">Masukkan URL foto atau upload file baru. Kosongkan keduanya jika ingin mempertahankan foto saat ini.</p>
+          <p class="text-[10px] text-stone-400 mt-1">Masukkan URL foto atau upload file baru. Kosongkan keduanya jika
+            ingin mempertahankan foto saat ini.</p>
         </div>
 
         <!-- Error display -->
         <p id="editProdError" class="text-rose-600 text-[11px] font-bold hidden"></p>
 
-        <button type="submit" id="btnSaveEditProduct" class="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm transition mt-2">
+        <button type="submit" id="btnSaveEditProduct"
+          class="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm transition mt-2">
           Simpan Perubahan
         </button>
       </form>
     </div>
   </div>
   <!-- MODAL KONFIRMASI HAPUS PESANAN -->
-  <div id="deleteOrderModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
+  <div id="deleteOrderModal"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
     <div class="absolute inset-0" onclick="closeDeleteOrderModal()"></div>
-    <div class="relative z-10 bg-white w-full max-w-xs sm:max-w-sm rounded-3xl p-5 shadow-2xl border border-stone-200 text-center space-y-4">
-      <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center text-xl">
+    <div
+      class="relative z-10 bg-white w-full max-w-xs sm:max-w-sm rounded-3xl p-5 shadow-2xl border border-stone-200 text-center space-y-4">
+      <div
+        class="w-12 h-12 mx-auto rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center text-xl">
         🗑
       </div>
       <div class="space-y-1">
@@ -919,10 +976,13 @@
     </div>
   </div>
   <!-- MODAL KONFIRMASI HAPUS MENU -->
-  <div id="deleteProductModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
+  <div id="deleteProductModal"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
     <div class="absolute inset-0" onclick="closeDeleteProductModal()"></div>
-    <div class="relative z-10 bg-white w-full max-w-xs sm:max-w-sm rounded-3xl p-5 shadow-2xl border border-stone-200 text-center space-y-4">
-      <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center text-xl">
+    <div
+      class="relative z-10 bg-white w-full max-w-xs sm:max-w-sm rounded-3xl p-5 shadow-2xl border border-stone-200 text-center space-y-4">
+      <div
+        class="w-12 h-12 mx-auto rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center text-xl">
         🗑
       </div>
       <div class="space-y-1">
@@ -945,7 +1005,8 @@
   </div>
 
   <!-- TOAST -->
-  <div id="adminToast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-stone-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-xl pointer-events-none opacity-0 transition-opacity duration-200">
+  <div id="adminToast"
+    class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-stone-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-xl pointer-events-none opacity-0 transition-opacity duration-200">
     Tersimpan
   </div>
 
@@ -1018,7 +1079,7 @@
         if (emailInput && savedEmail) {
           emailInput.value = savedEmail;
         }
-      } catch (_) {}
+      } catch (_) { }
 
       const errEl = document.getElementById('loginError');
       if (!sbClient) {
@@ -1033,7 +1094,7 @@
         const { data: { session } } = await sbClient.auth.getSession();
         if (session && session.user) {
           showDashboard(session.user);
-        // Ambil data user_metadata terbaru dari server (agar sinkron dengan perubahan dari perangkat lain)
+          // Ambil data user_metadata terbaru dari server (agar sinkron dengan perubahan dari perangkat lain)
           const { data: freshData } = await sbClient.auth.getUser();
           if (freshData && freshData.user) {
             currentAdminUser = freshData.user;
@@ -1088,7 +1149,7 @@
         } else {
           localStorage.removeItem(SAVED_ADMIN_EMAIL_KEY);
         }
-      } catch (_) {}
+      } catch (_) { }
 
       btn.disabled = true;
       btn.textContent = 'Memeriksa...';
@@ -1281,7 +1342,7 @@
             currentAdminUser = data.user;
             syncProfileUI(data.user, true);
           }
-        } catch (_) {}
+        } catch (_) { }
       }
     }
 
@@ -1513,7 +1574,7 @@
                   uploaded = true;
                 }
               }
-            } catch (_) {}
+            } catch (_) { }
           }
 
           if (!uploaded && dataUrl) {
@@ -1733,8 +1794,8 @@
           <!-- Thumbnail -->
           <div class="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-stone-100 border border-stone-200 flex items-center justify-center">
             ${hasImg
-              ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-lg\\'>🧁</span>'">`
-              : '<span class="text-lg">🧁</span>'}
+            ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-lg\\'>🧁</span>'">`
+            : '<span class="text-lg">🧁</span>'}
           </div>
 
           <!-- Info -->
@@ -2081,11 +2142,10 @@
         const isActive = item === currentOrderPage;
         return `
           <button type="button" onclick="goToAdminOrderPage(${item})"
-            class="min-w-[32px] h-8 px-2 rounded-xl text-xs font-extrabold transition ${
-              isActive
-                ? 'bg-brand-500 text-white shadow-xs'
-                : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50 active:scale-95'
-            }">
+            class="min-w-[32px] h-8 px-2 rounded-xl text-xs font-extrabold transition ${isActive
+            ? 'bg-brand-500 text-white shadow-xs'
+            : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50 active:scale-95'
+          }">
             ${item}
           </button>
         `;
@@ -2151,6 +2211,9 @@
       container.innerHTML = paginatedOrders.map(o => {
         const itemsText = (o.items || []).map(i => `${i.name} (${i.qty}x)`).join(', ');
         const isDone = o.status === 'Selesai';
+        const isDelivery = o.order_method === 'delivery';
+        const loc = isDelivery ? parseDeliveryInfo(o.delivery_address) : null;
+
         return `
           <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs space-y-2 text-xs">
             <div class="flex items-start justify-between gap-2">
@@ -2171,11 +2234,22 @@
             </p>
 
             <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-500">
-              <span>${o.order_method === 'pickup' ? '🏬 Ambil (' + o.pickup_time + ')' : '🛵 Antar: ' + o.delivery_address}</span>
+              <span>
+                ${!isDelivery
+            ? '🏬 Ambil (' + o.pickup_time + ')'
+            : `🛵 Antar: <strong class="text-stone-700">${loc.cleanAddress}</strong>${loc.metaInfo ? ` <span class="text-brand-600 font-bold">(${loc.metaInfo})</span>` : ''}`
+          }
+              </span>
               <span class="font-extrabold text-stone-900 uppercase">${o.payment_method} • ${formatRupiah(o.total_price)}</span>
             </div>
 
             <div class="pt-1.5 border-t border-stone-100 flex items-center justify-end gap-2 flex-wrap">
+              ${isDelivery && loc && loc.coords ? `
+                <button type="button" onclick="openAdminOrderMap(${o.id})"
+                  class="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-bold text-[11px] transition flex items-center gap-1">
+                  📍 Cek Peta
+                </button>
+              ` : ''}
               ${o.payment_proof_url ? `
                 <a href="${o.payment_proof_url}" target="_blank" rel="noopener noreferrer"
                   class="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-bold text-[11px] transition flex items-center gap-1"
@@ -2199,10 +2273,10 @@
                   ↩ Tandai Belum Selesai
                 </button>
                 <button onclick="deleteOrder(${o.id})"
-                class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-[11px] transition"
-                title="Hapus pesanan">
-                🗑 Hapus
-              </button>
+                  class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-[11px] transition"
+                  title="Hapus pesanan">
+                  🗑 Hapus
+                </button>
               `}
             </div>
           </div>
@@ -2308,10 +2382,12 @@
       document.getElementById('adminRcptOrderMethod').textContent = methodText;
 
       const detailRow = document.getElementById('adminRcptDetailRow');
+      const loc = order.order_method === 'delivery' ? parseDeliveryInfo(order.delivery_address) : null;
+
       if (order.order_method === 'pickup') {
         detailRow.innerHTML = `<strong>Jam Rencana Ambil:</strong> Pukul ${order.pickup_time || '-'} WIB di Kedai Mellowbites`;
       } else {
-        detailRow.innerHTML = `<strong>Alamat Pengiriman:</strong> ${order.delivery_address || '-'}`;
+        detailRow.innerHTML = `<strong>Alamat Pengiriman:</strong> ${loc?.cleanAddress || '-'}`;
       }
 
       const statusBadge = document.getElementById('adminRcptStatus');
@@ -2346,6 +2422,21 @@
 
       const totalItems = order.total_items || items.reduce((sum, i) => sum + (i.qty || 1), 0);
       document.getElementById('adminRcptTotalItems').textContent = `${totalItems} pcs`;
+      const feeRow = document.getElementById('adminRcptDeliveryFeeRow');
+      const feeLabel = document.getElementById('adminRcptDeliveryFeeLabel');
+      const feeVal = document.getElementById('adminRcptDeliveryFee');
+
+      if (feeRow && feeLabel && feeVal) {
+        if (order.order_method === 'delivery') {
+          feeRow.classList.remove('hidden');
+          feeLabel.textContent = loc?.distanceText && loc.distanceText !== '-'
+            ? `Ongkos Kirim (${loc.distanceText}):`
+            : 'Ongkos Kirim:';
+          feeVal.textContent = loc?.feeText === 'Rp 0' ? 'Gratis' : (loc?.feeText || '-');
+        } else {
+          feeRow.classList.add('hidden');
+        }
+      }
       document.getElementById('adminRcptTotalPrice').textContent = formatRupiah(order.total_price);
 
       const modal = document.getElementById('adminReceiptModal');
@@ -2649,7 +2740,7 @@
         gain.connect(ctx.destination);
         osc.start();
         osc.stop(ctx.currentTime + 0.6);
-      } catch (_) {}
+      } catch (_) { }
     }
 
     // 4a. Cek Status Izin Notifikasi Browser / HP
@@ -2925,6 +3016,161 @@
       }
     }
 
+    const STORE_COORDS = { lat: -7.5431218, lng: 112.2134476 };
+    let adminPreviewMap = null;
+    let adminMarkersGroup = null;
+
+    // Memecah alamat bersih, info jarak/ongkir, koordinat, dan link rute dari delivery_address
+    function parseDeliveryInfo(rawAddress) {
+      if (!rawAddress) {
+        return { cleanAddress: '-', metaInfo: '', distanceText: '', feeText: '', routeUrl: null, coords: null };
+      }
+
+      const urlMatch = rawAddress.match(/(https:\/\/www\.google\.com\/maps\/dir\/\?[^\s]+)/);
+      const routeUrl = urlMatch ? urlMatch[1] : null;
+
+      let coords = null;
+      if (routeUrl) {
+        const destMatch = routeUrl.match(/destination=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+        if (destMatch) {
+          coords = {
+            lat: parseFloat(destMatch[1]),
+            lng: parseFloat(destMatch[2])
+          };
+        }
+      }
+
+      const metaMatch = rawAddress.match(/\[(Jarak:[^\]]+)\]/);
+      const metaInfo = metaMatch ? metaMatch[1] : '';
+
+      const distMatch = metaInfo.match(/Jarak:\s*([^|\]]+)/);
+      const distanceText = distMatch ? distMatch[1].trim() : '';
+
+      const feeMatch = metaInfo.match(/Ongkir:\s*([^\]]+)/);
+      const feeText = feeMatch ? feeMatch[1].trim() : '';
+
+      const cleanAddress = rawAddress
+        .replace(/\s*\[Jarak:[^\]]+\]/, '')
+        .replace(/\s*•\s*Rute Maps:\s*https?:\/\/\S+/, '')
+        .trim();
+
+      return { cleanAddress, metaInfo, distanceText, feeText, routeUrl, coords };
+    }
+
+    function openAdminOrderMap(orderId) {
+      const order = (adminOrdersCache || []).find(o => o.id === orderId);
+      if (!order) {
+        showAdminToast('Data pesanan tidak ditemukan');
+        return;
+      }
+
+      const loc = parseDeliveryInfo(order.delivery_address);
+      if (!loc.coords) {
+        showAdminToast('Koordinat peta tidak tersedia untuk pesanan ini');
+        return;
+      }
+
+      openAdminMapModal(
+        loc.coords.lat,
+        loc.coords.lng,
+        loc.cleanAddress,
+        loc.metaInfo,
+        loc.routeUrl
+      );
+    }
+
+    function openAdminMapModal(lat, lng, cleanAddress, metaInfo, routeUrl) {
+      const modal = document.getElementById('adminMapModal');
+      const box = document.getElementById('adminMapBox');
+      if (!modal || !box) return;
+
+      document.getElementById('adminMapAddressText').textContent = cleanAddress || '-';
+      document.getElementById('adminMapMetaText').textContent = metaInfo || 'Titik Lokasi Pelanggan';
+
+      const gmapsLink = document.getElementById('adminMapGoogleLink');
+      if (gmapsLink) {
+        gmapsLink.href = routeUrl || `https://www.google.com/maps/dir/?api=1&origin=${STORE_COORDS.lat},${STORE_COORDS.lng}&destination=${lat},${lng}`;
+      }
+
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modal.classList.add('opacity-100');
+      box.classList.remove('scale-95');
+      box.classList.add('scale-100');
+
+      setTimeout(() => {
+        if (!adminPreviewMap) {
+          adminPreviewMap = L.map('adminMapContainer', { attributionControl: false });
+          L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+          }).addTo(adminPreviewMap);
+          adminMarkersGroup = L.featureGroup().addTo(adminPreviewMap);
+        } else {
+          adminPreviewMap.invalidateSize();
+          adminMarkersGroup.clearLayers();
+        }
+
+        const storeIcon = L.divIcon({
+          className: '',
+          html: `<div style="background:#ea580c;color:#fff;width:26px;height:26px;border-radius:9999px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,0.3);font-size:12px;">🏪</div>`,
+          iconSize: [26, 26],
+          iconAnchor: [13, 13]
+        });
+
+        const storePin = L.marker([STORE_COORDS.lat, STORE_COORDS.lng], { icon: storeIcon })
+          .bindPopup('<b>Kedai Mellowbites</b>');
+        const custPin = L.marker([lat, lng])
+          .bindPopup(`<b>Lokasi Antar</b><br><span style="font-size:11px">${cleanAddress}</span>`)
+          .openPopup();
+
+        adminMarkersGroup.addLayer(storePin);
+        adminMarkersGroup.addLayer(custPin);
+
+        adminPreviewMap.fitBounds(adminMarkersGroup.getBounds(), { padding: [35, 35], maxZoom: 16 });
+      }, 150);
+    }
+
+    function closeAdminMapModal() {
+      const modal = document.getElementById('adminMapModal');
+      const box = document.getElementById('adminMapBox');
+      if (!modal || !box) return;
+
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      modal.classList.remove('opacity-100');
+      box.classList.add('scale-95');
+      box.classList.remove('scale-100');
+    }
+
   </script>
+  <!-- Modal Cek Lokasi Pengiriman (Admin) -->
+  <div id="adminMapModal"
+    class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+    <div id="adminMapBox"
+      class="bg-white w-full max-w-md rounded-2xl shadow-xl border border-stone-200 overflow-hidden scale-95 transition-transform duration-200">
+      <div class="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
+        <div>
+          <h3 class="font-extrabold text-stone-900 text-sm">📍 Cek Titik Lokasi Pengiriman</h3>
+          <p id="adminMapMetaText" class="text-[11px] font-bold text-brand-600 mt-0.5">-</p>
+        </div>
+        <button type="button" onclick="closeAdminMapModal()"
+          class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center font-bold text-sm">✕</button>
+      </div>
+
+      <div class="p-4 space-y-3">
+        <div id="adminMapContainer" class="w-full h-60 rounded-xl border border-stone-200 bg-stone-100 overflow-hidden">
+        </div>
+        <div class="p-2.5 rounded-xl bg-stone-50 border border-stone-200/80 text-xs text-stone-700 leading-relaxed">
+          <span class="font-bold text-stone-900 block mb-0.5">Alamat & Patokan:</span>
+          <span id="adminMapAddressText">-</span>
+        </div>
+        <a id="adminMapGoogleLink" href="#" target="_blank" rel="noopener"
+          class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition">
+          <span>🗺️</span>
+          <span>Buka Navigasi Rute di Google Maps</span>
+        </a>
+      </div>
+    </div>
+  </div>
 </body>
+
 </html>
