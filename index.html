@@ -71,21 +71,6 @@
       </div>
 
       <!-- Header Action Buttons (Download App, Riwayat Pesanan & Keranjang) -->
-      <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
-        <!-- Download / Install App Button -->
-        <button 
-          id="btnInstallApp"
-          onclick="handleInstallAppClick()" 
-          class="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200/80 rounded-xl transition active:scale-95 shadow-2xs" 
-          title="Download & Pasang Aplikasi Mellowbites"
-          aria-label="Download Aplikasi"
-        >
-          <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-          </svg>
-          <span class="text-[11px] sm:text-xs font-bold leading-none">Download</span>
-        </button>
-
         <!-- Riwayat Pesanan Button -->
         <button 
           onclick="openOrderHistoryModal()" 
@@ -330,7 +315,7 @@
 
         <!-- Tombol Sosial Media -->
         <div class="flex flex-col sm:items-end gap-1.5">
-          <span class="text-[11px] font-semibold text-stone-500">Ikuti kami:</span>
+          <span class="text-[11px] font-semibold text-stone-500">Follow Us On:</span>
           <div class="flex items-center gap-2">
             <a 
               href="https://instagram.com/mellowbite_es" 
@@ -357,6 +342,22 @@
             </a>
           </div>
         </div>
+      </div>
+
+      <!-- CTA Download Aplikasi Mellowbites (Ringkas) -->
+      <div class="pt-3 border-t border-stone-200/60 flex items-center justify-between gap-2">
+        <span class="text-[11px] font-semibold text-stone-500">Pasang di layar HP:</span>
+        <button 
+          id="btnInstallApp"
+          type="button"
+          onclick="handleInstallAppClick()" 
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-600 border border-brand-200/80 font-bold text-[11px] shadow-2xs active:scale-95 transition"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+          </svg>
+          <span>Download Aplikasi</span>
+        </button>
       </div>
 
       <!-- Baris Bawah: Copyright & Login Admin -->
