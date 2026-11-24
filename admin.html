@@ -314,7 +314,7 @@
         <!-- RINGKASAN OMZET & JUMLAH TERJUAL -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-stone-500">Ringkasan Penjualan (Status Selesai)</span>
+            <span class="text-[11px] font-bold text-stone-500">Filter Periode Rekap & Omzet</span>
             <div class="inline-flex rounded-xl bg-stone-200/80 p-0.5 text-[11px] font-bold">
               <button type="button" id="btnStatToday" onclick="setOrderStatPeriod('today')"
                 class="px-2.5 py-1 rounded-lg bg-white text-brand-600 shadow-2xs transition">
@@ -351,20 +351,20 @@
         </div>
 
         <!-- FILTER STATUS & PENCARIAN PESANAN -->
-        <div class="bg-white p-3 rounded-2xl border border-stone-200 shadow-2xs space-y-2.5">
+        <div id="adminOrderFilterBox" class="bg-white p-3 rounded-2xl border border-stone-200 shadow-2xs space-y-2.5">
           <!-- Kotak Cari Nama / No. Order -->
           <div class="relative">
             <input 
               type="text" 
               id="adminOrderSearch" 
-              oninput="renderFilteredAdminOrders()"
+              oninput="onAdminOrderSearchInput()"
               placeholder="Cari nama pembeli atau No. Order (cth: MB-2026...)" 
               class="w-full pl-9 pr-8 py-2 text-xs bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 transition"
             >
             <svg class="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
-            <button type="button" onclick="document.getElementById('adminOrderSearch').value=''; renderFilteredAdminOrders();"
+            <button type="button" onclick="clearAdminOrderSearch()"
               class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 text-xs">✕</button>
           </div>
 
@@ -388,8 +388,10 @@
         <div id="adminOrderList" class="space-y-2.5">
           <div class="text-center py-8 text-xs text-stone-400">Memuat data pesanan...</div>
         </div>
-      </section>
 
+        <!-- NAVIGASI HALAMAN (PAGINATION) -->
+        <div id="adminOrderPagination" class="pt-1"></div>
+      </section>
     </main>
   </div>
 
@@ -1283,9 +1285,41 @@
     }
 
     let adminOrderStatusFilter = 'all';
+    let orderStatPeriod = 'today'; // 'today' | 'all'
+    const ORDERS_PER_PAGE = 10;
+    let currentOrderPage = 1;
+
+    function isOrderCreatedToday(order) {
+      if (!order || !order.created_at) return false;
+      const todayStr = new Date().toLocaleDateString('id-ID');
+      const orderDateStr = new Date(order.created_at).toLocaleDateString('id-ID');
+      return orderDateStr === todayStr;
+    }
+
+    function setOrderStatPeriod(period) {
+      orderStatPeriod = period;
+      currentOrderPage = 1; // Reset ke halaman 1 saat ganti filter Hari Ini / Semua
+
+      const btnToday = document.getElementById('btnStatToday');
+      const btnAll = document.getElementById('btnStatAll');
+
+      if (btnToday && btnAll) {
+        btnToday.className = period === 'today'
+          ? 'px-2.5 py-1 rounded-lg bg-white text-brand-600 shadow-2xs transition'
+          : 'px-2.5 py-1 rounded-lg text-stone-600 hover:text-stone-900 transition';
+        btnAll.className = period === 'all'
+          ? 'px-2.5 py-1 rounded-lg bg-white text-brand-600 shadow-2xs transition'
+          : 'px-2.5 py-1 rounded-lg text-stone-600 hover:text-stone-900 transition';
+      }
+
+      updateOrderStats();
+      renderFilteredAdminOrders();
+    }
 
     function setAdminOrderFilter(status) {
       adminOrderStatusFilter = status;
+      currentOrderPage = 1; // Reset ke halaman 1 saat ganti filter status
+
       const mapBtn = {
         'all': document.getElementById('filterOrderAll'),
         'Menunggu Konfirmasi': document.getElementById('filterOrderPending'),
@@ -1301,34 +1335,142 @@
       renderFilteredAdminOrders();
     }
 
+    function onAdminOrderSearchInput() {
+      currentOrderPage = 1;
+      renderFilteredAdminOrders();
+    }
+
+    function clearAdminOrderSearch() {
+      const input = document.getElementById('adminOrderSearch');
+      if (input) input.value = '';
+      currentOrderPage = 1;
+      renderFilteredAdminOrders();
+    }
+
+    function goToAdminOrderPage(page) {
+      currentOrderPage = page;
+      renderFilteredAdminOrders();
+    }
+
+    // Menghasilkan susunan nomor halaman ringkas (contoh: [1, '...', 4, 5, 6, '...', 12])
+    function getPaginationNumbers(current, total) {
+      if (total <= 5) {
+        return Array.from({ length: total }, (_, i) => i + 1);
+      }
+      const pages = new Set([1, total, current, current - 1, current + 1]);
+      const sorted = [...pages].filter(p => p >= 1 && p <= total).sort((a, b) => a - b);
+      const result = [];
+
+      for (let i = 0; i < sorted.length; i++) {
+        if (i > 0 && sorted[i] - sorted[i - 1] > 1) {
+          result.push('...');
+        }
+        result.push(sorted[i]);
+      }
+      return result;
+    }
+
+    function renderAdminOrderPagination(totalItems, totalPages) {
+      const pagContainer = document.getElementById('adminOrderPagination');
+      if (!pagContainer) return;
+
+      if (totalItems === 0) {
+        pagContainer.innerHTML = '';
+        return;
+      }
+
+      const safeTotalPages = Math.max(1, totalPages);
+      const startItem = (currentOrderPage - 1) * ORDERS_PER_PAGE + 1;
+      const endItem = Math.min(currentOrderPage * ORDERS_PER_PAGE, totalItems);
+      const pageNumbers = getPaginationNumbers(currentOrderPage, safeTotalPages);
+
+      const pageButtonsHtml = pageNumbers.map(item => {
+        if (item === '...') {
+          return `<span class="px-1.5 py-1 text-xs font-bold text-stone-400 select-none">…</span>`;
+        }
+        const isActive = item === currentOrderPage;
+        return `
+          <button type="button" onclick="goToAdminOrderPage(${item})"
+            class="min-w-[32px] h-8 px-2 rounded-xl text-xs font-extrabold transition ${
+              isActive
+                ? 'bg-brand-500 text-white shadow-xs'
+                : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50 active:scale-95'
+            }">
+            ${item}
+          </button>
+        `;
+      }).join('');
+
+      pagContainer.innerHTML = `
+        <div class="bg-white p-3 rounded-2xl border border-stone-200 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-2.5">
+          <span class="text-[11px] font-medium text-stone-500">
+            Menampilkan <strong class="text-stone-800">${startItem}–${endItem}</strong> dari <strong class="text-stone-800">${totalItems}</strong> pesanan
+          </span>
+
+          <div class="flex items-center gap-1">
+            <button type="button" onclick="goToAdminOrderPage(${currentOrderPage - 1})"
+              ${currentOrderPage <= 1 ? 'disabled' : ''}
+              class="h-8 px-2.5 rounded-xl border border-stone-200 bg-white text-stone-700 text-xs font-bold hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none transition"
+              title="Halaman sebelumnya">
+              ‹
+            </button>
+
+            ${pageButtonsHtml}
+
+            <button type="button" onclick="goToAdminOrderPage(${currentOrderPage + 1})"
+              ${currentOrderPage >= safeTotalPages ? 'disabled' : ''}
+              class="h-8 px-2.5 rounded-xl border border-stone-200 bg-white text-stone-700 text-xs font-bold hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none transition"
+              title="Halaman berikutnya">
+              ›
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
     function renderFilteredAdminOrders() {
       const container = document.getElementById('adminOrderList');
       const query = (document.getElementById('adminOrderSearch')?.value || '').toLowerCase().trim();
 
       const filtered = (adminOrdersCache || []).filter(o => {
+        const matchPeriod = orderStatPeriod === 'all' || isOrderCreatedToday(o);
         const matchStatus = adminOrderStatusFilter === 'all' || o.status === adminOrderStatusFilter;
         const matchQuery = !query ||
           (o.customer_name || '').toLowerCase().includes(query) ||
           (o.order_number || '').toLowerCase().includes(query);
-        return matchStatus && matchQuery;
+        return matchPeriod && matchStatus && matchQuery;
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = '<div class="bg-white p-8 rounded-2xl border border-stone-200 text-center text-xs text-stone-400">Tidak ada pesanan yang cocok dengan filter/pencarian.</div>';
+        const emptyMsg = orderStatPeriod === 'today' && !query && adminOrderStatusFilter === 'all'
+          ? 'Belum ada pesanan masuk untuk hari ini.'
+          : 'Tidak ada pesanan yang cocok dengan filter/pencarian.';
+        container.innerHTML = `<div class="bg-white p-8 rounded-2xl border border-stone-200 text-center text-xs text-stone-400">${emptyMsg}</div>`;
+        renderAdminOrderPagination(0, 0);
         return;
       }
 
-      container.innerHTML = filtered.map(o => {
+      const totalPages = Math.ceil(filtered.length / ORDERS_PER_PAGE);
+      if (currentOrderPage > totalPages) currentOrderPage = totalPages;
+      if (currentOrderPage < 1) currentOrderPage = 1;
+
+      const startIndex = (currentOrderPage - 1) * ORDERS_PER_PAGE;
+      const paginatedOrders = filtered.slice(startIndex, startIndex + ORDERS_PER_PAGE);
+
+      container.innerHTML = paginatedOrders.map(o => {
         const itemsText = (o.items || []).map(i => `${i.name} (${i.qty}x)`).join(', ');
         const isDone = o.status === 'Selesai';
         return `
           <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs space-y-2 text-xs">
             <div class="flex items-start justify-between gap-2">
               <div>
-                <span class="font-mono font-extrabold text-[11px] text-brand-600">${o.order_number}</span>
-                <h4 class="font-extrabold text-stone-900 text-sm">${o.customer_name}</h4>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="font-mono font-extrabold text-[11px] text-brand-600">${o.order_number}</span>
+                  <span class="text-[10px] text-stone-400">• ${formatAdminDateTime(o.created_at)}</span>
+                </div>
+                <h4 class="font-extrabold text-stone-900 text-sm mt-0.5">${o.customer_name}</h4>
               </div>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
                 ${o.status}
               </span>
             </div>
@@ -1370,6 +1512,55 @@
           </div>
         `;
       }).join('');
+
+      renderAdminOrderPagination(filtered.length, totalPages);
+    }
+
+    function updateOrderStats() {
+      const revEl = document.getElementById('statTotalRevenue');
+      const soldEl = document.getElementById('statTotalSold');
+      const countEl = document.getElementById('statOrderCount');
+      const topEl = document.getElementById('statTopProduct');
+      if (!revEl || !soldEl) return;
+
+      const filteredOrders = (adminOrdersCache || []).filter(o => {
+        if (o.status !== 'Selesai') return false;
+        if (orderStatPeriod === 'today') return isOrderCreatedToday(o);
+        return true;
+      });
+
+      let totalRevenue = 0;
+      let totalSold = 0;
+      const itemCounter = {};
+
+      filteredOrders.forEach(o => {
+        totalRevenue += Number(o.total_price || 0);
+        const items = Array.isArray(o.items) ? o.items : [];
+        let orderPcs = 0;
+
+        items.forEach(item => {
+          const qty = Number(item.qty || 0);
+          orderPcs += qty;
+          const name = item.name || 'Varian';
+          itemCounter[name] = (itemCounter[name] || 0) + qty;
+        });
+
+        totalSold += Number(o.total_items || orderPcs);
+      });
+
+      let topName = '-';
+      let topQty = 0;
+      for (const [name, qty] of Object.entries(itemCounter)) {
+        if (qty > topQty) {
+          topQty = qty;
+          topName = `${name} (${qty} pcs)`;
+        }
+      }
+
+      revEl.textContent = formatRupiah(totalRevenue);
+      soldEl.textContent = `${totalSold} pcs`;
+      if (countEl) countEl.textContent = `${filteredOrders.length} pesanan selesai`;
+      if (topEl) topEl.textContent = `Terlaris: ${topName}`;
     }
 
     // 4. Kelola Rekap Pesanan Masuk
@@ -1378,7 +1569,7 @@
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(1000);
 
       adminOrdersCache = data || [];
       updateOrderStats();
@@ -1972,79 +2163,6 @@
       }
     }
 
-    // ==================== RINGKASAN OMZET & TERJUAL ====================
-    let orderStatPeriod = 'today'; // 'today' | 'all'
-
-    function setOrderStatPeriod(period) {
-      orderStatPeriod = period;
-      const btnToday = document.getElementById('btnStatToday');
-      const btnAll = document.getElementById('btnStatAll');
-
-      if (btnToday && btnAll) {
-        btnToday.className = period === 'today'
-          ? 'px-2.5 py-1 rounded-lg bg-white text-brand-600 shadow-2xs transition'
-          : 'px-2.5 py-1 rounded-lg text-stone-600 hover:text-stone-900 transition';
-        btnAll.className = period === 'all'
-          ? 'px-2.5 py-1 rounded-lg bg-white text-brand-600 shadow-2xs transition'
-          : 'px-2.5 py-1 rounded-lg text-stone-600 hover:text-stone-900 transition';
-      }
-
-      updateOrderStats();
-    }
-
-    function updateOrderStats() {
-      const revEl = document.getElementById('statTotalRevenue');
-      const soldEl = document.getElementById('statTotalSold');
-      const countEl = document.getElementById('statOrderCount');
-      const topEl = document.getElementById('statTopProduct');
-      if (!revEl || !soldEl) return;
-
-      const todayStr = new Date().toLocaleDateString('id-ID');
-
-      // Filter pesanan berstatus 'Selesai' (agar pesanan batal/belum bayar tidak masuk omzet)
-      const filteredOrders = (adminOrdersCache || []).filter(o => {
-        if (o.status !== 'Selesai') return false;
-        if (orderStatPeriod === 'today') {
-          const orderDateStr = o.created_at ? new Date(o.created_at).toLocaleDateString('id-ID') : '';
-          return orderDateStr === todayStr;
-        }
-        return true;
-      });
-
-      let totalRevenue = 0;
-      let totalSold = 0;
-      const itemCounter = {};
-
-      filteredOrders.forEach(o => {
-        totalRevenue += Number(o.total_price || 0);
-        const items = Array.isArray(o.items) ? o.items : [];
-        let orderPcs = 0;
-
-        items.forEach(item => {
-          const qty = Number(item.qty || 0);
-          orderPcs += qty;
-          const name = item.name || 'Varian';
-          itemCounter[name] = (itemCounter[name] || 0) + qty;
-        });
-
-        totalSold += Number(o.total_items || orderPcs);
-      });
-
-      // Cari varian paling laris
-      let topName = '-';
-      let topQty = 0;
-      for (const [name, qty] of Object.entries(itemCounter)) {
-        if (qty > topQty) {
-          topQty = qty;
-          topName = `${name} (${qty} pcs)`;
-        }
-      }
-
-      revEl.textContent = formatRupiah(totalRevenue);
-      soldEl.textContent = `${totalSold} pcs`;
-      if (countEl) countEl.textContent = `${filteredOrders.length} pesanan selesai`;
-      if (topEl) topEl.textContent = `Terlaris: ${topName}`;
-    }
   </script>
 </body>
 </html>
