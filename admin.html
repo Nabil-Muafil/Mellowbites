@@ -577,9 +577,12 @@
             </button>
           </form>
         </details>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- MODAL ATUR POSISI & ZOOM FOTO PROFIL (ALA INSTAGRAM) -->
 
   <!-- MODAL ATUR POSISI & ZOOM FOTO PROFIL (ALA INSTAGRAM) -->
   <div id="avatarCropModal" class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-xs hidden items-center justify-center p-4">
@@ -1531,62 +1534,6 @@
       } catch (err) {
         btn.disabled = false;
         btn.textContent = 'Perbarui Kata Sandi';
-        errEl.textContent = 'Terjadi kesalahan: ' + err.message;
-        errEl.classList.remove('hidden');
-      }
-    }
-
-    async function handleUpdatePassword(e) {
-      e.preventDefault();
-      if (!sbClient) return;
-
-      const newPass = document.getElementById('newAdminPassword').value;
-      const confirmPass = document.getElementById('confirmAdminPassword').value;
-      const errEl = document.getElementById('profileError');
-      const successEl = document.getElementById('profileSuccess');
-      const btn = document.getElementById('btnUpdatePassword');
-
-      errEl.classList.add('hidden');
-      successEl.classList.add('hidden');
-
-      if (!newPass || newPass.length < 6) {
-        errEl.textContent = 'Kata sandi minimal harus 6 karakter.';
-        errEl.classList.remove('hidden');
-        return;
-      }
-
-      if (newPass !== confirmPass) {
-        errEl.textContent = 'Konfirmasi kata sandi tidak cocok.';
-        errEl.classList.remove('hidden');
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = 'Menyimpan...';
-
-      try {
-        const { data, error } = await sbClient.auth.updateUser({
-          password: newPass
-        });
-
-        btn.disabled = false;
-        btn.textContent = 'Simpan Sandi';
-
-        if (error) {
-          errEl.textContent = 'Gagal mengubah kata sandi: ' + error.message;
-          errEl.classList.remove('hidden');
-        } else {
-          successEl.textContent = 'Kata sandi berhasil diperbarui!';
-          successEl.classList.remove('hidden');
-          document.getElementById('profilePasswordForm').reset();
-          showAdminToast('Kata sandi berhasil diperbarui');
-          setTimeout(() => {
-            closeProfileModal();
-          }, 1500);
-        }
-      } catch (err) {
-        btn.disabled = false;
-        btn.textContent = 'Simpan Sandi';
         errEl.textContent = 'Terjadi kesalahan: ' + err.message;
         errEl.classList.remove('hidden');
       }
