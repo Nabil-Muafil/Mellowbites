@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Katalog Es Gabin - Mellowbites</title>
+  <title>Katalog Gabin Ice Bar - Mellowbites</title>
   <link rel="icon" type="image/webp" href="img/logo.webp">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ea580c">
@@ -36,7 +36,7 @@
   <script src="js/main.js"></script>
 
 </head>
-<body class="bg-stone-50 font-sans text-stone-800 antialiased min-h-screen pb-32">
+<body class="bg-stone-50 font-sans text-stone-800 antialiased min-h-screen pb-0">
 
  <!-- TOP HEADER / BANNER -->
   <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-stone-200/80 transition-all">
@@ -57,7 +57,7 @@
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5">
             <h1 class="text-sm sm:text-lg font-extrabold tracking-tight text-stone-900 leading-tight truncate">
-              Es Gabin - Mellowbites
+              Gabin Ice Bar - Mellowbites
             </h1>
             <span id="storeStatusBadge" class="shrink-0 inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200/70 transition-all" title="Jam Operasional 08.00 - 20.00 WIB">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>
@@ -238,7 +238,7 @@
     <div class="flex items-center justify-between mb-3 px-0.5">
       <div>
         <h3 class="font-extrabold text-stone-900 text-base flex items-center gap-1.5">
-          <span>Katalog Varian Es Gabin</span>
+          <span>Katalog Varian Gabin Ice Bar</span>
           <span id="filteredCountBadge" class="text-xs font-semibold text-stone-400"></span>
         </h3>
         <p class="text-xs text-stone-500">Pilih rasa favorit dan sesuaikan jumlah yang diinginkan</p>
@@ -271,19 +271,104 @@
         💡
       </div>
       <div>
-        <p class="font-bold text-amber-950">Saran Penyajian Es Gabin:</p>
+        <p class="font-bold text-amber-950">Saran Penyajian Gabin Ice Bar:</p>
         <p class="text-amber-900/90 mt-0.5 leading-relaxed">
           Simpan di freezer lemari es. Langsung nikmati selagi dingin beku untuk sensasi <em>crispy ice cream sandwich</em>, atau diamkan 2 menit agar flanya semakin lembut & lumer!
         </p>
       </div>
     </div>
 
-    <!-- FOOTER KECIL & LINK ADMIN -->
-    <div class="mt-6 text-center">
-      <a href="admin.html" class="text-[10px] text-stone-400 hover:text-brand-600 transition">
-        © Mellowbites • Admin
-      </a>
+<!-- FOOTER FULL-WIDTH KONTRAS -->
+  <footer class="w-full bg-stone-900 text-stone-300 mt-8 border-t border-stone-800">
+    <div class="max-w-3xl mx-auto px-4 pt-7 pb-24 space-y-5">
+
+      <!-- Baris Atas: Brand & CTA WhatsApp Utama -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-stone-800">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-[#fbf6ea] p-1 flex items-center justify-center shrink-0">
+            <img src="img/logo.webp" alt="Logo Mellowbites" class="w-full h-full object-contain">
+          </div>
+          <div>
+            <h4 class="font-extrabold text-white text-base leading-tight">Gabin Ice Bar - Mellowbites</h4>
+            <p class="text-xs text-stone-400 mt-0.5">Biskuit Renyah, Fla Creamy Lumer ❄️</p>
+          </div>
+        </div>
+
+        <!-- CTA WhatsApp dengan Emoji 🤗 Anti-Rusak -->
+        <a 
+          href="https://api.whatsapp.com/send?phone=6285646409023&text=Halo%20kak%2C%20saya%20mau%20pesan%20Gabin%20Ice%20Bar%20Mellowbites%20%E2%98%BA%EF%B8%8F%F0%9F%A4%97" 
+          onclick="this.href='https://api.whatsapp.com/send?phone=6285646409023&text=' + encodeURIComponent('halo kak, saya boleh tanya mengenai gabin ice bar Mellowbites? 🤗')"
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-extrabold text-xs shadow-lg shadow-emerald-500/20 active:scale-95 transition"
+        >
+          <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+          </svg>
+          <span>Chat & Pesan via WhatsApp</span>
+        </a>
+      </div>
+
+      <!-- Baris Tengah: Info Singkat (Jam, Lokasi, Sosmed) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        <div class="space-y-1.5">
+          <p class="text-stone-400">
+            🕒 <strong class="text-white font-semibold">Jam Buka:</strong> Setiap Hari, 08.00 – 20.00 WIB
+          </p>
+          <p class="text-stone-400 leading-relaxed">
+            📍 <strong class="text-white font-semibold">Alamat:</strong> Jl. Bromo, RT/RW 001/006, Dsn. Karangtimongo, Ds. Denanyar, Jombang
+            <a 
+              href="https://www.google.com/maps/search/?api=1&query=-7.5431218,112.2134476" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="inline-block ml-1 text-amber-400 hover:text-amber-300 font-bold underline underline-offset-2"
+            >
+              Lihat Maps ↗
+            </a>
+          </p>
+        </div>
+
+        <!-- Tombol Sosial Media -->
+        <div class="flex flex-col sm:items-end gap-1.5">
+          <span class="text-[11px] font-semibold text-stone-400">Follow us on:</span>
+          <div class="flex items-center gap-2">
+            <a 
+              href="https://instagram.com/mellowbite_es" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 font-semibold text-[11px] transition"
+            >
+              <svg class="w-3.5 h-3.5 fill-current text-rose-400" viewBox="0 0 24 24">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+              <span>Instagram</span>
+            </a>
+
+            <a 
+              href="https://www.tiktok.com/@mellowbite_es" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 font-semibold text-[11px] transition"
+            >
+              <svg class="w-3.5 h-3.5 fill-current text-white" viewBox="0 0 24 24">
+                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+              </svg>
+              <span>TikTok</span>
+            </a>
+          </div>
+        </div>
+
+      <!-- Baris Bawah: Copyright & Login Admin -->
+      <div class="flex items-center justify-between text-[11px] text-stone-500">
+        <span>© 2026 Gabin Ice Bar - Mellowbites</span>
+        <a href="admin.html" class="inline-flex items-center gap-1 text-stone-400 hover:text-amber-400 font-semibold transition">
+          <span>🔒</span>
+          <span>Login Admin</span>
+        </a>
+      </div>
+
     </div>
+  </footer>
   </main>
 
   <!-- FLOATING BOTTOM BAR (CART SUMMARY) -->
@@ -533,7 +618,7 @@
             <div class="flex items-start justify-between gap-2">
               <div>
                 <p class="font-bold text-[11px] flex items-center gap-1 text-amber-900">
-                  <span>📍</span> Kedai Es Gabin - Mellowbites
+                  <span>📍</span> Kedai Gabin Ice Bar - Mellowbites
                 </p>
                 <p class="text-[10px] text-stone-600 mt-0.5 leading-snug">
                   jl. bromo, RT/RW:001/006, Dsn. Karangtimongo, Ds. Denanyar, Jombang
@@ -557,10 +642,26 @@
                 allowfullscreen="" 
                 loading="lazy" 
                 referrerpolicy="strict-origin-when-cross-origin"
-                title="Lokasi Kedai Es Gabin - Mellowbites"
+                title="Lokasi Kedai Gabin Ice Bar - Mellowbites"
               ></iframe>
             </div>
           </div>
+
+            <!-- Pilihan Hari & Tanggal Pengambilan (Kalender) -->
+            <div>
+              <label for="pickupDateSelect" class="block text-xs font-bold text-stone-700 mb-1">
+                Hari & Tanggal Ambil <span class="text-rose-500">*</span>
+              </label>
+              <input
+                type="date"
+                id="pickupDateSelect"
+                onchange="updatePickupDatePreview()"
+                oninput="updatePickupDatePreview()"
+                class="w-full text-xs font-bold text-stone-800 px-3 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition cursor-pointer"
+              >
+              <p id="pickupDatePreview" class="text-[11px] font-semibold text-brand-600 mt-1"></p>
+              <p id="err-pickupDate" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
+            </div>
 
             <div>
               <label class="block text-xs font-bold text-stone-700 mb-1">
@@ -819,13 +920,13 @@
             <img 
               id="qrisImgElement"
               src="img/QRIS.webp" 
-              alt="QRIS Es Gabin Mellowbites" 
+              alt="QRIS Gabin Ice Bar Mellowbites" 
               decoding="async"
               class="w-full h-auto object-contain mx-auto rounded-xl"
               onerror="this.classList.add('hidden'); document.getElementById('qrisSvgFallback').classList.remove('hidden');"
             />
             <div id="qrisSvgFallback" class="hidden w-full aspect-square bg-gradient-to-tr from-stone-100 to-amber-50 rounded-xl flex flex-col items-center justify-center p-3 text-center border border-dashed border-stone-300">
-              <p class="text-xs font-bold text-stone-700">QRIS Mellowbites</p>
+              <p class="text-xs font-bold text-stone-700">QRIS Gabin Ice Bar Mellowbites</p>
               <p class="text-[10px] text-stone-400">NMID: ID1026570077358</p>
             </div>
           </div>
@@ -843,12 +944,13 @@
           </button>
         </div>
 
-        <div class="space-y-2 pt-1">
+        <div class="space-y-2.5 pt-1">
           <div class="flex items-center justify-between">
             <span class="font-extrabold text-stone-800 text-xs">Bukti Transfer QRIS <span class="text-rose-500">*</span></span>
             <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">Wajib diisi</span>
           </div>
 
+          <!-- Input 1: Galeri / File -->
           <input 
             type="file" 
             id="qrisProofInput" 
@@ -857,28 +959,60 @@
             class="hidden"
           />
 
-          <label 
-            id="qrisProofDropzone"
-            for="qrisProofInput" 
-            class="flex flex-col items-center justify-center gap-1.5 p-4 rounded-2xl border-2 border-dashed border-brand-400 bg-brand-50/50 hover:bg-brand-50 active:scale-[0.99] cursor-pointer transition text-center"
-          >
-            <div class="w-11 h-11 rounded-2xl bg-brand-500 text-white flex items-center justify-center shadow-sm">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-              </svg>
-            </div>
-            <span class="font-extrabold text-xs sm:text-sm text-brand-800">Tap di Sini untuk Upload Bukti Transfer</span>
-            <span class="text-[11px] text-stone-500">Pilih foto / screenshot transaksi berhasil dari galeri HP</span>
-          </label>
+          <!-- Input 2: Kamera Langsung (Ambil Foto) -->
+          <input 
+            type="file" 
+            id="qrisProofCameraInput" 
+            accept="image/*" 
+            capture="environment"
+            onchange="handleQrisProofChange(event)"
+            class="hidden"
+          />
+
+          <!-- Pilihan 2 Tombol Upload -->
+          <div id="qrisProofDropzone" class="grid grid-cols-2 gap-2.5">
+            <label 
+              for="qrisProofCameraInput" 
+              class="flex flex-col items-center justify-center gap-1.5 p-3.5 rounded-2xl border-2 border-dashed border-brand-400 bg-brand-50/60 hover:bg-brand-50 active:scale-[0.98] cursor-pointer transition text-center"
+            >
+              <div class="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
+              <span class="font-extrabold text-xs text-brand-800 leading-tight">Ambil Foto</span>
+              <span class="text-[10px] text-stone-500 leading-tight">Buka kamera HP</span>
+            </label>
+
+            <label 
+              for="qrisProofInput" 
+              class="flex flex-col items-center justify-center gap-1.5 p-3.5 rounded-2xl border-2 border-dashed border-stone-300 bg-stone-50 hover:bg-stone-100 active:scale-[0.98] cursor-pointer transition text-center"
+            >
+              <div class="w-10 h-10 rounded-xl bg-stone-700 text-white flex items-center justify-center shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <span class="font-extrabold text-xs text-stone-800 leading-tight">Pilih Galeri</span>
+              <span class="text-[10px] text-stone-500 leading-tight">Screenshot / file</span>
+            </label>
+          </div>
 
           <div id="qrisProofPreviewBox" class="hidden relative rounded-2xl overflow-hidden border-2 border-emerald-400 bg-emerald-50/30 p-2.5 space-y-2">
-            <div class="flex items-center justify-between px-1">
+            <div class="flex items-center justify-between px-1 gap-2">
               <span class="text-[11px] font-extrabold text-emerald-700 flex items-center gap-1">
                 <span>✅</span> Foto bukti siap dikirim
               </span>
-              <label for="qrisProofInput" class="text-[11px] font-bold text-brand-600 hover:underline cursor-pointer">
-                Ganti Foto
-              </label>
+              <div class="flex items-center gap-2.5">
+                <label for="qrisProofCameraInput" class="text-[11px] font-bold text-brand-600 hover:underline cursor-pointer">
+                  Foto Ulang
+                </label>
+                <span class="text-stone-300">|</span>
+                <label for="qrisProofInput" class="text-[11px] font-bold text-stone-600 hover:underline cursor-pointer">
+                  Galeri
+                </label>
+              </div>
             </div>
             <img id="qrisProofPreviewImg" src="" alt="Preview Bukti Transfer" class="w-full max-h-52 object-contain rounded-xl bg-white border border-stone-200 mx-auto" />
             <button 
@@ -978,7 +1112,7 @@
               height="64"
               class="w-16 h-16 object-contain mx-auto mb-1.5 rounded-2xl border border-stone-200/80 bg-[#fbf6ea] p-1"
             >
-            <h4 class="font-black text-stone-900 text-base tracking-tight uppercase leading-snug">Es Gabin - Mellowbites</h4>
+            <h4 class="font-black text-stone-900 text-base tracking-tight uppercase leading-snug">Gabin Ice Bar - Mellowbites</h4>
             <p class="text-[10px] text-stone-500 font-medium mt-0.5">Biskuit Renyah, Fla Creamy Lumer</p>
             <p class="text-[9px] text-stone-400 mt-0.5">jl. bromo, RT/RW:001/006, Dsn. Karangtimongo, Ds. Denanyar, Jombang • WA: 0856-4640-9023</p>
           </div>

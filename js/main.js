@@ -772,11 +772,13 @@ function handleQrisProofChange(event) {
 function clearQrisProof() {
   qrisProofFile = null;
   const input = document.getElementById('qrisProofInput');
+  const camInput = document.getElementById('qrisProofCameraInput');
   const previewBox = document.getElementById('qrisProofPreviewBox');
   const previewImg = document.getElementById('qrisProofPreviewImg');
   const dropzone = document.getElementById('qrisProofDropzone');
 
   if (input) input.value = '';
+  if (camInput) camInput.value = '';
   if (previewImg) previewImg.src = '';
   previewBox?.classList.add('hidden');
   dropzone?.classList.remove('hidden');
@@ -967,9 +969,72 @@ function clearSearch() {
   applyFilters();
 }
 
+function getTodayWIBIso() {
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const wib = new Date(utcMs + 7 * 3600000);
+  const yyyy = wib.getFullYear();
+  const mm = String(wib.getMonth() + 1).padStart(2, '0');
+  const dd = String(wib.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function formatIndonesianPickupDate(isoStr) {
+  if (!isoStr || !/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) return '';
+  const [y, m, d] = isoStr.split('-').map(Number);
+  const target = new Date(y, m - 1, d);
+
+  const todayIso = getTodayWIBIso();
+  const [ty, tm, td] = todayIso.split('-').map(Number);
+  const today = new Date(ty, tm - 1, td);
+
+  const diffDays = Math.round((target - today) / 86400000);
+  const namaHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const namaBulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+  let prefix = '';
+  if (diffDays === 0) prefix = 'Hari Ini adalah ';
+  else if (diffDays === 1) prefix = 'Besok adalah ';
+  else if (diffDays === 2) prefix = 'Lusa adalah ';
+
+  return `${prefix}${namaHari[target.getDay()]}, ${target.getDate()} ${namaBulan[target.getMonth()]} ${y}`;
+}
+
+function updatePickupDatePreview() {
+  const dateInput = document.getElementById('pickupDateSelect');
+  const previewEl = document.getElementById('pickupDatePreview');
+  if (!dateInput || !previewEl) return;
+
+  const formatted = formatIndonesianPickupDate(dateInput.value);
+  previewEl.textContent = formatted ? `📅 ${formatted}` : '';
+}
+
+function populatePickupDates() {
+  const dateInput = document.getElementById('pickupDateSelect');
+  if (!dateInput) return;
+
+  const todayIso = getTodayWIBIso();
+  dateInput.min = todayIso;
+
+  if (!dateInput.value || dateInput.value < todayIso) {
+    const nowMin = getWIBMinutes();
+    if (nowMin >= 20 * 60) {
+      const [ty, tm, td] = todayIso.split('-').map(Number);
+      const tomorrow = new Date(ty, tm - 1, td + 1);
+      dateInput.value = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+    } else {
+      dateInput.value = todayIso;
+    }
+  }
+
+  updatePickupDatePreview();
+}
+
 // 14. Modal Keranjang
 function openCartModal() {
+  populatePickupDates();
   closeProductDetailModal();
+  
 
   if (!isStoreOpen()) {
     showToast('Toko sedang tutup. Fitur checkout dibuka kembali pukul 08.00 WIB');
@@ -1149,42 +1214,116 @@ function setPaymentMethod(method) {
   renderModalCart();
 }
 
+function isSelectedPickupToday() {
+  const dateInput = document.getElementById('pickupDateSelect');
+  if (!dateInput || !dateInput.value) return true;
+  return dateInput.value === getTodayWIBIso();
+}
+
 // 15b. Handler Input Jam Manual (Ketik Langsung, Format 24 Jam)
+// 15b. Handler Input Jam Manual (Otomatis Tahan di Jam Operasional 08:00 - 20:00 WIB)
 function onPickupHourInput(el) {
   let v = el.value.replace(/\D/g, '').slice(0, 2);
-  if (v.length === 1 && parseInt(v, 10) > 2) {
-    v = '';
+
+  if (v.length === 1) {
+    const d = parseInt(v, 10);
+    if (d === 8 || d === 9) {
+      // Ketik langsung 8 atau 9 otomatis menjadi 08 / 09
+      v = '0' + d;
+    } else if (d >= 3 && d <= 7) {
+      // Angka 3-7 tidak bisa jadi puluhan jam & di bawah jam buka 08:00
+      v = '08';
+      showToast('Jam operasional toko mulai pukul 08:00 WIB');
+    }
   }
+
   if (v.length === 2) {
     let n = parseInt(v, 10);
-    if (n > 23) n = 23;
-    const nowMin = getWIBMinutes();
-    if (nowMin >= 8 * 60 && nowMin < 20 * 60) {
-      if (n < 8) n = 8;
-      if (n > 20) n = 20;
+    if (n < 8) {
+      n = 8;
+      showToast('Jam operasional toko mulai pukul 08:00 WIB');
+    } else if (n > 20) {
+      n = 20;
+      showToast('Jam operasional toko maksimal pukul 20:00 WIB');
     }
     v = String(n).padStart(2, '0');
+
+    // Jika jam = 20, kunci menit ke 00 agar tidak melebihi 20:00 WIB
+    const minEl = document.getElementById('pickupMinute');
+    if (n === 20 && minEl && (minEl.value === '' || parseInt(minEl.value, 10) > 0)) {
+      minEl.value = '00';
+    }
   }
+
   el.value = v;
   clearFieldError('pickupTime');
+
   if (v.length === 2) {
-    document.getElementById('pickupMinute')?.focus();
-    document.getElementById('pickupMinute')?.select();
+    const minEl = document.getElementById('pickupMinute');
+    minEl?.focus();
+    minEl?.select();
+  }
+}
+
+function onPickupHourBlur(el) {
+  const raw = (el.value || '').trim();
+  if (!raw) return;
+
+  let n = parseInt(raw, 10);
+  if (isNaN(n) || n < 8) {
+    n = 8;
+    showToast('Jam operasional toko mulai pukul 08:00 WIB');
+  } else if (n > 20) {
+    n = 20;
+    showToast('Jam operasional toko maksimal pukul 20:00 WIB');
+  }
+  el.value = String(n).padStart(2, '0');
+
+  const minEl = document.getElementById('pickupMinute');
+  if (n === 20 && minEl && (minEl.value === '' || parseInt(minEl.value, 10) > 0)) {
+    minEl.value = '00';
   }
 }
 
 function onPickupMinuteInput(el) {
   let v = el.value.replace(/\D/g, '').slice(0, 2);
+  const hourVal = parseInt(document.getElementById('pickupHour')?.value || '0', 10);
+
+  // Jika jam sudah 20, menit ditahan di 00 (batas tutup 20:00 WIB)
+  if (hourVal === 20 && v !== '') {
+    if (parseInt(v, 10) > 0) {
+      showToast('Batas akhir pengambilan pukul 20:00 WIB');
+    }
+    el.value = '00';
+    clearFieldError('pickupTime');
+    return;
+  }
+
   if (v.length === 1 && parseInt(v, 10) > 5) {
-    v = '5';
+    v = '59';
   }
   if (v.length === 2) {
     let n = parseInt(v, 10);
     if (n > 59) n = 59;
     v = String(n).padStart(2, '0');
   }
+
   el.value = v;
   clearFieldError('pickupTime');
+}
+
+function onPickupMinuteBlur(el) {
+  const raw = (el.value || '').trim();
+  if (!raw) return;
+
+  const hourVal = parseInt(document.getElementById('pickupHour')?.value || '0', 10);
+  let n = parseInt(raw, 10);
+  if (hourVal === 20 || isNaN(n) || n < 0) {
+    n = 0;
+  } else if (n > 59) {
+    n = 59;
+  }
+  el.value = String(n).padStart(2, '0');
 }
 
 // 16. Helper Tampilan Error Validasi
@@ -1262,7 +1401,25 @@ function validateCheckoutForm() {
   }
 
   // 2. Validasi Metode Pesanan
+  let pickupDateLabel = '';
   if (selectedOrderMethod === 'pickup') {
+    const dateInput = document.getElementById('pickupDateSelect');
+    const dateVal = (dateInput?.value || '').trim();
+    const todayIso = getTodayWIBIso();
+
+    if (!dateVal) {
+      setFieldError('pickupDate', 'Hari & tanggal rencana ambil wajib dipilih');
+      hasError = true;
+      if (!firstErrorEl) firstErrorEl = dateInput;
+    } else if (dateVal < todayIso) {
+      setFieldError('pickupDate', 'Tanggal pengambilan tidak boleh tanggal yang sudah lewat');
+      hasError = true;
+      if (!firstErrorEl) firstErrorEl = dateInput;
+    } else {
+      clearFieldError('pickupDate');
+      pickupDateLabel = formatIndonesianPickupDate(dateVal);
+    }
+
     const hourEl = document.getElementById('pickupHour');
     const minEl = document.getElementById('pickupMinute');
     const hourRaw = (hourEl?.value || '').trim();
@@ -1272,6 +1429,8 @@ function validateCheckoutForm() {
 
     const nowMin = getWIBMinutes();
     const inNormalHours = nowMin >= 8 * 60 && nowMin < 20 * 60;
+    const isToday = isSelectedPickupToday();
+    const totalPickMin = h * 60 + m;
 
     if (hourRaw === '' || minRaw === '') {
       setFieldError('pickupTime', 'Jam & menit rencana ambil wajib diisi');
@@ -1281,8 +1440,20 @@ function validateCheckoutForm() {
       setFieldError('pickupTime', 'Format jam tidak valid (cth: jam 14, menit 30)');
       hasError = true;
       if (!firstErrorEl) firstErrorEl = isNaN(h) ? hourEl : minEl;
-    } else if (inNormalHours && (h * 60 + m < 8 * 60 || h * 60 + m > 20 * 60)) {
-      setFieldError('pickupTime', 'Jam ambil harus dalam jam operasional toko (08:00 – 20:00 WIB)');
+    } else if (totalPickMin < 8 * 60 || totalPickMin > 20 * 60) {
+      // Koreksi otomatis ke jam operasional terdekat jika lolos lewat autofill
+      if (totalPickMin < 8 * 60) {
+        hourEl.value = '08';
+        minEl.value = '00';
+      } else {
+        hourEl.value = '20';
+        minEl.value = '00';
+      }
+      setFieldError('pickupTime', 'Jam ambil harus pukul 08:00 – 20:00 WIB. Angka disesuaikan ke jam terdekat.');
+      hasError = true;
+      if (!firstErrorEl) firstErrorEl = hourEl;
+    } else if (isToday && inNormalHours && totalPickMin < nowMin) {
+      setFieldError('pickupTime', 'Jam ambil hari ini sudah terlewat. Pilih jam lebih malam atau ganti ke Besok');
       hasError = true;
       if (!firstErrorEl) firstErrorEl = hourEl;
     } else {
@@ -1320,7 +1491,8 @@ function validateCheckoutForm() {
   if (selectedOrderMethod === 'pickup') {
     const h = parseInt(document.getElementById('pickupHour').value, 10);
     const m = parseInt(document.getElementById('pickupMinute').value, 10);
-    pickupTimeFormatted = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    const clockStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    pickupTimeFormatted = pickupDateLabel ? `${pickupDateLabel} (${clockStr})` : clockStr;
   }
 
   pendingOrder = {
@@ -2530,16 +2702,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       localStorage.setItem(STORAGE_NAME_KEY, e.target.value);
     } catch (_) {}
   });
+  const pickupDateEl = document.getElementById('pickupDateSelect');
+  ['change', 'input'].forEach((evt) => {
+    pickupDateEl?.addEventListener(evt, () => {
+      clearFieldError('pickupDate');
+      clearFieldError('pickupTime');
+      updatePickupDatePreview();
+    });
+  });
 
   // Handler clearError sudah ditangani langsung via oninput di HTML (onPickupHourInput / onPickupMinuteInput)
   // Listener tambahan di sini sebagai fallback
 
-  document.getElementById('pickupHour')?.addEventListener('input', () => {
-    clearFieldError('pickupTime');
+  document.getElementById('pickupHour')?.addEventListener('blur', (e) => {
+    onPickupHourBlur(e.target);
   });
 
-  document.getElementById('pickupMinute')?.addEventListener('input', () => {
-    clearFieldError('pickupTime');
+  document.getElementById('pickupMinute')?.addEventListener('blur', (e) => {
+    onPickupMinuteBlur(e.target);
   });
 
   document.getElementById('deliveryAddress')?.addEventListener('input', (e) => {
