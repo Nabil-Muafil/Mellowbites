@@ -1671,11 +1671,58 @@ async function submitQrisPaymentAndFinish() {
   }
 }
 
+async function recordOrderToBackend(order) {
+  if (!order || order._isRecordedToBackend) return;
+  order._isRecordedToBackend = true;
+
+  saveCustomerOrderHistory(order);
+
+  if (sbClient) {
+    const { error: insertErr } = await sbClient.from('orders').insert([{
+      order_number: order.orderNumber,
+      customer_name: order.customerName,
+      order_method: order.orderMethod,
+      pickup_time: order.pickupTime,
+      delivery_address: order.deliveryAddress,
+      payment_method: order.paymentMethod,
+      payment_proof_url: order.paymentProofUrl,
+      items: order.items,
+      total_items: order.totalItems,
+      total_price: order.totalPrice
+    }]);
+    if (insertErr) console.warn('Gagal mencatat pesanan ke rekap admin:', insertErr);
+
+    const daftarMenuEmail = order.items
+      .map(i => `- ${i.name} (${i.qty} pcs) = ${formatRupiah(i.subtotal)}`)
+      .join('\n');
+
+    fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        access_key: '00db6347-97f9-41eb-9077-820ec9bd01f3',
+        subject: `🔔 Pesanan Baru Mellowbites: ${order.orderNumber} (${order.customerName})`,
+        from_name: 'Mellowbites',
+        No_Order: order.orderNumber,
+        Nama_Pemesan: order.customerName,
+        Metode_Pesanan: order.orderMethod === 'pickup'
+          ? `Ambil Sendiri (Jam ${order.pickupTime} WIB)`
+          : `Diantar / COD (${order.deliveryAddress})`,
+        Metode_Pembayaran: order.paymentMethod.toUpperCase(),
+        Bukti_Transfer: order.paymentProofUrl || '-',
+        Rincian_Pesanan: `\n${daftarMenuEmail}`,
+        Total_Bayar: formatRupiah(order.totalPrice)
+      })
+    }).catch(err => console.warn('Gagal kirim notifikasi email:', err));
+  }
+}
+
 // 17e. Finalisasi Simpan ke Database, Email, & Buka Struk Digital
 async function finalizeAndIssueReceipt(finalOrder) {
-  currentOrder = finalOrder;
-
-  saveCustomerOrderHistory(currentOrder);
+  currentOrder = {
+    ...finalOrder,
+    _isRecordedToBackend: false
+  };
 
   try {
     localStorage.setItem(STORAGE_NAME_KEY, currentOrder.customerName);
@@ -1695,45 +1742,6 @@ async function finalizeAndIssueReceipt(finalOrder) {
   closeConfirmModal();
   closeCartModal();
 
-  if (sbClient) {
-    const { error: insertErr } = await sbClient.from('orders').insert([{
-      order_number: currentOrder.orderNumber,
-      customer_name: currentOrder.customerName,
-      order_method: currentOrder.orderMethod,
-      pickup_time: currentOrder.pickupTime,
-      delivery_address: currentOrder.deliveryAddress,
-      payment_method: currentOrder.paymentMethod,
-      payment_proof_url: currentOrder.paymentProofUrl,
-      items: currentOrder.items,
-      total_items: currentOrder.totalItems,
-      total_price: currentOrder.totalPrice
-    }]);
-    if (insertErr) console.warn('Gagal mencatat pesanan ke rekap admin:', insertErr);
-
-    const daftarMenuEmail = currentOrder.items
-      .map(i => `- ${i.name} (${i.qty} pcs) = ${formatRupiah(i.subtotal)}`)
-      .join('\n');
-
-    fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({
-        access_key: '00db6347-97f9-41eb-9077-820ec9bd01f3',
-        subject: `🔔 Pesanan Baru Mellowbites: ${currentOrder.orderNumber} (${currentOrder.customerName})`,
-        from_name: 'Mellowbites',
-        No_Order: currentOrder.orderNumber,
-        Nama_Pemesan: currentOrder.customerName,
-        Metode_Pesanan: currentOrder.orderMethod === 'pickup'
-          ? `Ambil Sendiri (Jam ${currentOrder.pickupTime} WIB)`
-          : `Diantar / COD (${currentOrder.deliveryAddress})`,
-        Metode_Pembayaran: currentOrder.paymentMethod.toUpperCase(),
-        Bukti_Transfer: currentOrder.paymentProofUrl || '-',
-        Rincian_Pesanan: `\n${daftarMenuEmail}`,
-        Total_Bayar: formatRupiah(currentOrder.totalPrice)
-      })
-    }).catch(err => console.warn('Gagal kirim notifikasi email:', err));
-  }
-
   hasConfirmedWhatsApp = false;
   localStorage.setItem('mellowbites_pending_wa_order', JSON.stringify(currentOrder));
   updateReceiptConfirmationState();
@@ -1741,7 +1749,7 @@ async function finalizeAndIssueReceipt(finalOrder) {
   renderReceiptModal(currentOrder);
   openReceiptModal();
 
-  showToast('Pesanan berhasil dibuat & struk diterbitkan!');
+  showToast('Struk siap! Klik Konfirmasi ke WhatsApp agar pesanan masuk.');
 }
 
 // 18. Helper Format Nomor Order & Tanggal
@@ -2098,18 +2106,20 @@ function submitWhatsAppOrder() {
   const text = buildOrderString();
   if (!text) return;
 
+  // Catat ke Supabase, email notifikasi, & riwayat hanya setelah tombol WA diklik
+  recordOrderToBackend(currentOrder);
+
   // Tandai sudah konfirmasi ke WhatsApp (Membuka izin tutup struk)
   hasConfirmedWhatsApp = true;
   localStorage.removeItem('mellowbites_pending_wa_order');
   document.getElementById('unconfirmedOrderBanner')?.classList.add('hidden');
   updateReceiptConfirmationState();
 
-  // Nomor WhatsApp Penjual (Preserved)
   const waNumber = '6285646409023';
   const waUrl = `https://api.whatsapp.com/send?phone=${waNumber}&text=${encodeURIComponent(text)}`;
 
   window.open(waUrl, '_blank');
-  showToast('Membuka WhatsApp... Struk kini dapat ditutup');
+  showToast('Pesanan masuk & membuka WhatsApp...');
 }
 
 // 23. Salin Rincian Pesanan ke Clipboard
