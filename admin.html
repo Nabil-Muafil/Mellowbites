@@ -2477,13 +2477,15 @@
     }
 
     // 5. Ekspor Rekap Jualan ke Excel Asli (.xlsx / .csv) Tanpa Peringatan Format
+    // 5. Ekspor Rekap Jualan ke Excel Asli (.xlsx / .csv) Sesuai Filter Periode (Hari Ini / Semua)
     async function exportOrdersToExcel() {
       if (!sbClient) {
         showAdminToast('Koneksi database tidak tersedia');
         return;
       }
 
-      showAdminToast('Menyiapkan file spreadsheet...');
+      const isTodayOnly = orderStatPeriod === 'today';
+      showAdminToast(isTodayOnly ? 'Menyiapkan rekap Excel hari ini...' : 'Menyiapkan rekap Excel semua penjualan...');
 
       try {
         const { data, error } = await sbClient
@@ -2496,15 +2498,30 @@
           return;
         }
 
+        // Filter data mengikuti periode rekap yang sedang aktif ('today' atau 'all')
+        const filteredData = isTodayOnly
+          ? data.filter(o => isOrderCreatedToday(o))
+          : data;
+
+        if (filteredData.length === 0) {
+          showAdminToast('Tidak ada data penjualan hari ini untuk diunduh');
+          return;
+        }
+
         let grandTotalNominal = 0;
         let grandTotalItems = 0;
 
-        const nowStr = new Date().toISOString().slice(0, 10);
+        const now = new Date();
+        const nowStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const periodLabel = isTodayOnly
+          ? `Hari Ini (${now.toLocaleDateString('id-ID')})`
+          : 'Semua Penjualan';
 
         // Siapkan struktur array 2D untuk data spreadsheet
         const sheetData = [
-          ['REKAP PENJUALAN ES GABIN - MELLOWBITES'],
-          ['Waktu Ekspor:', new Date().toLocaleString('id-ID')],
+          [isTodayOnly ? 'REKAP PENJUALAN HARI INI - ES GABIN MELLOWBITES' : 'REKAP SEMUA PENJUALAN - ES GABIN MELLOWBITES'],
+          ['Periode Rekap:', periodLabel],
+          ['Waktu Ekspor:', now.toLocaleString('id-ID')],
           [],
           [
             'No',
@@ -2521,7 +2538,7 @@
           ]
         ];
 
-        data.forEach((o, index) => {
+        filteredData.forEach((o, index) => {
           const itemsDetail = (o.items || [])
             .map(i => `${i.name} (${i.qty}x)`)
             .join(', ');
@@ -2556,7 +2573,7 @@
         sheetData.push([]);
         sheetData.push([
           '',
-          'TOTAL KESELURUHAN:',
+          isTodayOnly ? 'TOTAL HARI INI:' : 'TOTAL KESELURUHAN:',
           '',
           '',
           '',
@@ -2567,6 +2584,10 @@
           grandTotalNominal,
           ''
         ]);
+
+        const filePrefix = isTodayOnly
+          ? `Rekap-Penjualan-Hari-Ini-Mellowbites-${nowStr}`
+          : `Rekap-Semua-Penjualan-Mellowbites-${nowStr}`;
 
         // Prioritas 1: Buat file .xlsx murni via SheetJS (Bebas peringatan format)
         if (typeof XLSX !== 'undefined') {
@@ -2588,9 +2609,9 @@
             { wch: 16 }  // Status
           ];
 
-          XLSX.utils.book_append_sheet(wb, ws, 'Rekap Penjualan');
-          XLSX.writeFile(wb, `Rekap-Penjualan-Mellowbites-${nowStr}.xlsx`);
-          showAdminToast('File Excel (.xlsx) berhasil diunduh!');
+          XLSX.utils.book_append_sheet(wb, ws, isTodayOnly ? 'Rekap Hari Ini' : 'Semua Penjualan');
+          XLSX.writeFile(wb, `${filePrefix}.xlsx`);
+          showAdminToast(isTodayOnly ? 'Excel rekap hari ini (.xlsx) berhasil diunduh!' : 'Excel semua penjualan (.xlsx) berhasil diunduh!');
         } else {
           // Fallback jika library belum termuat: Unduh sebagai CSV ber-BOM UTF-8
           function escapeCsv(val) {
@@ -2601,10 +2622,10 @@
           const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
-          link.download = `Rekap-Penjualan-Mellowbites-${nowStr}.csv`;
+          link.download = `${filePrefix}.csv`;
           link.click();
           URL.revokeObjectURL(link.href);
-          showAdminToast('Rekap penjualan (.csv) berhasil diunduh!');
+          showAdminToast(isTodayOnly ? 'Rekap hari ini (.csv) berhasil diunduh!' : 'Rekap semua penjualan (.csv) berhasil diunduh!');
         }
       } catch (err) {
         console.error('Gagal ekspor ke excel:', err);
