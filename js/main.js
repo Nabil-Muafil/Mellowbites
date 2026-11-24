@@ -336,8 +336,31 @@ function initProductGrid() {
   }).join('');
 
   PRODUCTS.forEach(p => updateProductCardState(p.id));
+  updateDynamicVariantCounts(); // <-- TAMBAHAN 1: Panggil fungsi penghitung jumlah rasa
   applyFilters();
 }
+
+// <-- TAMBAHAN 2: Fungsi untuk mengisi angka jumlah varian ke 3 tempat di index.html
+function updateDynamicVariantCounts() {
+  const total = Array.isArray(PRODUCTS) ? PRODUCTS.length : 0;
+
+  const catAllBtn = document.getElementById('catAllBtn');
+  if (catAllBtn) {
+    catAllBtn.textContent = total > 0 ? `Semua Rasa (${total})` : 'Semua Rasa';
+  }
+
+  const totalVariantBadge = document.getElementById('totalVariantBadge');
+  if (totalVariantBadge) {
+    totalVariantBadge.textContent = total > 0 ? `${total} Pilihan Rasa` : 'Pilihan Rasa';
+  }
+
+  const emptyStateResetBtn = document.getElementById('emptyStateResetBtn');
+  if (emptyStateResetBtn) {
+    emptyStateResetBtn.textContent = total > 0 ? `Lihat Semua ${total} Varian` : 'Lihat Semua Varian';
+  }
+}
+
+// 8. Update Tampilan Khusus Satu Kartu Produk (Tanpa Sentuh <img>)
 
 // 8. Update Tampilan Khusus Satu Kartu Produk (Tanpa Sentuh <img>)
 function updateProductCardState(productId) {
