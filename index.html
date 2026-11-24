@@ -477,258 +477,177 @@
         <!-- Checkout Form Area (Scrollable & Mobile-friendly) -->
         <div class="px-5 py-3.5 bg-stone-50/90 space-y-3.5 text-xs">
         
-        <!-- Input Nama Pemesan -->
-        <div>
-          <label for="customerName" class="block text-xs font-bold text-stone-700 mb-1">
-            Nama Pemesan <span class="text-rose-500">*</span>
-          </label>
-          <input 
-            type="text" 
-            id="customerName" 
-            placeholder="Masukkan nama Anda (cth: Budi)" 
-            class="w-full text-xs px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition"
-          >
-          <p id="err-customerName" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
-        </div>
-
-        <!-- Pilihan Metode Pesanan (Tab / Radio Card) -->
-        <div>
-          <label class="block text-xs font-bold text-stone-700 mb-1.5">
-            Metode Pesanan <span class="text-rose-500">*</span>
-          </label>
-          <div class="grid grid-cols-2 gap-2" id="orderMethodTabs">
-            <button 
-              type="button" 
-              onclick="setOrderMethod('pickup')" 
-              id="tabMethodPickup" 
-              class="p-2.5 rounded-xl border-2 text-left transition flex items-center gap-2 select-none border-brand-500 bg-brand-50/80 text-brand-900 shadow-xs"
-            >
-              <span class="text-base">🏬</span>
-              <div class="min-w-0">
-                <p class="font-extrabold text-xs leading-tight">Ambil Sendiri</p>
-                <p class="text-[10px] text-stone-500 truncate">Pickup di Toko</p>
-              </div>
-            </button>
-
-            <button 
-              type="button" 
-              onclick="setOrderMethod('delivery')" 
-              id="tabMethodDelivery" 
-              class="p-2.5 rounded-xl border-2 text-left transition flex items-center gap-2 select-none border-stone-200 bg-white text-stone-700 hover:border-stone-300"
-            >
-              <span class="text-base">🛵</span>
-              <div class="min-w-0">
-                <p class="font-extrabold text-xs leading-tight">Diantar / COD</p>
-                <p class="text-[10px] text-stone-500 truncate">Antar ke Rumah</p>
-              </div>
-            </button>
-          </div>
-          <p id="err-orderMethod" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
-        </div>
-
-        <!-- Sub-form Pickup (Ambil Sendiri) -->
-        <div id="pickupSection" class="space-y-2.5 p-3 rounded-xl bg-white border border-stone-200/90 shadow-2xs">
-          <!-- Alamat Toko Statis & Maps Link -->
-          <div id="storeLocationBox" class="p-2.5 rounded-lg bg-amber-50/80 border border-amber-200/70 text-amber-950">
-            <div class="flex items-start justify-between gap-2">
-              <div>
-                <p class="font-bold text-[11px] flex items-center gap-1 text-amber-900">
-                  <span>📍</span> Kedai Es Gabin - Mellowbites
-                </p>
-                <p class="text-[10px] text-stone-600 mt-0.5 leading-snug">
-                  jl. bromo, RT/RW:001/006, Dsn. Karangtimongo, Ds. Denanyar, Jombang
-                </p>
-              </div>
-              <a 
-                href="https://maps.google.com" 
-                target="_blank" 
-                class="shrink-0 px-2 py-1 text-[10px] font-bold bg-white text-brand-700 border border-brand-300 rounded-md hover:bg-brand-50 transition shadow-2xs"
-              >
-                Maps ↗
-              </a>
-            </div>
-          </div>
-
-          <!-- Input Jam Rencana Ambil (Ketik Manual, Format 24 Jam) -->
+          <!-- Input Nama Pemesan -->
           <div>
-            <label class="block text-xs font-bold text-stone-700 mb-1">
-              Jam Rencana Ambil (08:00 – 20:00 WIB) <span class="text-rose-500">*</span>
+            <label for="customerName" class="block text-xs font-bold text-stone-700 mb-1">
+              Nama Pemesan <span class="text-rose-500">*</span>
             </label>
-            <!-- Kotak jam mirip Google Forms: dua input angka + separator titik dua -->
-            <div class="flex items-center gap-1.5">
-              <input
-                type="text"
-                id="pickupHour"
-                inputmode="numeric"
-                maxlength="2"
-                placeholder="08"
-                autocomplete="off"
-                oninput="onPickupHourInput(this)"
-                class="w-14 text-center text-sm font-bold px-2 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition placeholder-stone-300"
-              >
-              <span class="text-stone-600 font-black text-base select-none">:</span>
-              <input
-                type="text"
-                id="pickupMinute"
-                inputmode="numeric"
-                maxlength="2"
-                placeholder="00"
-                autocomplete="off"
-                oninput="onPickupMinuteInput(this)"
-                class="w-14 text-center text-sm font-bold px-2 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition placeholder-stone-300"
-              >
-              <span class="text-xs text-stone-400 font-semibold ml-1">WIB</span>
-            </div>
-            <p class="text-[10px] text-stone-400 mt-1">Ketik angka langsung · Format 24 jam (cth: 14 : 30)</p>
-            <p id="err-pickupTime" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
-          </div>
-        </div>
-
-        <!-- Sub-form Delivery (Diantar / COD) -->
-        <div id="deliverySection" class="hidden space-y-2.5 p-3 rounded-xl bg-white border border-stone-200/90 shadow-2xs">
-          <div>
-            <label for="deliveryAddress" class="block text-xs font-bold text-stone-700 mb-1">
-              Alamat Lengkap & Patokan Rumah <span class="text-rose-500">*</span>
-            </label>
-            <textarea 
-              id="deliveryAddress" 
-              rows="2" 
-              placeholder="Tuliskan nama jalan, RT/RW, nomor rumah, dan patokan (cth: pagar hijau depan pos ronda)..." 
-              class="w-full text-xs px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition"
-            ></textarea>
-            <p id="err-deliveryAddress" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
-          </div>
-        </div>
-
-        <!-- Pilihan Metode Pembayaran (Tab / Radio Card) -->
-        <div>
-          <label class="block text-xs font-bold text-stone-700 mb-1.5">
-            Metode Pembayaran <span class="text-rose-500">*</span>
-          </label>
-          <div class="grid grid-cols-2 gap-2" id="paymentMethodTabs">
-            <button 
-              type="button" 
-              onclick="setPaymentMethod('qris')" 
-              id="tabPaymentQris" 
-              class="p-2.5 rounded-xl border-2 text-left transition flex items-center gap-2 select-none border-brand-500 bg-brand-50/80 text-brand-900 shadow-xs"
-            >
-              <span class="text-base">📱</span>
-              <div class="min-w-0">
-                <p class="font-extrabold text-xs leading-tight">QRIS</p>
-                <p class="text-[10px] text-stone-500 truncate">Scan QR / E-Wallet</p>
-              </div>
-            </button>
-
-            <button 
-              type="button" 
-              onclick="setPaymentMethod('tunai')" 
-              id="tabPaymentTunai" 
-              class="p-2.5 rounded-xl border-2 text-left transition flex items-center gap-2 select-none border-stone-200 bg-white text-stone-700 hover:border-stone-300"
-            >
-              <span class="text-base">💵</span>
-              <div class="min-w-0">
-                <p class="font-extrabold text-xs leading-tight">Tunai (COD)</p>
-                <p class="text-[10px] text-stone-500 truncate">Bayar di Tempat</p>
-              </div>
-            </button>
-          </div>
-          <p id="err-paymentMethod" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
-        </div>
-
-        <!-- Container Box QRIS (Tampil jika QRIS dipilih) -->
-        <div id="qrisPaymentBox" class="p-3.5 rounded-2xl bg-white border border-brand-200 space-y-3 shadow-2xs">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-stone-700">Scan QRIS Mellowbites:</span>
-            <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-brand-100 text-brand-800">Semua E-Wallet & M-Banking</span>
-          </div>
-
-          <!-- Gambar QRIS Tunggal dengan Fallback SVG -->
-          <div id="qrisDownloadArea" class="relative w-64 sm:w-72 mx-auto bg-stone-50 rounded-xl p-2.5 border border-stone-200">
-            <img 
-              id="qrisImgElement"
-              src="img/QRIS.webp" 
-              alt="QRIS Es Gabin Mellowbites" 
-              decoding="async"
-              class="w-full h-auto object-contain mx-auto rounded-lg"
-              onerror="this.classList.add('hidden'); document.getElementById('qrisSvgFallback').classList.remove('hidden');"
-            />
-            <div id="qrisSvgFallback" class="hidden w-full aspect-square bg-gradient-to-tr from-stone-100 to-amber-50 rounded-lg flex flex-col items-center justify-center p-3 text-center border border-dashed border-stone-300">
-              <svg class="w-20 h-20 text-stone-800" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 13h6v6H3v-6zm2 2v2h2v-2H5zm13-2h3v3h-3v-3zm0 5h3v3h-3v-3zm-5-5h3v3h-3v-3zm0 3h3v3h-3v-3zm3 0h2v2h-2v-2zm-3-8h2v2h-2V7zm2 2h2v2h-2V9zm-2 2h2v2h-2v-2zM7 7h2v2H7V7zm0 8h2v2H7v-2z"/>
-              </svg>
-              <p class="text-[10px] font-bold text-stone-700 mt-1">QRIS Mellowbites</p>
-              <p class="text-[9px] text-stone-400">NMID: ID1026570077358</p>
-            </div>
-          </div>
-
-          <!-- Tombol Download QRIS -->
-          <div class="text-center">
-            <button 
-              type="button" 
-              onclick="downloadQrisImage()" 
-              id="btnDownloadQris"
-              class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-brand-50 hover:text-brand-700 text-stone-700 border border-stone-200 text-[11px] font-bold shadow-2xs active:scale-95 transition"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-              </svg>
-              <span>Download Gambar QRIS</span>
-            </button>
-          </div>
-
-          <!-- Total Nominal Tagihan -->
-          <div class="p-2.5 rounded-xl bg-brand-50 border border-brand-200/80 text-center space-y-0.5">
-            <span class="text-[10px] text-stone-500 font-medium block">Total Tagihan QRIS:</span>
-            <p id="qrisTotalAmount" class="text-lg font-black text-brand-600 tracking-tight leading-tight">Rp 0</p>
-            <p class="text-[10px] text-stone-500">Transfer sesuai nominal lalu upload bukti transfer di bawah</p>
-          </div>
-
-          <!-- Wajib Upload Bukti Transfer -->
-          <div class="p-3 rounded-xl bg-stone-50 border border-dashed border-brand-300 space-y-2">
-            <div class="flex items-center justify-between">
-              <label for="qrisProofInput" class="text-[11px] font-extrabold text-stone-800">
-                Upload Bukti Transfer QRIS <span class="text-rose-500">*</span>
-              </label>
-              <span class="text-[9px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">Wajib sebelum struk terbit</span>
-            </div>
-
             <input 
-              type="file" 
-              id="qrisProofInput" 
-              accept="image/*" 
-              onchange="handleQrisProofChange(event)"
-              class="w-full text-[11px] text-stone-600 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-brand-500 file:text-white file:font-bold file:cursor-pointer hover:file:bg-brand-600"
-            />
+              type="text" 
+              id="customerName" 
+              placeholder="Masukkan nama Anda (cth: Budi)" 
+              class="w-full text-xs px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition"
+            >
+            <p id="err-customerName" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
+          </div>
 
-            <!-- Preview Gambar Bukti Transfer -->
-            <div id="qrisProofPreviewBox" class="hidden relative rounded-xl overflow-hidden border border-stone-200 bg-white p-1.5">
-              <img id="qrisProofPreviewImg" src="" alt="Preview Bukti Transfer" class="w-full max-h-44 object-contain rounded-lg mx-auto" />
+          <!-- Pilihan Metode Pesanan (Tab / Radio Card) -->
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1.5">
+              Metode Pesanan <span class="text-rose-500">*</span>
+            </label>
+            <div class="grid grid-cols-2 gap-2" id="orderMethodTabs">
               <button 
                 type="button" 
-                onclick="clearQrisProof()" 
-                class="mt-1.5 w-full py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-[10px] transition"
+                onclick="setOrderMethod('pickup')" 
+                id="tabMethodPickup" 
+                class="p-2.5 rounded-xl border-2 text-left transition flex items-center gap-2 select-none border-brand-500 bg-brand-50/80 text-brand-900 shadow-xs"
               >
-                ✕ Ganti Foto Bukti Transfer
+                <span class="text-base">🏬</span>
+                <div class="min-w-0">
+                  <p class="font-extrabold text-xs leading-tight">Ambil Sendiri</p>
+                  <p class="text-[10px] text-stone-500 truncate">Pickup di Toko</p>
+                </div>
+              </button>
+
+              <button 
+                type="button" 
+                onclick="setOrderMethod('delivery')" 
+                id="tabMethodDelivery" 
+                class="p-2.5 rounded-xl border-2 text-left transition flex items-center gap-2 select-none border-stone-200 bg-white text-stone-700 hover:border-stone-300"
+              >
+                <span class="text-base">🛵</span>
+                <div class="min-w-0">
+                  <p class="font-extrabold text-xs leading-tight">Diantar / COD</p>
+                  <p class="text-[10px] text-stone-500 truncate">Antar ke Rumah</p>
+                </div>
               </button>
             </div>
-
-            <p id="err-qrisProof" class="hidden text-[11px] text-rose-600 font-semibold"></p>
+            <p id="err-orderMethod" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
           </div>
-        </div>
 
-        <!-- Container Box Tunai / COD (Tampil jika Tunai dipilih) -->
-        <div id="tunaiPaymentBox" class="hidden p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-[11px] flex items-start gap-2">
-          <span class="text-sm shrink-0">💵</span>
-          <p class="leading-snug">
-            <span class="font-bold">Pembayaran Tunai di Tempat:</span> Mohon siapkan uang pas saat pesanan diambil atau diantar agar transaksi lebih cepat dan nyaman.
-          </p>
+          <!-- Sub-form Pickup (Ambil Sendiri) -->
+          <div id="pickupSection" class="space-y-2.5 p-3 rounded-xl bg-white border border-stone-200/90 shadow-2xs">
+            <div id="storeLocationBox" class="p-2.5 rounded-lg bg-amber-50/80 border border-amber-200/70 text-amber-950">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <p class="font-bold text-[11px] flex items-center gap-1 text-amber-900">
+                    <span>📍</span> Kedai Es Gabin - Mellowbites
+                  </p>
+                  <p class="text-[10px] text-stone-600 mt-0.5 leading-snug">
+                    jl. bromo, RT/RW:001/006, Dsn. Karangtimongo, Ds. Denanyar, Jombang
+                  </p>
+                </div>
+                <a 
+                  href="https://maps.google.com" 
+                  target="_blank" 
+                  class="shrink-0 px-2 py-1 text-[10px] font-bold bg-white text-brand-700 border border-brand-300 rounded-md hover:bg-brand-50 transition shadow-2xs"
+                >
+                  Maps ↗
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">
+                Jam Rencana Ambil (08:00 – 20:00 WIB) <span class="text-rose-500">*</span>
+              </label>
+              <div class="flex items-center gap-1.5">
+                <input
+                  type="text"
+                  id="pickupHour"
+                  inputmode="numeric"
+                  maxlength="2"
+                  placeholder="08"
+                  autocomplete="off"
+                  oninput="onPickupHourInput(this)"
+                  class="w-14 text-center text-sm font-bold px-2 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition placeholder-stone-300"
+                >
+                <span class="text-stone-600 font-black text-base select-none">:</span>
+                <input
+                  type="text"
+                  id="pickupMinute"
+                  inputmode="numeric"
+                  maxlength="2"
+                  placeholder="00"
+                  autocomplete="off"
+                  oninput="onPickupMinuteInput(this)"
+                  class="w-14 text-center text-sm font-bold px-2 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition placeholder-stone-300"
+                >
+                <span class="text-xs text-stone-400 font-semibold ml-1">WIB</span>
+              </div>
+              <p class="text-[10px] text-stone-400 mt-1">Ketik angka langsung · Format 24 jam (cth: 14 : 30)</p>
+              <p id="err-pickupTime" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
+            </div>
+          </div>
+
+          <!-- Sub-form Delivery (Diantar / COD) -->
+          <div id="deliverySection" class="hidden space-y-2.5 p-3 rounded-xl bg-white border border-stone-200/90 shadow-2xs">
+            <div>
+              <label for="deliveryAddress" class="block text-xs font-bold text-stone-700 mb-1">
+                Alamat Lengkap & Patokan Rumah <span class="text-rose-500">*</span>
+              </label>
+              <textarea 
+                id="deliveryAddress" 
+                rows="2" 
+                placeholder="Tuliskan nama jalan, RT/RW, nomor rumah, dan patokan (cth: pagar hijau depan pos ronda)..." 
+                class="w-full text-xs px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition"
+              ></textarea>
+              <p id="err-deliveryAddress" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
+            </div>
+          </div>
+
+          <!-- Pilihan Metode Pembayaran (Tab / Radio Card) -->
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1.5">
+              Metode Pembayaran <span class="text-rose-500">*</span>
+            </label>
+            <div class="grid grid-cols-2 gap-2" id="paymentMethodTabs">
+              <button 
+                type="button" 
+                onclick="setPaymentMethod('qris')" 
+                id="tabPaymentQris" 
+                class="p-2.5 rounded-xl border-2 text-left transition flex items-center gap-2 select-none border-brand-500 bg-brand-50/80 text-brand-900 shadow-xs"
+              >
+                <span class="text-base">📱</span>
+                <div class="min-w-0">
+                  <p class="font-extrabold text-xs leading-tight">QRIS</p>
+                  <p class="text-[10px] text-stone-500 truncate">Scan QR / E-Wallet</p>
+                </div>
+              </button>
+
+              <button 
+                type="button" 
+                onclick="setPaymentMethod('tunai')" 
+                id="tabPaymentTunai" 
+                class="p-2.5 rounded-xl border-2 text-left transition flex items-center gap-2 select-none border-stone-200 bg-white text-stone-700 hover:border-stone-300"
+              >
+                <span class="text-base">💵</span>
+                <div class="min-w-0">
+                  <p class="font-extrabold text-xs leading-tight">Tunai (COD)</p>
+                  <p class="text-[10px] text-stone-500 truncate">Bayar di Tempat</p>
+                </div>
+              </button>
+            </div>
+            <p id="err-paymentMethod" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
+          </div>
+
+          <!-- QRIS disembunyikan di keranjang agar tampilan bersih -->
+          <div id="qrisPaymentBox" class="hidden"></div>
+
+          <!-- Container Box Tunai / COD (Tampil jika Tunai dipilih) -->
+          <div id="tunaiPaymentBox" class="hidden p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-[11px] flex items-start gap-2">
+            <span class="text-sm shrink-0">💵</span>
+            <p class="leading-snug">
+              <span class="font-bold">Pembayaran Tunai di Tempat:</span> Mohon siapkan uang pas saat pesanan diambil atau diantar agar transaksi lebih cepat dan nyaman.
+            </p>
+          </div>
+
         </div>
-      </div>
       </div>
 
       <!-- Summary & CTA Footer -->
       <div class="p-4 border-t border-stone-200 bg-white space-y-2.5">
-        <!-- Subtotal calculation -->
         <div class="space-y-1 text-xs">
           <div class="flex justify-between text-stone-500">
             <span>Total Item:</span>
@@ -740,9 +659,9 @@
           </div>
         </div>
 
-        <!-- Buttons -->
         <div class="flex items-center gap-2 pt-1">
           <button 
+            type="button"
             onclick="clearEntireCart()" 
             class="px-3 py-2.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition flex items-center justify-center gap-1 active:scale-95"
             title="Kosongkan Keranjang"
@@ -753,17 +672,17 @@
             <span>Reset</span>
           </button>
 
-          <!-- Tombol Buat Pesanan & Lihat Struk -->
           <button 
+            type="button"
             onclick="validateCheckoutForm()" 
             id="modalBtnSubmit"
             disabled
             class="flex-1 py-3 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-extrabold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition flex items-center justify-center gap-2"
           >
+            <span>Selanjutnya</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
             </svg>
-            <span>Buat Pesanan & Lihat Struk</span>
           </button>
         </div>
       </div>
@@ -773,13 +692,9 @@
 
   <!-- MODAL KONFIRMASI DATA PESANAN (#confirmModal) -->
   <div id="confirmModal" class="fixed inset-0 z-50 bg-black/70 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
-    <!-- Backdrop dismiss -->
     <div class="absolute inset-0" onclick="closeConfirmModal()"></div>
 
-    <!-- Modal Box -->
     <div id="confirmContentBox" class="relative z-10 w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-stone-200 transform scale-95 transition-transform duration-300">
-      
-      <!-- Header -->
       <div class="px-5 py-3.5 bg-gradient-to-r from-amber-500 to-brand-500 text-white flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="text-xl">📋</span>
@@ -788,41 +703,30 @@
             <p class="text-[11px] text-amber-100">Pastikan data Anda sudah benar</p>
           </div>
         </div>
-        <button onclick="closeConfirmModal()" class="w-6 h-6 rounded-full bg-black/20 hover:bg-black/30 flex items-center justify-center text-white text-xs transition">✕</button>
+        <button type="button" onclick="closeConfirmModal()" class="w-6 h-6 rounded-full bg-black/20 hover:bg-black/30 flex items-center justify-center text-white text-xs transition">✕</button>
       </div>
 
-      <!-- Content / Data Summary -->
       <div class="p-4 space-y-3 text-xs text-stone-700">
         <p class="text-[11px] text-stone-500 leading-snug">
-          Silakan periksa kembali rincian data Anda sebelum pesanan dibuat dan diproses ke WhatsApp:
+          Silakan periksa kembali rincian data Anda sebelum pesanan dibuat:
         </p>
 
-        <!-- Summary Card -->
         <div class="p-3.5 rounded-2xl bg-stone-50 border border-stone-200/90 space-y-2 text-xs">
-          <!-- Nama -->
           <div class="flex justify-between items-start gap-2">
             <span class="text-stone-500 font-medium shrink-0">Nama Pemesan:</span>
             <span id="cfmCustomerName" class="font-bold text-stone-900 text-right">-</span>
           </div>
-
-          <!-- Metode Pesanan -->
           <div class="flex justify-between items-start gap-2">
             <span class="text-stone-500 font-medium shrink-0">Metode:</span>
             <span id="cfmOrderMethod" class="font-bold text-stone-900 text-right">-</span>
           </div>
-
-          <!-- Detail Metode (Jam Ambil atau Alamat) -->
           <div id="cfmDetailBox" class="p-2.5 bg-white rounded-xl border border-stone-200 text-[11px] text-stone-700 leading-snug">
             -
           </div>
-
-          <!-- Metode Pembayaran -->
           <div class="flex justify-between items-center gap-2 pt-1.5 border-t border-stone-200/70">
             <span class="text-stone-500 font-medium">Pembayaran:</span>
             <span id="cfmPaymentMethod" class="font-extrabold px-2 py-0.5 rounded text-[10px] bg-brand-100 text-brand-800">QRIS</span>
           </div>
-
-          <!-- Total Ringkasan -->
           <div class="flex justify-between items-center gap-2 pt-1.5 border-t border-stone-200/70">
             <span class="text-stone-500 font-medium">Total Tagihan:</span>
             <span id="cfmOrderTotal" class="font-black text-brand-600 text-sm">Rp 0</span>
@@ -830,7 +734,6 @@
         </div>
       </div>
 
-      <!-- Action Buttons -->
       <div class="p-3.5 bg-stone-50 border-t border-stone-100 flex items-center gap-2">
         <button 
           type="button" 
@@ -851,7 +754,152 @@
           </svg>
         </button>
       </div>
+    </div>
+  </div>
 
+  <!-- MODAL PEMBAYARAN QRIS & UPLOAD BUKTI (#qrisStepModal) -->
+  <div id="qrisStepModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs opacity-0 pointer-events-none transition-opacity duration-200 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="absolute inset-0" onclick="cancelQrisStepModal()"></div>
+
+    <div id="qrisStepContentBox" class="relative z-10 w-full sm:max-w-md max-h-[94vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border border-stone-200 transform translate-y-6 sm:translate-y-0 sm:scale-95 transition-all duration-200">
+      <div class="px-5 py-3.5 bg-gradient-to-r from-brand-500 to-amber-500 text-white flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">📱</span>
+          <div>
+            <h3 class="font-extrabold text-sm leading-tight">Pembayaran QRIS</h3>
+            <p id="qrisStepOrderSub" class="text-[11px] text-amber-100 font-mono">No. Order: MB-...</p>
+          </div>
+        </div>
+        <button type="button" onclick="cancelQrisStepModal()" class="w-7 h-7 rounded-full bg-black/20 hover:bg-black/30 flex items-center justify-center text-white text-xs transition" title="Kembali">✕</button>
+      </div>
+
+      <div class="p-4 sm:p-5 overflow-y-auto flex-1 space-y-4 text-xs">
+        <div class="p-3.5 rounded-2xl bg-brand-50 border border-brand-200 text-center space-y-0.5">
+          <span class="text-[11px] text-stone-600 font-semibold block">Total Nominal yang Harus Dibayar:</span>
+          <p id="qrisStepTotalAmount" class="text-2xl sm:text-3xl font-black text-brand-600 tracking-tight">Rp 0</p>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-300/90 text-amber-950 space-y-2">
+          <p class="font-extrabold text-xs text-amber-900 flex items-center gap-1.5">
+            <span>📌</span>
+            <span>Cara Pembayaran QRIS:</span>
+          </p>
+          <ol class="space-y-1.5 text-[11px] leading-snug text-stone-700">
+            <li class="flex items-start gap-2">
+              <span class="w-4 h-4 rounded-full bg-brand-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
+              <span><strong>Langsung scan kode QRIS</strong> di bawah lewat m-Banking / e-Wallet (<em>tidak wajib download</em>, atau tekan <strong>Download Gambar QRIS</strong> jika bayar dari HP yang sama).</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="w-4 h-4 rounded-full bg-brand-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
+              <span>Masukkan nominal transfer <strong>sama persis</strong> dengan total tagihan di atas.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="w-4 h-4 rounded-full bg-brand-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
+              <span>Screenshot bukti berhasil, lalu tekan tombol <strong>Upload Bukti Transfer</strong> di bawah.</span>
+            </li>
+          </ol>
+        </div>
+
+        <div class="space-y-2.5 text-center">
+          <div id="qrisDownloadArea" class="relative w-64 sm:w-72 mx-auto bg-white rounded-2xl p-3 border-2 border-stone-200 shadow-sm">
+            <img 
+              id="qrisImgElement"
+              src="img/QRIS.webp" 
+              alt="QRIS Es Gabin Mellowbites" 
+              decoding="async"
+              class="w-full h-auto object-contain mx-auto rounded-xl"
+              onerror="this.classList.add('hidden'); document.getElementById('qrisSvgFallback').classList.remove('hidden');"
+            />
+            <div id="qrisSvgFallback" class="hidden w-full aspect-square bg-gradient-to-tr from-stone-100 to-amber-50 rounded-xl flex flex-col items-center justify-center p-3 text-center border border-dashed border-stone-300">
+              <p class="text-xs font-bold text-stone-700">QRIS Mellowbites</p>
+              <p class="text-[10px] text-stone-400">NMID: ID1026570077358</p>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            onclick="downloadQrisImage()" 
+            id="btnDownloadQris"
+            class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-stone-100 hover:bg-brand-50 hover:text-brand-700 text-stone-700 border border-stone-200 text-xs font-bold active:scale-95 transition"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            <span>Download Gambar QRIS (Opsional)</span>
+          </button>
+        </div>
+
+        <div class="space-y-2 pt-1">
+          <div class="flex items-center justify-between">
+            <span class="font-extrabold text-stone-800 text-xs">Bukti Transfer QRIS <span class="text-rose-500">*</span></span>
+            <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">Wajib diisi</span>
+          </div>
+
+          <input 
+            type="file" 
+            id="qrisProofInput" 
+            accept="image/*" 
+            onchange="handleQrisProofChange(event)"
+            class="hidden"
+          />
+
+          <label 
+            id="qrisProofDropzone"
+            for="qrisProofInput" 
+            class="flex flex-col items-center justify-center gap-1.5 p-4 rounded-2xl border-2 border-dashed border-brand-400 bg-brand-50/50 hover:bg-brand-50 active:scale-[0.99] cursor-pointer transition text-center"
+          >
+            <div class="w-11 h-11 rounded-2xl bg-brand-500 text-white flex items-center justify-center shadow-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+              </svg>
+            </div>
+            <span class="font-extrabold text-xs sm:text-sm text-brand-800">Tap di Sini untuk Upload Bukti Transfer</span>
+            <span class="text-[11px] text-stone-500">Pilih foto / screenshot transaksi berhasil dari galeri HP</span>
+          </label>
+
+          <div id="qrisProofPreviewBox" class="hidden relative rounded-2xl overflow-hidden border-2 border-emerald-400 bg-emerald-50/30 p-2.5 space-y-2">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[11px] font-extrabold text-emerald-700 flex items-center gap-1">
+                <span>✅</span> Foto bukti siap dikirim
+              </span>
+              <label for="qrisProofInput" class="text-[11px] font-bold text-brand-600 hover:underline cursor-pointer">
+                Ganti Foto
+              </label>
+            </div>
+            <img id="qrisProofPreviewImg" src="" alt="Preview Bukti Transfer" class="w-full max-h-52 object-contain rounded-xl bg-white border border-stone-200 mx-auto" />
+            <button 
+              type="button" 
+              onclick="clearQrisProof()" 
+              class="w-full py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-[11px] transition"
+            >
+              ✕ Hapus & Pilih Ulang Foto
+            </button>
+          </div>
+
+          <p id="err-qrisProof" class="hidden text-xs text-rose-600 font-bold bg-rose-50 border border-rose-200 px-3 py-2 rounded-xl"></p>
+        </div>
+      </div>
+
+      <div class="p-4 bg-white border-t border-stone-200 flex items-center gap-2.5 shrink-0">
+        <button 
+          type="button" 
+          onclick="cancelQrisStepModal()" 
+          class="px-4 py-3 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs transition"
+        >
+          Kembali
+        </button>
+        <button 
+          type="button" 
+          id="btnSubmitQrisStep"
+          onclick="submitQrisPaymentAndFinish()" 
+          class="flex-1 py-3 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:bg-stone-400 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition flex items-center justify-center gap-2"
+        >
+          <span>Kirim Bukti & Lihat Struk</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
 

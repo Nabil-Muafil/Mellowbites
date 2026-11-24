@@ -714,27 +714,25 @@ function handleQrisProofChange(event) {
   const file = event.target?.files?.[0];
   const previewBox = document.getElementById('qrisProofPreviewBox');
   const previewImg = document.getElementById('qrisProofPreviewImg');
+  const dropzone = document.getElementById('qrisProofDropzone');
   clearFieldError('qrisProof');
 
   if (!file) {
-    qrisProofFile = null;
-    previewBox?.classList.add('hidden');
+    clearQrisProof();
     return;
   }
 
   if (!file.type.startsWith('image/')) {
-    qrisProofFile = null;
     event.target.value = '';
     setFieldError('qrisProof', 'File harus berupa gambar (JPG, PNG, atau WebP)');
-    previewBox?.classList.add('hidden');
+    clearQrisProof();
     return;
   }
 
   if (file.size > 8 * 1024 * 1024) {
-    qrisProofFile = null;
     event.target.value = '';
     setFieldError('qrisProof', 'Ukuran gambar maksimal 8 MB');
-    previewBox?.classList.add('hidden');
+    clearQrisProof();
     return;
   }
 
@@ -743,6 +741,7 @@ function handleQrisProofChange(event) {
   reader.onload = (e) => {
     if (previewImg) previewImg.src = e.target.result;
     previewBox?.classList.remove('hidden');
+    dropzone?.classList.add('hidden');
   };
   reader.readAsDataURL(file);
 }
@@ -750,8 +749,14 @@ function handleQrisProofChange(event) {
 function clearQrisProof() {
   qrisProofFile = null;
   const input = document.getElementById('qrisProofInput');
+  const previewBox = document.getElementById('qrisProofPreviewBox');
+  const previewImg = document.getElementById('qrisProofPreviewImg');
+  const dropzone = document.getElementById('qrisProofDropzone');
+
   if (input) input.value = '';
-  document.getElementById('qrisProofPreviewBox')?.classList.add('hidden');
+  if (previewImg) previewImg.src = '';
+  previewBox?.classList.add('hidden');
+  dropzone?.classList.remove('hidden');
   clearFieldError('qrisProof');
 }
 
@@ -772,11 +777,7 @@ function compressProofImage(file, maxWidth = 900, quality = 0.78) {
         canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
-        canvas.toBlob(
-          (blob) => resolve(blob || file),
-          'image/jpeg',
-          quality
-        );
+        canvas.toBlob((blob) => resolve(blob || file), 'image/jpeg', quality);
       };
       img.onerror = () => resolve(file);
       img.src = e.target.result;
@@ -852,8 +853,6 @@ function updateUI() {
 
   const cartModal = document.getElementById('cartModal');
   if (cartModal && !cartModal.classList.contains('pointer-events-none')) {
-    const qrisAmount = document.getElementById('qrisTotalAmount');
-    if (qrisAmount) qrisAmount.textContent = formatRupiah(totalPrice);
     renderModalCart();
   }
 }
@@ -867,8 +866,6 @@ function addToCart(productId) {
   }
   cart[productId] = (cart[productId] || 0) + 1;
   showToast(`+1 ${product ? product.name : 'Item'} ditambahkan`);
-  
-  // Update HANYA kartu yang bersangkutan (Tanpa reload foto)
   updateProductCardState(productId);
   updateUI();
 }
@@ -893,7 +890,6 @@ function updateQty(productId, delta) {
     }
   }
 
-  // Update HANYA kartu yang bersangkutan (Tanpa reload foto)
   updateProductCardState(productId);
   updateUI();
 }
@@ -904,8 +900,6 @@ function clearEntireCart() {
     const productIds = Object.keys(cart);
     cart = {};
     saveCartToStorage();
-
-    // Reset tombol pada semua kartu produk
     productIds.forEach(id => updateProductCardState(id));
     updateUI();
     showToast('Keranjang berhasil dikosongkan');
@@ -916,12 +910,8 @@ function clearEntireCart() {
 // 13. Filter Kategori & Pencarian
 function setCategory(cat, btnElement) {
   currentCategory = cat;
-  document.querySelectorAll('.cat-pill').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  if (btnElement) {
-    btnElement.classList.add('active');
-  }
+  document.querySelectorAll('.cat-pill').forEach(btn => btn.classList.remove('active'));
+  if (btnElement) btnElement.classList.add('active');
   applyFilters();
 }
 
@@ -947,12 +937,10 @@ function clearSearch() {
   const clearBtn = document.getElementById('clearSearchBtn');
   if (clearBtn) clearBtn.classList.add('hidden');
 
-  // Kembalikan seleksi kategori ke 'Semua Rasa'
   currentCategory = 'all';
   document.querySelectorAll('.cat-pill').forEach((btn, idx) => {
     btn.classList.toggle('active', idx === 0);
   });
-
   applyFilters();
 }
 
@@ -999,9 +987,6 @@ function renderModalCart() {
   if (modalItemSubtitle) modalItemSubtitle.textContent = `${totalItems} item dipilih`;
   if (modalTotalItems) modalTotalItems.textContent = `${totalItems} pcs`;
   if (modalTotalPrice) modalTotalPrice.textContent = formatRupiah(totalPrice);
-
-  const qrisAmount = document.getElementById('qrisTotalAmount');
-  if (qrisAmount) qrisAmount.textContent = formatRupiah(totalPrice);
   if (!listEl) return;
 
   if (items.length === 0) {
@@ -1011,7 +996,7 @@ function renderModalCart() {
         <span class="text-3xl mb-1.5">🛒</span>
         <p class="font-bold text-stone-700 text-xs">Keranjang Belanja Masih Kosong</p>
         <p class="text-[11px] text-stone-400 mt-0.5 max-w-xs">Pilih varian Es Gabin favoritmu untuk melanjutkan pemesanan.</p>
-        <button onclick="closeCartModal()" class="mt-3 px-3.5 py-1.5 text-xs font-bold text-white bg-brand-500 rounded-xl shadow-xs hover:bg-brand-600 transition">
+        <button type="button" onclick="closeCartModal()" class="mt-3 px-3.5 py-1.5 text-xs font-bold text-white bg-brand-500 rounded-xl shadow-xs hover:bg-brand-600 transition">
           Lihat Menu Es Gabin
         </button>
       </div>
@@ -1026,12 +1011,21 @@ function renderModalCart() {
       modalBtnSubmit.innerHTML = `<span>Toko Tutup (Buka 08.00 WIB)</span>`;
     } else {
       modalBtnSubmit.disabled = false;
-      modalBtnSubmit.innerHTML = `
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-        </svg>
-        <span>Buat Pesanan & Lihat Struk</span>
-      `;
+      if (selectedPaymentMethod === 'qris') {
+        modalBtnSubmit.innerHTML = `
+          <span>Selanjutnya</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+          </svg>
+        `;
+      } else {
+        modalBtnSubmit.innerHTML = `
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <span>Buat Pesanan & Lihat Struk</span>
+        `;
+      }
     }
   }
 
@@ -1052,6 +1046,7 @@ function renderModalCart() {
 
       <div class="flex items-center bg-white rounded-lg p-0.5 border border-stone-200 shrink-0">
         <button 
+          type="button"
           onclick="updateQty('${item.id}', -1)"
           class="w-6 h-6 rounded bg-stone-100 text-stone-700 hover:bg-rose-50 hover:text-rose-600 flex items-center justify-center font-bold text-xs"
           aria-label="Kurangi"
@@ -1060,6 +1055,7 @@ function renderModalCart() {
         </button>
         <span class="w-7 text-center text-xs font-bold text-stone-800">${item.qty}</span>
         <button 
+          type="button"
           onclick="updateQty('${item.id}', 1)"
           class="w-6 h-6 rounded bg-brand-500 text-white hover:bg-brand-600 flex items-center justify-center font-bold text-xs"
           aria-label="Tambah"
@@ -1108,25 +1104,26 @@ function setPaymentMethod(method) {
   const qrisBox = document.getElementById('qrisPaymentBox');
   const tunaiBox = document.getElementById('tunaiPaymentBox');
 
+  qrisBox?.classList.add('hidden');
+
   if (method === 'qris') {
     tabQris?.classList.add('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
     tabQris?.classList.remove('border-stone-200', 'bg-white', 'text-stone-700');
     tabTunai?.classList.add('border-stone-200', 'bg-white', 'text-stone-700');
     tabTunai?.classList.remove('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
 
-    qrisBox?.classList.remove('hidden');
     tunaiBox?.classList.add('hidden');
-    clearFieldError('qrisProof');
   } else {
     tabTunai?.classList.add('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
     tabTunai?.classList.remove('border-stone-200', 'bg-white', 'text-stone-700');
     tabQris?.classList.add('border-stone-200', 'bg-white', 'text-stone-700');
     tabQris?.classList.remove('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
 
-    qrisBox?.classList.add('hidden');
     tunaiBox?.classList.remove('hidden');
-    clearFieldError('qrisProof');
   }
+
+  clearFieldError('qrisProof');
+  renderModalCart();
 }
 
 // 15b. Handler Input Jam Manual (Ketik Langsung, Format 24 Jam)
@@ -1140,7 +1137,7 @@ function onPickupHourInput(el) {
     if (n > 23) n = 23;
     const nowMin = getWIBMinutes();
     if (nowMin >= 8 * 60 && nowMin < 20 * 60) {
-      if (n < 8)  n = 8;
+      if (n < 8) n = 8;
       if (n > 20) n = 20;
     }
     v = String(n).padStart(2, '0');
@@ -1154,9 +1151,7 @@ function onPickupHourInput(el) {
 }
 
 function onPickupMinuteInput(el) {
-  // Hanya izinkan angka, maksimal 2 digit
   let v = el.value.replace(/\D/g, '').slice(0, 2);
-  // Clamp langsung: digit pertama maks 5 (menit 00-59)
   if (v.length === 1 && parseInt(v, 10) > 5) {
     v = '5';
   }
@@ -1171,7 +1166,6 @@ function onPickupMinuteInput(el) {
 
 // 16. Helper Tampilan Error Validasi
 function setFieldError(fieldId, msg) {
-  // pickupTime kini terdiri dari dua input teks: pickupHour & pickupMinute
   if (fieldId === 'pickupTime') {
     ['pickupHour', 'pickupMinute'].forEach(id => {
       const el = document.getElementById(id);
@@ -1195,7 +1189,6 @@ function setFieldError(fieldId, msg) {
 }
 
 function clearFieldError(fieldId) {
-  // pickupTime kini terdiri dari dua select: pickupHour & pickupMinute
   if (fieldId === 'pickupTime') {
     ['pickupHour', 'pickupMinute'].forEach(id => {
       const el = document.getElementById(id);
@@ -1284,23 +1277,12 @@ function validateCheckoutForm() {
     }
   }
 
-  // 3. Validasi Metode Pembayaran & Bukti Transfer QRIS
+  // 3. Validasi Metode Pembayaran
   if (!selectedPaymentMethod) {
     setFieldError('paymentMethod', 'Silakan pilih metode pembayaran');
     hasError = true;
   } else {
     clearFieldError('paymentMethod');
-  }
-
-  if (selectedPaymentMethod === 'qris') {
-    const proofInput = document.getElementById('qrisProofInput');
-    if (!qrisProofFile) {
-      setFieldError('qrisProof', 'Wajib upload foto bukti transfer QRIS terlebih dahulu sebelum mencetak struk');
-      hasError = true;
-      if (!firstErrorEl) firstErrorEl = proofInput;
-    } else {
-      clearFieldError('qrisProof');
-    }
   }
 
   if (hasError) {
@@ -1311,7 +1293,6 @@ function validateCheckoutForm() {
     return false;
   }
 
-  // Format jam rencana ambil jika metode pickup
   let pickupTimeFormatted = null;
   if (selectedOrderMethod === 'pickup') {
     const h = parseInt(document.getElementById('pickupHour').value, 10);
@@ -1319,9 +1300,6 @@ function validateCheckoutForm() {
     pickupTimeFormatted = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   }
 
-  const finalPayablePrice = getPayableTotal(totalPrice, selectedPaymentMethod);
-
-  // Semua Validasi Lolos: Buat Data Sementara untuk Konfirmasi
   pendingOrder = {
     customerName: nameVal,
     orderMethod: selectedOrderMethod,
@@ -1335,7 +1313,6 @@ function validateCheckoutForm() {
 
   renderConfirmModal(pendingOrder);
   openConfirmModal();
-
   return true;
 }
 
@@ -1391,14 +1368,17 @@ function renderConfirmModal(order) {
   document.getElementById('cfmOrderTotal').textContent = `${order.totalItems} pcs · ${formatRupiah(order.totalPrice)}`;
 }
 
-// 17c. Lanjutkan Pembuatan Pesanan Setelah Data Dikonfirmasi Benar
+// 17c. Modal Langkah Pembayaran QRIS (#qrisStepModal)
 let pendingQrisOrderMeta = null;
 
 function openQrisStepModal(orderMeta) {
   pendingQrisOrderMeta = orderMeta;
   const modal = document.getElementById('qrisStepModal');
   const box = document.getElementById('qrisStepContentBox');
-  if (!modal || !box) return;
+  if (!modal || !box) {
+    showToast('Elemen layar QRIS belum ditemukan di index.html');
+    return;
+  }
 
   const subEl = document.getElementById('qrisStepOrderSub');
   const amtEl = document.getElementById('qrisStepTotalAmount');
@@ -1424,7 +1404,6 @@ function cancelQrisStepModal() {
   box.classList.remove('translate-y-0', 'sm:scale-100');
 }
 
-// 17c. Lanjutkan Pembuatan Pesanan Setelah Data Dikonfirmasi Benar
 async function proceedCreateOrder() {
   if (!pendingOrder) {
     showToast('Data pesanan tidak ditemukan');
@@ -1443,7 +1422,6 @@ async function proceedCreateOrder() {
     timestamp: new Date()
   };
 
-  // Jika QRIS: tutup modal konfirmasi & keranjang, lalu buka layar khusus Pembayaran QRIS
   if (orderMeta.paymentMethod === 'qris') {
     closeConfirmModal();
     closeCartModal();
@@ -1451,7 +1429,6 @@ async function proceedCreateOrder() {
     return;
   }
 
-  // Jika Tunai (COD): langsung selesaikan pesanan & terbitkan struk
   await finalizeAndIssueReceipt({
     ...orderMeta,
     paymentProofUrl: null
