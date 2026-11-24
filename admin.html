@@ -1605,6 +1605,11 @@
                   class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold text-[11px] transition">
                   ↩ Tandai Belum Selesai
                 </button>
+                <button onclick="deleteOrder(${o.id})"
+                class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-[11px] transition"
+                title="Hapus pesanan">
+                🗑 Hapus
+              </button>
               `}
             </div>
           </div>
@@ -1825,16 +1830,24 @@
     }
 
     async function deleteOrder(orderId) {
-      if (!confirm('Hapus riwayat pesanan ini?')) return;
+      const targetOrder = (adminOrdersCache || []).find(o => o.id === orderId);
+      const orderInfo = targetOrder
+        ? `${targetOrder.order_number || ''} atas nama ${targetOrder.customer_name || 'Pembeli'}`.trim()
+        : 'ini';
+
+      if (!confirm(`Apakah Anda yakin ingin menghapus data pesanan ${orderInfo} secara permanen?`)) {
+        return;
+      }
+
       const { error } = await sbClient.from('orders').delete().eq('id', orderId);
       if (error) {
         showAdminToast('Gagal menghapus pesanan: ' + error.message);
       } else {
-        showAdminToast('Pesanan berhasil dihapus');
+        showAdminToast('Data pesanan berhasil dihapus');
         loadAdminOrders();
       }
     }
-
+    
     // 5. Ekspor Rekap Jualan ke Excel Asli (.xlsx / .csv) Tanpa Peringatan Format
     async function exportOrdersToExcel() {
       if (!sbClient) {
