@@ -338,6 +338,22 @@
               <p id="statOrderCount" class="text-[10px] text-stone-400 mt-0.5">0 pesanan selesai</p>
             </div>
 
+            <!-- Kartu Rekap Produksi / Packing (Pesanan Menunggu Konfirmasi) -->
+          <div class="bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200/80 shadow-2xs space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-1.5 text-[11px] font-extrabold text-amber-950">
+                <span>📦</span>
+                <span>Rekap Siap Packing (Belum Selesai)</span>
+              </div>
+              <span id="prepTotalPcsBadge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-200/80 text-amber-950">
+                0 pcs
+              </span>
+            </div>
+            <div id="prepVariantBreakdown" class="flex flex-wrap gap-1.5">
+              <span class="text-[11px] text-amber-800/70 italic">Semua pesanan sudah selesai 🎉</span>
+            </div>
+          </div>
+
             <!-- Kartu Jumlah Terjual -->
             <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs">
               <div class="flex items-center gap-1.5 text-[11px] font-bold text-stone-500">
@@ -352,6 +368,22 @@
 
         <!-- FILTER STATUS & PENCARIAN PESANAN -->
         <div id="adminOrderFilterBox" class="bg-white p-3 rounded-2xl border border-stone-200 shadow-2xs space-y-2.5">
+          <!-- Tombol Filter Metode Pesanan (Pickup vs Delivery) -->
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[11px] font-bold pt-2 border-t border-stone-100">
+            <span class="text-[10px] text-stone-400 uppercase tracking-wider mr-0.5 shrink-0">Metode:</span>
+            <button type="button" id="filterMethodAll" onclick="setAdminOrderMethodFilter('all')"
+              class="px-3 py-1 rounded-xl bg-stone-800 text-white shadow-2xs transition whitespace-nowrap">
+              Semua Metode
+            </button>
+            <button type="button" id="filterMethodPickup" onclick="setAdminOrderMethodFilter('pickup')"
+              class="px-3 py-1 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition whitespace-nowrap">
+              🏬 Ambil Sendiri
+            </button>
+            <button type="button" id="filterMethodDelivery" onclick="setAdminOrderMethodFilter('delivery')"
+              class="px-3 py-1 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition whitespace-nowrap">
+              🛵 Diantar (Delivery)
+            </button>
+          </div>
           <!-- Kotak Cari Nama / No. Order -->
           <div class="relative">
             <input 
@@ -1289,6 +1321,71 @@
     const ORDERS_PER_PAGE = 10;
     let currentOrderPage = 1;
 
+    let adminOrderMethodFilter = 'all'; // 'all' | 'pickup' | 'delivery'
+
+    function setAdminOrderMethodFilter(method) {
+      adminOrderMethodFilter = method;
+      currentOrderPage = 1;
+
+      const mapBtn = {
+        'all': document.getElementById('filterMethodAll'),
+        'pickup': document.getElementById('filterMethodPickup'),
+        'delivery': document.getElementById('filterMethodDelivery')
+      };
+
+      for (const [key, btn] of Object.entries(mapBtn)) {
+        if (!btn) continue;
+        btn.className = key === method
+          ? 'px-3 py-1 rounded-xl bg-stone-800 text-white shadow-2xs transition whitespace-nowrap'
+          : 'px-3 py-1 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition whitespace-nowrap';
+      }
+      renderFilteredAdminOrders();
+    }
+
+    function updateProductionSummary() {
+      const container = document.getElementById('prepVariantBreakdown');
+      const totalBadge = document.getElementById('prepTotalPcsBadge');
+      if (!container || !totalBadge) return;
+
+      // Hitung semua pesanan yang masih 'Menunggu Konfirmasi' sesuai periode aktif (Hari Ini / Semua)
+      const pendingOrders = (adminOrdersCache || []).filter(o => {
+        if (o.status !== 'Menunggu Konfirmasi') return false;
+        if (orderStatPeriod === 'today') return isOrderCreatedToday(o);
+        return true;
+      });
+
+      const variantTotals = {};
+      let grandTotalPcs = 0;
+
+      pendingOrders.forEach(o => {
+        const items = Array.isArray(o.items) ? o.items : [];
+        items.forEach(item => {
+          const name = item.name || 'Varian';
+          const qty = Number(item.qty || 0);
+          if (qty > 0) {
+            variantTotals[name] = (variantTotals[name] || 0) + qty;
+            grandTotalPcs += qty;
+          }
+        });
+      });
+
+      totalBadge.textContent = `${grandTotalPcs} pcs`;
+
+      const sortedVariants = Object.entries(variantTotals).sort((a, b) => b[1] - a[1]);
+
+      if (sortedVariants.length === 0) {
+        container.innerHTML = `<span class="text-[11px] text-amber-800/70 italic">Semua pesanan sudah selesai 🎉</span>`;
+        return;
+      }
+
+      container.innerHTML = sortedVariants.map(([name, qty]) => `
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-amber-200/90 text-[11px] font-bold text-stone-800 shadow-2xs">
+          <span>${name}</span>
+          <span class="px-1.5 py-0.2 rounded-md bg-brand-500 text-white font-extrabold text-[10px]">${qty}</span>
+        </span>
+      `).join('');
+    }
+
     function isOrderCreatedToday(order) {
       if (!order || !order.created_at) return false;
       const todayStr = new Date().toLocaleDateString('id-ID');
@@ -1435,10 +1532,11 @@
       const filtered = (adminOrdersCache || []).filter(o => {
         const matchPeriod = orderStatPeriod === 'all' || isOrderCreatedToday(o);
         const matchStatus = adminOrderStatusFilter === 'all' || o.status === adminOrderStatusFilter;
+        const matchMethod = adminOrderMethodFilter === 'all' || o.order_method === adminOrderMethodFilter;
         const matchQuery = !query ||
           (o.customer_name || '').toLowerCase().includes(query) ||
           (o.order_number || '').toLowerCase().includes(query);
-        return matchPeriod && matchStatus && matchQuery;
+        return matchPeriod && matchStatus && matchMethod && matchQuery;
       });
 
       if (filtered.length === 0) {
@@ -1561,6 +1659,8 @@
       soldEl.textContent = `${totalSold} pcs`;
       if (countEl) countEl.textContent = `${filteredOrders.length} pesanan selesai`;
       if (topEl) topEl.textContent = `Terlaris: ${topName}`;
+
+      updateProductionSummary();
     }
 
     // 4. Kelola Rekap Pesanan Masuk
