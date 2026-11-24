@@ -102,14 +102,14 @@
 
       <form id="loginForm" onsubmit="handleAdminLogin(event)" class="space-y-3.5">
         <div>
-          <label class="block text-xs font-bold text-stone-700 mb-1">Email Admin</label>
-          <input type="email" id="adminEmail" required placeholder="admin@mellowbites.com"
+          <label for="adminEmail" class="block text-xs font-bold text-stone-700 mb-1">Email Admin</label>
+          <input type="email" id="adminEmail" name="email" autocomplete="username" required placeholder="admin@mellowbites.com"
             class="w-full text-xs px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
         </div>
         <div>
-          <label class="block text-xs font-bold text-stone-700 mb-1">Password</label>
+          <label for="adminPassword" class="block text-xs font-bold text-stone-700 mb-1">Password</label>
           <div class="relative">
-            <input type="password" id="adminPassword" required placeholder="••••••••"
+            <input type="password" id="adminPassword" name="password" autocomplete="current-password" required placeholder="••••••••"
               class="w-full text-xs pl-3.5 pr-10 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
             
             <button type="button" onclick="toggleAdminPassword()" aria-label="Lihat atau sembunyikan password"
@@ -125,6 +125,19 @@
               </svg>
             </button>
           </div>
+        </div>
+
+        <!-- Checkbox Ingat Saya -->
+        <div class="flex items-center justify-between pt-0.5">
+          <label for="rememberMeCheckbox" class="inline-flex items-center gap-2 cursor-pointer select-none">
+            <input 
+              type="checkbox" 
+              id="rememberMeCheckbox" 
+              checked
+              class="w-4 h-4 rounded border-stone-300 text-brand-500 focus:ring-brand-500/30 cursor-pointer accent-orange-500"
+            />
+            <span class="text-xs font-semibold text-stone-600">Ingat saya di perangkat ini</span>
+          </label>
         </div>
 
         <p id="loginError" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl font-semibold"></p>
@@ -775,8 +788,26 @@
     window.toggleAdminPassword = toggleAdminPassword;
     window.togglePasswordVisibility = togglePasswordVisibility;
 
-    // --- 2. Cek Sesi Login Saat Halaman Dibuka ---
+    // --- 2. Cek Sesi Login & Preferensi "Ingat Saya" Saat Halaman Dibuka ---
+    const REMEMBER_ME_KEY = 'mellowbites_remember_me';
+    const SAVED_ADMIN_EMAIL_KEY = 'mellowbites_saved_admin_email';
+
     document.addEventListener('DOMContentLoaded', async () => {
+      // Pulihkan status centang "Ingat Saya" & email tersimpan
+      try {
+        const savedRemember = localStorage.getItem(REMEMBER_ME_KEY);
+        const rememberEl = document.getElementById('rememberMeCheckbox');
+        if (rememberEl && savedRemember !== null) {
+          rememberEl.checked = savedRemember === 'true';
+        }
+
+        const savedEmail = localStorage.getItem(SAVED_ADMIN_EMAIL_KEY);
+        const emailInput = document.getElementById('adminEmail');
+        if (emailInput && savedEmail) {
+          emailInput.value = savedEmail;
+        }
+      } catch (_) {}
+
       const errEl = document.getElementById('loginError');
       if (!sbClient) {
         if (errEl) {
@@ -821,6 +852,7 @@
 
       const email = document.getElementById('adminEmail').value.trim();
       const password = document.getElementById('adminPassword').value;
+      const isRemember = document.getElementById('rememberMeCheckbox')?.checked ?? true;
 
       if (!email || !password) {
         if (errEl) {
@@ -829,6 +861,16 @@
         }
         return;
       }
+
+      // Simpan preferensi "Ingat Saya" sebelum signInWithPassword agar storage token langsung menyesuaikan
+      try {
+        localStorage.setItem(REMEMBER_ME_KEY, String(isRemember));
+        if (isRemember) {
+          localStorage.setItem(SAVED_ADMIN_EMAIL_KEY, email);
+        } else {
+          localStorage.removeItem(SAVED_ADMIN_EMAIL_KEY);
+        }
+      } catch (_) {}
 
       btn.disabled = true;
       btn.textContent = 'Memeriksa...';

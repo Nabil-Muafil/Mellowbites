@@ -1392,6 +1392,39 @@ function renderConfirmModal(order) {
 }
 
 // 17c. Lanjutkan Pembuatan Pesanan Setelah Data Dikonfirmasi Benar
+let pendingQrisOrderMeta = null;
+
+function openQrisStepModal(orderMeta) {
+  pendingQrisOrderMeta = orderMeta;
+  const modal = document.getElementById('qrisStepModal');
+  const box = document.getElementById('qrisStepContentBox');
+  if (!modal || !box) return;
+
+  const subEl = document.getElementById('qrisStepOrderSub');
+  const amtEl = document.getElementById('qrisStepTotalAmount');
+  if (subEl) subEl.textContent = `No. Order: ${orderMeta.orderNumber}`;
+  if (amtEl) amtEl.textContent = formatRupiah(orderMeta.totalPrice);
+
+  clearQrisProof();
+
+  modal.classList.remove('opacity-0', 'pointer-events-none');
+  modal.classList.add('opacity-100');
+  box.classList.remove('translate-y-6', 'sm:scale-95');
+  box.classList.add('translate-y-0', 'sm:scale-100');
+}
+
+function cancelQrisStepModal() {
+  const modal = document.getElementById('qrisStepModal');
+  const box = document.getElementById('qrisStepContentBox');
+  if (!modal || !box) return;
+
+  modal.classList.add('opacity-0', 'pointer-events-none');
+  modal.classList.remove('opacity-100');
+  box.classList.add('translate-y-6', 'sm:scale-95');
+  box.classList.remove('translate-y-0', 'sm:scale-100');
+}
+
+// 17c. Lanjutkan Pembuatan Pesanan Setelah Data Dikonfirmasi Benar
 async function proceedCreateOrder() {
   if (!pendingOrder) {
     showToast('Data pesanan tidak ditemukan');
@@ -1404,116 +1437,139 @@ async function proceedCreateOrder() {
     return;
   }
 
-  const btnProceed = document.getElementById('btnProceedCreateOrder');
-  const origBtnHtml = btnProceed ? btnProceed.innerHTML : '';
-  if (btnProceed) {
-    btnProceed.disabled = true;
-    btnProceed.innerHTML = `<span>Memproses Pesanan...</span>`;
+  const orderMeta = {
+    ...pendingOrder,
+    orderNumber: generateOrderNumber(),
+    timestamp: new Date()
+  };
+
+  // Jika QRIS: tutup modal konfirmasi & keranjang, lalu buka layar khusus Pembayaran QRIS
+  if (orderMeta.paymentMethod === 'qris') {
+    closeConfirmModal();
+    closeCartModal();
+    openQrisStepModal(orderMeta);
+    return;
+  }
+
+  // Jika Tunai (COD): langsung selesaikan pesanan & terbitkan struk
+  await finalizeAndIssueReceipt({
+    ...orderMeta,
+    paymentProofUrl: null
+  });
+}
+
+// 17d. Submit Bukti Transfer QRIS & Terbitkan Struk
+async function submitQrisPaymentAndFinish() {
+  if (!pendingQrisOrderMeta) {
+    showToast('Data pesanan QRIS tidak ditemukan');
+    return;
+  }
+
+  if (!qrisProofFile) {
+    setFieldError('qrisProof', 'Silakan upload foto bukti transfer QRIS terlebih dahulu');
+    document.getElementById('qrisProofInput')?.focus();
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmitQrisStep');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span>Mengunggah Bukti TF...</span>`;
   }
 
   try {
-    const orderNum = generateOrderNumber();
-    const orderDate = new Date();
-    let paymentProofUrl = null;
+    const paymentProofUrl = await uploadQrisProofToSupabase(qrisProofFile, pendingQrisOrderMeta.orderNumber);
+    cancelQrisStepModal();
 
-    // Jika QRIS, wajib upload bukti transfer ke Supabase Storage terlebih dahulu
-    if (pendingOrder.paymentMethod === 'qris') {
-      if (!qrisProofFile) {
-        showToast('Bukti transfer QRIS belum dipilih');
-        closeConfirmModal();
-        return;
-      }
-      if (btnProceed) btnProceed.innerHTML = `<span>Mengunggah Bukti TF...</span>`;
-      paymentProofUrl = await uploadQrisProofToSupabase(qrisProofFile, orderNum);
-    }
+    await finalizeAndIssueReceipt({
+      ...pendingQrisOrderMeta,
+      paymentProofUrl
+    });
 
-    currentOrder = {
-      ...pendingOrder,
-      orderNumber: orderNum,
-      timestamp: orderDate,
-      paymentProofUrl: paymentProofUrl
-    };
-
-    // Simpan ke riwayat pesanan pelanggan di localStorage
-    saveCustomerOrderHistory(currentOrder);
-
-    // Simpan nama & alamat ke localStorage
-    try {
-      localStorage.setItem(STORAGE_NAME_KEY, currentOrder.customerName);
-      if (currentOrder.deliveryAddress) {
-        localStorage.setItem(STORAGE_ADDRESS_KEY, currentOrder.deliveryAddress);
-      }
-    } catch (_) {}
-
-    // Reset keranjang, bukti transfer, & buat kode unik baru untuk transaksi berikutnya
-    const productIds = Object.keys(cart);
-    cart = {};
-    saveCartToStorage();
-    clearQrisProof();
-
-    productIds.forEach(id => updateProductCardState(id));
-    updateUI();
-
-    closeConfirmModal();
-    closeCartModal();
-
-    if (sbClient) {
-      const { error: insertErr } = await sbClient.from('orders').insert([{
-        order_number: currentOrder.orderNumber,
-        customer_name: currentOrder.customerName,
-        order_method: currentOrder.orderMethod,
-        pickup_time: currentOrder.pickupTime,
-        delivery_address: currentOrder.deliveryAddress,
-        payment_method: currentOrder.paymentMethod,
-        payment_proof_url: currentOrder.paymentProofUrl,
-        items: currentOrder.items,
-        total_items: currentOrder.totalItems,
-        total_price: currentOrder.totalPrice
-      }]);
-      if (insertErr) console.warn('Gagal mencatat pesanan ke rekap admin:', insertErr);
-
-      // Kirim Notifikasi Email ke Penjual via Web3Forms
-      const daftarMenuEmail = currentOrder.items
-        .map(i => `- ${i.name} (${i.qty} pcs) = ${formatRupiah(i.subtotal)}`)
-        .join('\n');
-
-      fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          access_key: '00db6347-97f9-41eb-9077-820ec9bd01f3',
-          subject: `🔔 Pesanan Baru Mellowbites: ${currentOrder.orderNumber} (${currentOrder.customerName})`,
-          from_name: 'Mellowbites',
-          No_Order: currentOrder.orderNumber,
-          Nama_Pemesan: currentOrder.customerName,
-          Metode_Pesanan: currentOrder.orderMethod === 'pickup'
-            ? `Ambil Sendiri (Jam ${currentOrder.pickupTime} WIB)`
-            : `Diantar / COD (${currentOrder.deliveryAddress})`,
-          Metode_Pembayaran: currentOrder.paymentMethod.toUpperCase(),
-          Bukti_Transfer: currentOrder.paymentProofUrl || '-',
-          Rincian_Pesanan: `\n${daftarMenuEmail}`,
-          Total_Bayar: formatRupiah(currentOrder.totalPrice)
-        })
-      }).catch(err => console.warn('Gagal kirim notifikasi email:', err));
-    }
-
-    hasConfirmedWhatsApp = false;
-    localStorage.setItem('mellowbites_pending_wa_order', JSON.stringify(currentOrder));
-    updateReceiptConfirmationState();
-
-    renderReceiptModal(currentOrder);
-    openReceiptModal();
-
-    showToast('Pesanan berhasil dibuat & struk diterbitkan!');
+    pendingQrisOrderMeta = null;
   } catch (err) {
-    console.error('Gagal membuat pesanan:', err);
+    console.error('Gagal upload bukti QRIS:', err);
     showToast(err.message || 'Gagal mengunggah bukti transfer, coba lagi');
   } finally {
-    if (btnProceed) {
-      btnProceed.disabled = false;
-      btnProceed.innerHTML = origBtnHtml;
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
     }
   }
+}
+
+// 17e. Finalisasi Simpan ke Database, Email, & Buka Struk Digital
+async function finalizeAndIssueReceipt(finalOrder) {
+  currentOrder = finalOrder;
+
+  saveCustomerOrderHistory(currentOrder);
+
+  try {
+    localStorage.setItem(STORAGE_NAME_KEY, currentOrder.customerName);
+    if (currentOrder.deliveryAddress) {
+      localStorage.setItem(STORAGE_ADDRESS_KEY, currentOrder.deliveryAddress);
+    }
+  } catch (_) {}
+
+  const productIds = Object.keys(cart);
+  cart = {};
+  saveCartToStorage();
+  clearQrisProof();
+
+  productIds.forEach(id => updateProductCardState(id));
+  updateUI();
+
+  closeConfirmModal();
+  closeCartModal();
+
+  if (sbClient) {
+    const { error: insertErr } = await sbClient.from('orders').insert([{
+      order_number: currentOrder.orderNumber,
+      customer_name: currentOrder.customerName,
+      order_method: currentOrder.orderMethod,
+      pickup_time: currentOrder.pickupTime,
+      delivery_address: currentOrder.deliveryAddress,
+      payment_method: currentOrder.paymentMethod,
+      payment_proof_url: currentOrder.paymentProofUrl,
+      items: currentOrder.items,
+      total_items: currentOrder.totalItems,
+      total_price: currentOrder.totalPrice
+    }]);
+    if (insertErr) console.warn('Gagal mencatat pesanan ke rekap admin:', insertErr);
+
+    const daftarMenuEmail = currentOrder.items
+      .map(i => `- ${i.name} (${i.qty} pcs) = ${formatRupiah(i.subtotal)}`)
+      .join('\n');
+
+    fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        access_key: '00db6347-97f9-41eb-9077-820ec9bd01f3',
+        subject: `🔔 Pesanan Baru Mellowbites: ${currentOrder.orderNumber} (${currentOrder.customerName})`,
+        from_name: 'Mellowbites',
+        No_Order: currentOrder.orderNumber,
+        Nama_Pemesan: currentOrder.customerName,
+        Metode_Pesanan: currentOrder.orderMethod === 'pickup'
+          ? `Ambil Sendiri (Jam ${currentOrder.pickupTime} WIB)`
+          : `Diantar / COD (${currentOrder.deliveryAddress})`,
+        Metode_Pembayaran: currentOrder.paymentMethod.toUpperCase(),
+        Bukti_Transfer: currentOrder.paymentProofUrl || '-',
+        Rincian_Pesanan: `\n${daftarMenuEmail}`,
+        Total_Bayar: formatRupiah(currentOrder.totalPrice)
+      })
+    }).catch(err => console.warn('Gagal kirim notifikasi email:', err));
+  }
+
+  hasConfirmedWhatsApp = false;
+  localStorage.setItem('mellowbites_pending_wa_order', JSON.stringify(currentOrder));
+  updateReceiptConfirmationState();
+
+  renderReceiptModal(currentOrder);
+  openReceiptModal();
+
+  showToast('Pesanan berhasil dibuat & struk diterbitkan!');
 }
 
 // 18. Helper Format Nomor Order & Tanggal
@@ -2100,39 +2156,41 @@ function getWIBMinutes() {
 }
 
 function isStoreOpen() {
-  // 1. Jika saklar admin dimatikan (false), toko PASTI tutup kapan pun jamnya
-  if (!isStoreManuallyOpen) return false;
-
-  // 2. Cek jam operasional normal: 08:00 - 20:00 WIB
   const nowMinutes = getWIBMinutes();
   const openMinutes = 8 * 60;   // 08:00 WIB
   const closeMinutes = 20 * 60; // 20:00 WIB
+  const inNormalHours = nowMinutes >= openMinutes && nowMinutes < closeMinutes;
 
-  if (nowMinutes >= openMinutes && nowMinutes < closeMinutes) {
-    return true;
+  // Hitung timestamp pukul 08:00 WIB hari ini
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const wibNow = new Date(utcMs + 7 * 3600000);
+  const todayOpenWib = new Date(wibNow);
+  todayOpenWib.setHours(8, 0, 0, 0);
+  const todayOpenUtcMs = todayOpenWib.getTime() - 7 * 3600000 - now.getTimezoneOffset() * 60000;
+
+  const updatedMs = storeSettingsUpdatedAt ? new Date(storeSettingsUpdatedAt).getTime() : 0;
+
+  // Jika saklar admin dimatikan: hanya kunci toko kalau dimatikan SETELAH jam 08:00 WIB hari ini
+  if (!isStoreManuallyOpen) {
+    if (inNormalHours && updatedMs < todayOpenUtcMs) {
+      return true; // Otomatis buka lagi saat masuk jam 08:00 WIB pagi
+    }
+    return false;
   }
 
-  // 3. Di luar jam operasional (20:00 - 07:59 WIB):
-  // Tetap BUKA hanya jika admin menyalakan saklar secara manual SETELAH jam tutup terakhir (20:00 WIB)
-  if (storeSettingsUpdatedAt) {
-    const updatedMs = new Date(storeSettingsUpdatedAt).getTime();
-    if (!isNaN(updatedMs)) {
-      const now = new Date();
-      const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
-      const wibNow = new Date(utcMs + 7 * 3600000);
+  // Jika saklar admin aktif, buka di jam operasional normal
+  if (inNormalHours) return true;
 
-      // Titik jam 20:00 WIB terakhir
-      const lastCloseWib = new Date(wibNow);
-      lastCloseWib.setHours(20, 0, 0, 0);
-      if (wibNow.getHours() < 8) {
-        lastCloseWib.setDate(lastCloseWib.getDate() - 1);
-      }
-
-      const lastCloseUtcMs = lastCloseWib.getTime() - 7 * 3600000 - now.getTimezoneOffset() * 60000;
-      if (updatedMs >= lastCloseUtcMs) {
-        return true;
-      }
+  // Di luar jam operasional (20:00 - 07:59 WIB): tetap buka hanya jika dinyalakan manual setelah jam 20:00 terakhir
+  if (!isNaN(updatedMs) && updatedMs > 0) {
+    const lastCloseWib = new Date(wibNow);
+    lastCloseWib.setHours(20, 0, 0, 0);
+    if (wibNow.getHours() < 8) {
+      lastCloseWib.setDate(lastCloseWib.getDate() - 1);
     }
+    const lastCloseUtcMs = lastCloseWib.getTime() - 7 * 3600000 - now.getTimezoneOffset() * 60000;
+    if (updatedMs >= lastCloseUtcMs) return true;
   }
 
   return false;
