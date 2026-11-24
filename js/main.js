@@ -2251,26 +2251,6 @@ async function syncFromSupabase() {
       }
     }
 
-    // 1.5. Dorong perubahan dari VS Code HANYA 1X saat halaman pertama kali dibuka
-    if (!hasSyncedCodeProducts) {
-      hasSyncedCodeProducts = true;
-      const codeProducts = PRODUCTS.map((p, idx) => ({
-        id: p.id,
-        name: p.name,
-        category: p.category,
-        is_best_seller: p.isBestSeller,
-        price: p.price,
-        description: p.desc || '',
-        tag: p.tag || 'Favorit',
-        tag_color: p.tagColor || 'bg-amber-100 text-amber-900',
-        flavor_bg: p.flavorBg || 'bg-gradient-to-tr from-amber-800 to-amber-600',
-        cream_color: p.creamColor || '#f59e0b',
-        image_url: p.image || '',
-        sort_order: idx + 1
-      }));
-      await sbClient.from('products').upsert(codeProducts, { onConflict: 'id' });
-    }
-
     // 2. Ambil daftar menu & status stok terbaru
     const { data: dbProducts } = await sbClient.from('products').select('*').order('sort_order', { ascending: true });
     if (dbProducts && dbProducts.length > 0) {

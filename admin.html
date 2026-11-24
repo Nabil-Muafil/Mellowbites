@@ -715,7 +715,7 @@
             >
             <h4 class="font-black text-stone-900 text-base tracking-tight uppercase leading-snug">Es Gabin - Mellowbites</h4>
             <p class="text-[10px] text-stone-500 font-medium mt-0.5">Biskuit Renyah, Fla Creamy Lumer</p>
-            <p class="text-[9px] text-stone-400 mt-0.5">Jl. Mawar No. 14 • WA: 0856-4640-9023</p>
+            <p class="text-[9px] text-stone-400 mt-0.5">jl. bromo, RT/RW:001/006, Dsn. Karangtimongo, Ds. Denanyar, Jombang • WA: 0856-4640-9023</p>
           </div>
 
           <!-- Divider 1 -->
@@ -1284,13 +1284,66 @@
         } catch (_) {}
       }
     }
-    
+
     function closeProfileModal() {
       pendingCroppedAvatar = null;
       setProfileEditMode(false);
       const modal = document.getElementById('profileModal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
+    }
+
+    const CROP_VIEW_SIZE = 220;
+    let cropState = {
+      img: null,
+      baseScale: 1,
+      zoom: 1,
+      offsetX: 0,
+      offsetY: 0,
+      isDragging: false,
+      startX: 0,
+      startY: 0
+    };
+
+    function handleProfileAvatarChange(e) {
+      const file = e.target?.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        showAdminToast('File harus berupa gambar');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          cropState.img = img;
+          cropState.zoom = 1;
+          cropState.baseScale = Math.max(
+            CROP_VIEW_SIZE / img.naturalWidth,
+            CROP_VIEW_SIZE / img.naturalHeight
+          );
+          const dispW = img.naturalWidth * cropState.baseScale;
+          const dispH = img.naturalHeight * cropState.baseScale;
+          cropState.offsetX = (CROP_VIEW_SIZE - dispW) / 2;
+          cropState.offsetY = (CROP_VIEW_SIZE - dispH) / 2;
+
+          const cropImgEl = document.getElementById('avatarCropImg');
+          const zoomRange = document.getElementById('avatarZoomRange');
+          if (cropImgEl) cropImgEl.src = ev.target.result;
+          if (zoomRange) zoomRange.value = '1';
+
+          renderCropTransform();
+
+          const cropModal = document.getElementById('avatarCropModal');
+          if (cropModal) {
+            cropModal.classList.remove('hidden');
+            cropModal.classList.add('flex');
+          }
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
     }
 
     function clampCropOffsets() {
