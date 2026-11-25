@@ -341,10 +341,11 @@ function initProductGrid() {
               ${getGabinSvg(product.creamColor)}
             </div>
 
-            <img 
-              src="${safeImage}" 
-              alt="${safeName}" 
+            <img
+              src="${safeImage}"
+              alt="${safeName}"
               loading="${idx < 4 ? 'eager' : 'lazy'}"
+              fetchpriority="${idx === 0 ? 'high' : 'auto'}"
               decoding="async"
               class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${!isAvail ? 'grayscale-[60%]' : ''}"
               onerror="this.remove()"
