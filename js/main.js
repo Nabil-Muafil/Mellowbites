@@ -144,6 +144,7 @@ const STORAGE_NAME_KEY = 'mellowbites_customer_name';
 const STORAGE_PHONE_KEY = 'mellowbites_customer_phone';
 const STORAGE_ADDRESS_KEY = 'mellowbites_customer_address';
 const STORAGE_ORDER_HISTORY_KEY = 'mellowbites_order_history_v1';
+const STORAGE_REVIEWED_ORDERS_KEY = 'mellowbites_reviewed_orders_v1';
 const STORAGE_COORDS_KEY = 'mellowbites_customer_coords_v1';
 
 // Koordinat Tetap Kedai Gabin Ice Bar - Mellowbites (Denanyar, Jombang)
@@ -188,6 +189,13 @@ let activeDetailProductId = null;
 let pendingOrder = null;
 let pendingQrisOrderMeta = null;
 let isCreatingOrder = false;
+
+// State Ulasan & Rating Produk
+let productRatingsMap = {};
+let reviewedItemsByOrder = {};
+let activeReviewOrder = null;
+let reviewDraftState = {};
+let isSubmittingReviews = false;
 
 // 4. LocalStorage Helpers
 function saveCartToStorage() {
@@ -629,6 +637,8 @@ function openProductDetailModal(productId) {
 
   const catTextEl = document.getElementById('detailProdCategoryText');
   if (catTextEl) catTextEl.textContent = `Varian ${getCategoryDisplayName(product.category)}`;
+
+  updateProductDetailRatingBadge(productId);
 
   const descEl = document.getElementById('detailProdDesc');
   if (descEl) descEl.textContent = product.desc || 'Kombinasi biskuit gabin renyah dengan isian fla lembut yang manis dingin menyegarkan.';
@@ -3092,6 +3102,23 @@ function renderOrderHistoryCards(orders, isSyncing = false) {
             <span>Pesan Lagi</span>
           </button>
         </div>
+        ${String(order.status || '').trim() === 'Selesai' && (order.items || []).length > 0 ? (
+          isOrderFullyReviewed(order) ? `
+            <div class="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-extrabold flex items-center justify-center gap-1.5">
+              <span>✅</span>
+              <span>Sudah Diulas</span>
+            </div>
+          ` : `
+            <button
+              type="button"
+              onclick="openReviewOrderModal('${safeOrderNum}')"
+              class="w-full py-2 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-extrabold text-xs active:scale-95 transition flex items-center justify-center gap-1.5"
+            >
+              <span>⭐</span>
+              <span>Beri Ulasan</span>
+            </button>
+          `
+        ) : ''}
       </div>
     `;
   }).join('');
@@ -3148,6 +3175,8 @@ async function syncCustomerOrderStatuses(showFeedback = false) {
         localStorage.setItem(STORAGE_ORDER_HISTORY_KEY, JSON.stringify(updatedOrders));
       }
 
+      await syncCustomerReviewedOrders(orderNumbers);
+
       renderOrderHistoryCards(updatedOrders, false);
       if (showFeedback) showToast('Status pesanan diperbarui');
       return;
@@ -3156,6 +3185,7 @@ async function syncCustomerOrderStatuses(showFeedback = false) {
     console.warn('Gagal menyinkronkan status pesanan:', err);
   }
 
+  await syncCustomerReviewedOrders(localOrders.map(o => o.orderNumber).filter(Boolean));
   renderOrderHistoryCards(localOrders, false);
 }
 
@@ -3433,6 +3463,8 @@ async function syncFromSupabase() {
         saveCartToStorage();
       }
     }
+
+    await syncProductReviewsSummary();
   } catch (err) {
     console.warn('Menggunakan data menu lokal (offline/fallback):', err);
   }
@@ -3643,9 +3675,465 @@ window.initPwaUI = initPwaUI;
 window.checkUnconfirmedOrder = checkUnconfirmedOrder;
 window.resumeUnconfirmedOrder = resumeUnconfirmedOrder;
 
+// ==========================================
+// 25.6 Ulasan & Rating Pelanggan (product_reviews)
+// ==========================================
+const REVIEW_RATING_LABELS = {
+  1: 'Kurang',
+  2: 'Cukup',
+  3: 'Lumayan',
+  4: 'Enak',
+  5: 'Enak Banget!'
+};
+
+function loadReviewedOrdersFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_REVIEWED_ORDERS_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      reviewedItemsByOrder = parsed;
+    }
+  } catch (_) {
+    reviewedItemsByOrder = {};
+  }
+}
+
+function saveReviewedOrdersToStorage() {
+  try {
+    localStorage.setItem(STORAGE_REVIEWED_ORDERS_KEY, JSON.stringify(reviewedItemsByOrder));
+  } catch (_) { }
+}
+
+function markOrderItemReviewedLocally(orderNumber, productId) {
+  if (!orderNumber || !productId) return;
+  const list = Array.isArray(reviewedItemsByOrder[orderNumber]) ? reviewedItemsByOrder[orderNumber] : [];
+  if (!list.includes(productId)) {
+    reviewedItemsByOrder[orderNumber] = [...list, productId];
+  }
+}
+
+function isOrderFullyReviewed(order) {
+  if (!order || !order.orderNumber) return false;
+  const reviewedList = reviewedItemsByOrder[order.orderNumber];
+  if (!Array.isArray(reviewedList) || reviewedList.length === 0) return false;
+
+  const uniqueProductIds = [...new Set(
+    (order.items || [])
+      .map(i => String(i.id || i.name || '').trim())
+      .filter(Boolean)
+  )];
+  if (uniqueProductIds.length === 0) return false;
+  return uniqueProductIds.every(pid => reviewedList.includes(pid));
+}
+
+function updateProductDetailRatingBadge(productId) {
+  const badge = document.getElementById('detailProdRatingBadge');
+  const avgEl = document.getElementById('detailProdRatingAvg');
+  const countEl = document.getElementById('detailProdRatingCount');
+  if (!badge || !avgEl || !countEl) return;
+
+  const stat = productRatingsMap[productId];
+  if (stat && stat.count > 0) {
+    avgEl.textContent = stat.avg.toFixed(1);
+    countEl.textContent = `(${stat.count} ulasan)`;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+async function syncProductReviewsSummary() {
+  if (typeof sbClient === 'undefined' || !sbClient) return;
+  try {
+    const { data, error } = await sbClient
+      .from('product_reviews')
+      .select('product_id, rating');
+
+    if (error || !Array.isArray(data)) return;
+
+    const nextMap = {};
+    data.forEach(row => {
+      const pid = String(row.product_id || '').trim();
+      const rating = Number(row.rating);
+      if (!pid || !Number.isFinite(rating) || rating < 1 || rating > 5) return;
+
+      if (!nextMap[pid]) {
+        nextMap[pid] = { sum: 0, count: 0, avg: 0 };
+      }
+      nextMap[pid].sum += rating;
+      nextMap[pid].count += 1;
+    });
+
+    Object.keys(nextMap).forEach(pid => {
+      nextMap[pid].avg = nextMap[pid].sum / nextMap[pid].count;
+    });
+
+    productRatingsMap = nextMap;
+    if (activeDetailProductId) {
+      updateProductDetailRatingBadge(activeDetailProductId);
+    }
+  } catch (err) {
+    console.warn('Gagal memuat ringkasan ulasan produk:', err);
+  }
+}
+
+async function syncCustomerReviewedOrders(orderNumbers) {
+  if (typeof sbClient === 'undefined' || !sbClient || !Array.isArray(orderNumbers) || orderNumbers.length === 0) {
+    return;
+  }
+
+  try {
+    const { data, error } = await sbClient
+      .from('product_reviews')
+      .select('order_number, product_id')
+      .in('order_number', orderNumbers);
+
+    if (error || !Array.isArray(data)) return;
+
+    data.forEach(row => {
+      markOrderItemReviewedLocally(row.order_number, String(row.product_id || '').trim());
+    });
+    saveReviewedOrdersToStorage();
+  } catch (err) {
+    console.warn('Gagal sinkron status ulasan pesanan:', err);
+  }
+}
+
+function setReviewModalError(msg) {
+  const errEl = document.getElementById('reviewModalError');
+  if (!errEl) return;
+  if (msg) {
+    errEl.textContent = msg;
+    errEl.classList.remove('hidden');
+  } else {
+    errEl.textContent = '';
+    errEl.classList.add('hidden');
+  }
+}
+
+function renderReviewOrderItems() {
+  const listEl = document.getElementById('reviewOrderItemsList');
+  if (!listEl) return;
+
+  const entries = Object.values(reviewDraftState);
+  if (entries.length === 0) {
+    listEl.innerHTML = '<p class="text-xs text-stone-400 text-center py-6">Tidak ada varian untuk diulas.</p>';
+    return;
+  }
+
+  listEl.innerHTML = entries.map(entry => {
+    const safePid = escapeHtml(entry.productId);
+    const safeName = escapeHtml(entry.productName);
+    const starsHtml = [1, 2, 3, 4, 5].map(star => {
+      const isActive = entry.rating >= star;
+      return `
+        <button
+          type="button"
+          data-review-pid="${safePid}"
+          data-review-star="${star}"
+          aria-label="Beri ${star} bintang untuk ${safeName}"
+          class="review-star-btn w-8 h-8 rounded-lg border transition flex items-center justify-center text-base leading-none active:scale-90 ${isActive
+            ? 'bg-amber-100 border-amber-300 text-amber-500 shadow-2xs'
+            : 'bg-stone-50 border-stone-200 text-stone-300 hover:text-amber-400 hover:border-amber-200'
+          }"
+        >★</button>
+      `;
+    }).join('');
+
+    return `
+      <div class="bg-white p-3.5 rounded-2xl border border-stone-200/90 space-y-2.5 shadow-2xs" data-review-card="${safePid}">
+        <div class="flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <h4 class="font-extrabold text-stone-900 text-xs sm:text-sm truncate">${safeName}</h4>
+            <p class="text-[10px] text-stone-400 font-medium">${entry.qty} pcs dibeli</p>
+          </div>
+          ${entry.alreadyReviewed ? `
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-700 shrink-0">
+              ✅ Sudah Diulas
+            </span>
+          ` : `
+            <span class="review-rating-label text-[11px] font-bold ${entry.rating ? 'text-amber-600' : 'text-stone-400'} shrink-0" data-review-label="${safePid}">
+              ${entry.rating ? `${entry.rating}/5 • ${REVIEW_RATING_LABELS[entry.rating] || ''}` : 'Pilih bintang *'}
+            </span>
+          `}
+        </div>
+
+        ${entry.alreadyReviewed ? `
+          <p class="text-[11px] text-stone-500 italic bg-stone-50 px-3 py-2 rounded-xl border border-stone-100">
+            Varian ini pada pesanan tersebut sudah pernah Anda ulas.
+          </p>
+        ` : `
+          <div class="flex items-center gap-1.5">
+            ${starsHtml}
+          </div>
+          <textarea
+            rows="2"
+            maxlength="300"
+            data-review-comment-pid="${safePid}"
+            placeholder="Tulis ulasan singkat tentang rasa/tekstur (opsional)..."
+            class="w-full text-xs px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition resize-none"
+          >${escapeHtml(entry.comment || '')}</textarea>
+        `}
+      </div>
+    `;
+  }).join('');
+
+  listEl.querySelectorAll('.review-star-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pid = btn.getAttribute('data-review-pid');
+      const star = Number(btn.getAttribute('data-review-star'));
+      if (!pid || !reviewDraftState[pid]) return;
+      reviewDraftState[pid].rating = star;
+      setReviewModalError('');
+      updateReviewCardStarUI(pid);
+    });
+  });
+
+  listEl.querySelectorAll('[data-review-comment-pid]').forEach(textarea => {
+    textarea.addEventListener('input', (e) => {
+      const pid = textarea.getAttribute('data-review-comment-pid');
+      if (!pid || !reviewDraftState[pid]) return;
+      reviewDraftState[pid].comment = e.target.value;
+    });
+  });
+}
+
+function updateReviewCardStarUI(productId) {
+  const entry = reviewDraftState[productId];
+  if (!entry) return;
+
+  const listEl = document.getElementById('reviewOrderItemsList');
+  if (!listEl) return;
+
+  listEl.querySelectorAll('.review-star-btn').forEach(btn => {
+    if (btn.getAttribute('data-review-pid') !== productId) return;
+    const star = Number(btn.getAttribute('data-review-star'));
+    const isActive = entry.rating >= star;
+    btn.className = `review-star-btn w-8 h-8 rounded-lg border transition flex items-center justify-center text-base leading-none active:scale-90 ${isActive
+      ? 'bg-amber-100 border-amber-300 text-amber-500 shadow-2xs'
+      : 'bg-stone-50 border-stone-200 text-stone-300 hover:text-amber-400 hover:border-amber-200'
+    }`;
+  });
+
+  listEl.querySelectorAll('[data-review-label]').forEach(lbl => {
+    if (lbl.getAttribute('data-review-label') !== productId) return;
+    lbl.textContent = entry.rating
+      ? `${entry.rating}/5 • ${REVIEW_RATING_LABELS[entry.rating] || ''}`
+      : 'Pilih bintang *';
+    lbl.className = `review-rating-label text-[11px] font-bold ${entry.rating ? 'text-amber-600' : 'text-stone-400'} shrink-0`;
+  });
+}
+
+async function openReviewOrderModal(orderNumber) {
+  const history = getCustomerOrderHistory();
+  const order = history.find(o => o.orderNumber === orderNumber);
+  if (!order) {
+    showToast('Data pesanan tidak ditemukan');
+    return;
+  }
+
+  if (String(order.status || '').trim() !== 'Selesai') {
+    showToast('Ulasan hanya dapat diberikan setelah pesanan selesai');
+    return;
+  }
+
+  activeReviewOrder = order;
+  reviewDraftState = {};
+  setReviewModalError('');
+
+  const subEl = document.getElementById('reviewOrderSub');
+  if (subEl) subEl.textContent = `No. Order: ${order.orderNumber}`;
+
+  await syncCustomerReviewedOrders([order.orderNumber]);
+  const reviewedList = Array.isArray(reviewedItemsByOrder[order.orderNumber])
+    ? reviewedItemsByOrder[order.orderNumber]
+    : [];
+
+  (order.items || []).forEach(item => {
+    const pid = String(item.id || item.name || '').trim();
+    if (!pid) return;
+    if (!reviewDraftState[pid]) {
+      reviewDraftState[pid] = {
+        productId: pid,
+        productName: item.name || 'Gabin Ice Bar',
+        qty: Number(item.qty || 1),
+        rating: 0,
+        comment: '',
+        alreadyReviewed: reviewedList.includes(pid)
+      };
+    } else {
+      reviewDraftState[pid].qty += Number(item.qty || 1);
+    }
+  });
+
+  const submitBtn = document.getElementById('btnSubmitOrderReviews');
+  const hasPendingToReview = Object.values(reviewDraftState).some(item => !item.alreadyReviewed);
+  if (submitBtn) {
+    submitBtn.disabled = !hasPendingToReview;
+  }
+
+  renderReviewOrderItems();
+
+  const modal = document.getElementById('reviewOrderModal');
+  const box = document.getElementById('reviewOrderContentBox');
+  if (!modal || !box) return;
+
+  modal.classList.remove('opacity-0', 'pointer-events-none');
+  modal.classList.add('opacity-100');
+  box.classList.remove('translate-y-6', 'sm:scale-95');
+  box.classList.add('translate-y-0', 'sm:scale-100');
+}
+
+function closeReviewOrderModal() {
+  const modal = document.getElementById('reviewOrderModal');
+  const box = document.getElementById('reviewOrderContentBox');
+  if (!modal || !box) return;
+
+  modal.classList.add('opacity-0', 'pointer-events-none');
+  modal.classList.remove('opacity-100');
+  box.classList.add('translate-y-6', 'sm:scale-95');
+  box.classList.remove('translate-y-0', 'sm:scale-100');
+
+  activeReviewOrder = null;
+  reviewDraftState = {};
+  setReviewModalError('');
+}
+
+async function submitOrderReviews() {
+  if (isSubmittingReviews) return;
+  if (!activeReviewOrder) {
+    showToast('Data pesanan tidak ditemukan');
+    return;
+  }
+
+  if (typeof sbClient === 'undefined' || !sbClient) {
+    setReviewModalError('Koneksi database belum tersedia. Silakan coba lagi saat online.');
+    return;
+  }
+
+  const pendingItems = Object.values(reviewDraftState).filter(entry => !entry.alreadyReviewed);
+  if (pendingItems.length === 0) {
+    closeReviewOrderModal();
+    showToast('Semua varian pada pesanan ini sudah diulas.');
+    return;
+  }
+
+  const missingRating = pendingItems.find(entry => !entry.rating || entry.rating < 1 || entry.rating > 5);
+  if (missingRating) {
+    setReviewModalError(`Pilih bintang (1–5) terlebih dahulu untuk varian "${missingRating.productName}".`);
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmitOrderReviews');
+  const origHtml = btn ? btn.innerHTML : '';
+
+  try {
+    isSubmittingReviews = true;
+    setReviewModalError('');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>Mengirim Ulasan...</span>';
+    }
+
+    const orderNumber = activeReviewOrder.orderNumber;
+    const customerName = String(activeReviewOrder.customerName || 'Pelanggan').trim() || 'Pelanggan';
+
+    // Pencegahan duplikat berdasarkan (order_number, product_id)
+    const { data: existingRows, error: checkErr } = await sbClient
+      .from('product_reviews')
+      .select('product_id')
+      .eq('order_number', orderNumber);
+
+    if (checkErr) {
+      throw new Error('Gagal memeriksa status ulasan sebelumnya: ' + checkErr.message);
+    }
+
+    const existingPidSet = new Set(
+      (existingRows || []).map(r => String(r.product_id || '').trim()).filter(Boolean)
+    );
+    existingPidSet.forEach(pid => markOrderItemReviewedLocally(orderNumber, pid));
+
+    const rowsToInsert = pendingItems
+      .filter(entry => !existingPidSet.has(entry.productId))
+      .map(entry => ({
+        order_number: orderNumber,
+        product_id: entry.productId,
+        product_name: entry.productName,
+        customer_name: customerName,
+        rating: Number(entry.rating),
+        comment: (entry.comment || '').trim() || null
+      }));
+
+    if (rowsToInsert.length > 0) {
+      const { error: insertErr } = await sbClient
+        .from('product_reviews')
+        .insert(rowsToInsert);
+
+      if (insertErr && insertErr.code !== '23505') {
+        throw new Error(insertErr.message || 'Gagal menyimpan ulasan.');
+      }
+
+      rowsToInsert.forEach(row => markOrderItemReviewedLocally(orderNumber, row.product_id));
+    }
+
+    saveReviewedOrdersToStorage();
+    await syncProductReviewsSummary();
+    renderOrderHistoryCards(getCustomerOrderHistory(), false);
+
+    closeReviewOrderModal();
+    playCustomerSuccessChime();
+    showToast('Terima kasih! Ulasan Anda berhasil dikirim ⭐');
+  } catch (err) {
+    console.error('Gagal mengirim ulasan:', err);
+    setReviewModalError(err.message || 'Gagal mengirim ulasan, silakan coba lagi.');
+  } finally {
+    isSubmittingReviews = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  }
+}
+
+function playCustomerSuccessChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => { });
+    }
+    const now = ctx.currentTime;
+    const notes = [587.33, 783.99, 1046.50];
+    notes.forEach((freq, idx) => {
+      const noteTime = now + (idx * 0.08);
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, noteTime);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.setValueAtTime(0.3, noteTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(noteTime);
+      osc.stop(noteTime + 0.35);
+    });
+    setTimeout(() => {
+      ctx.close().catch(() => { });
+    }, 700);
+  } catch (_) { }
+}
+
+window.openReviewOrderModal = openReviewOrderModal;
+window.closeReviewOrderModal = closeReviewOrderModal;
+window.submitOrderReviews = submitOrderReviews;
+
 // 26. Inisialisasi Saat Dokumen Siap
 document.addEventListener('DOMContentLoaded', async () => {
   loadCartFromStorage();
+  loadReviewedOrdersFromStorage();
   updateHistoryBadge();
   checkUnconfirmedOrder();
 
@@ -3668,6 +4156,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'store_settings' }, async () => {
           await syncFromSupabase();
           updateStoreStatus();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'product_reviews' }, async () => {
+          await syncProductReviewsSummary();
         })
         .subscribe();
     } catch (_) { }
