@@ -16,11 +16,15 @@
   <link rel="apple-touch-icon" href="img/icon-192.png">
   <link rel="apple-touch-icon" sizes="512x512" href="img/icon-512.png">
 
-  <!-- Google Fonts: Plus Jakarta Sans -->
+  <!-- Google Fonts: Plus Jakarta Sans (Non-blocking) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet">
+    rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet">
+  </noscript>
 
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -28,8 +32,11 @@
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
 
-  <!-- Leaflet.js CSS & JS (Peta Interaktif Gratis Tanpa API Key) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <!-- Leaflet.js CSS (Non-blocking) & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  </noscript>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <!-- html2canvas CDN for Digital Receipt Image Export -->
@@ -254,7 +261,7 @@
     </div>
 
     <!-- PRODUCT GRID CONTAINER -->
-    <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+    <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 min-h-[600px]">
       <!-- Cards rendered dynamically via js/main.js -->
     </div>
 
@@ -953,8 +960,8 @@
         <div class="space-y-2.5 text-center">
           <div id="qrisDownloadArea"
             class="relative w-64 sm:w-72 mx-auto bg-white rounded-2xl p-3 border-2 border-stone-200 shadow-sm">
-            <img id="qrisImgElement" src="img/QRIS.webp" alt="QRIS Gabin Ice Bar Mellowbites" decoding="async"
-              class="w-full h-auto object-contain mx-auto rounded-xl"
+            <img id="qrisImgElement" src="img/QRIS.webp" alt="QRIS Gabin Ice Bar Mellowbites" loading="lazy"
+              decoding="async" class="w-full h-auto object-contain mx-auto rounded-xl"
               onerror="this.classList.add('hidden'); document.getElementById('qrisSvgFallback').classList.remove('hidden');">
             <div id="qrisSvgFallback"
               class="hidden w-full aspect-square bg-gradient-to-tr from-stone-100 to-amber-50 rounded-xl flex flex-col items-center justify-center p-3 text-center border border-dashed border-stone-300">
