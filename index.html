@@ -18,7 +18,8 @@
   <meta property="og:site_name" content="Mellowbites">
   <meta property="og:url" content="https://mellowbites.vercel.app/">
   <meta property="og:title" content="Katalog Gabin Ice Bar - Mellowbites ❄️">
-  <meta property="og:description" content="Biskuit renyah, fla creamy lumer! 100% Homemade & Halal mulai Rp 8.000. Pesan online sekarang!">
+  <meta property="og:description"
+    content="Biskuit renyah, fla creamy lumer! 100% Homemade & Halal mulai Rp 8.000. Pesan online sekarang!">
   <meta property="og:image" content="https://mellowbites.vercel.app/img/icon-512.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="512">
@@ -49,7 +50,8 @@
   <link rel="stylesheet" href="css/style.css">
 
   <!-- Leaflet.js CSS (Non-blocking) & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" media="print"
+    onload="this.media='all'">
   <noscript>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   </noscript>
@@ -751,6 +753,31 @@
                 </span>
               </div>
 
+              <!-- Keterangan Tarif Ongkir (Menurun) -->
+              <div class="p-2.5 rounded-xl bg-stone-50 border border-stone-200/70 text-[11px] text-stone-600 space-y-1.5">
+                <p class="font-bold text-stone-800 flex items-center justify-between">
+                  <span>🚚 Rincian Tarif Ongkir</span>
+                  <span class="text-[10px] font-semibold text-stone-400">Maks. 20 km</span>
+                </p>
+                <ul class="space-y-1 text-[11px] border-t border-stone-200/70 pt-1.5">
+                  <li class="flex items-center justify-between">
+                    <span>• Di bawah 8 km</span>
+                    <span class="font-bold text-emerald-600">Gratis Ongkir</span>
+                  </li>
+                  <li class="flex items-center justify-between">
+                    <span>• 8 km – 11 km</span>
+                    <span class="font-bold text-stone-800">Rp 4.000</span>
+                  </li>
+                  <li class="flex items-center justify-between">
+                    <span>• 12 km – 15 km</span>
+                    <span class="font-bold text-stone-800">Rp 6.000</span>
+                  </li>
+                  <li class="flex items-center justify-between">
+                    <span>• 16 km – 20 km</span>
+                    <span class="font-bold text-stone-800">Rp 8.000</span>
+                  </li>
+                </ul>
+              </div>
               <p id="err-deliveryMap" class="hidden text-[11px] text-rose-600 font-semibold"></p>
             </div>
 
@@ -1392,40 +1419,40 @@
     </div>
   </div>
   <!-- MODAL KONFIRMASI RESET KERANJANG (#resetCartConfirmModal) -->
-<div id="resetCartConfirmModal"
-  class="fixed inset-0 z-[60] bg-black/70 backdrop-blur-xs opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center p-4">
-  <div class="absolute inset-0" onclick="closeResetCartModal()"></div>
+  <div id="resetCartConfirmModal"
+    class="fixed inset-0 z-[60] bg-black/70 backdrop-blur-xs opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center p-4">
+    <div class="absolute inset-0" onclick="closeResetCartModal()"></div>
 
-  <div id="resetCartConfirmBox"
-    class="relative z-10 w-full max-w-xs bg-white rounded-3xl shadow-2xl overflow-hidden border border-stone-200 transform scale-95 transition-transform duration-200 p-5 text-center space-y-3.5">
-    
-    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-2xs">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-        </path>
-      </svg>
-    </div>
+    <div id="resetCartConfirmBox"
+      class="relative z-10 w-full max-w-xs bg-white rounded-3xl shadow-2xl overflow-hidden border border-stone-200 transform scale-95 transition-transform duration-200 p-5 text-center space-y-3.5">
 
-    <div class="space-y-1">
-      <h3 class="font-extrabold text-stone-900 text-base leading-tight">Kosongkan Keranjang?</h3>
-      <p class="text-xs text-stone-500 leading-relaxed">
-        Semua varian es gabin yang sudah dipilih di keranjang akan dihapus. Yakin ingin reset pesanan?
-      </p>
-    </div>
+      <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-2xs">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+          </path>
+        </svg>
+      </div>
 
-    <div class="flex items-center gap-2 pt-1">
-      <button type="button" onclick="closeResetCartModal()"
-        class="flex-1 py-2.5 px-3 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs transition active:scale-95">
-        Batal
-      </button>
-      <button type="button" onclick="confirmResetCart()"
-        class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md shadow-rose-600/20 transition active:scale-95">
-        Ya, Kosongkan
-      </button>
+      <div class="space-y-1">
+        <h3 class="font-extrabold text-stone-900 text-base leading-tight">Kosongkan Keranjang?</h3>
+        <p class="text-xs text-stone-500 leading-relaxed">
+          Semua varian es gabin yang sudah dipilih di keranjang akan dihapus. Yakin ingin reset pesanan?
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 pt-1">
+        <button type="button" onclick="closeResetCartModal()"
+          class="flex-1 py-2.5 px-3 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs transition active:scale-95">
+          Batal
+        </button>
+        <button type="button" onclick="confirmResetCart()"
+          class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md shadow-rose-600/20 transition active:scale-95">
+          Ya, Kosongkan
+        </button>
+      </div>
     </div>
   </div>
-</div>
 
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toast"

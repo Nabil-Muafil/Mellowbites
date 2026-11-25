@@ -153,12 +153,13 @@ const STORE_COORDS = {
 
 // Pengaturan Jarak & Tarif Ongkir
 const DELIVERY_CONFIG = {
-  maxDistanceKm: 8,   // Batas maksimal jarak pengantaran (km)
+  maxDistanceKm: 20,  // Batas maksimal jarak pengantaran (km)
   roadFactor: 1.25,   // Faktor koreksi jarak jalan jika memakai fallback Haversine
   tiers: [
-    { maxKm: 3, fee: 2000 }, // 0 – 3 km   : Rp 2.000
-    { maxKm: 6, fee: 3000 }, // >3 – 6 km  : Rp 3.000
-    { maxKm: 8, fee: 4000 }  // >6 – 8 km  : Rp 4.000
+    { ltKm: 8, fee: 0 },    // Di bawah 8 km (< 8 km) : Gratis Ongkir
+    { ltKm: 12, fee: 4000 }, // 8 km – 11,9 km          : Rp 4.000
+    { ltKm: 16, fee: 6000 }, // 12 km – 15,9 km         : Rp 6.000
+    { maxKm: 20, fee: 8000 }  // 16 km – 20 km           : Rp 8.000
   ]
 };
 
@@ -835,8 +836,9 @@ function getDeliveryFeeSummary() {
     };
   }
 
-  const matchedTier = DELIVERY_CONFIG.tiers.find(t => deliveryDistanceKm <= t.maxKm)
-    || DELIVERY_CONFIG.tiers[DELIVERY_CONFIG.tiers.length - 1];
+  const matchedTier = DELIVERY_CONFIG.tiers.find(t =>
+    typeof t.ltKm === 'number' ? deliveryDistanceKm < t.ltKm : deliveryDistanceKm <= t.maxKm
+  ) || DELIVERY_CONFIG.tiers[DELIVERY_CONFIG.tiers.length - 1];
 
   return {
     hasPin: true,
@@ -890,11 +892,23 @@ async function setCustomerDeliveryPin(lat, lng, panToPin = false) {
 
   if (deliveryMap) {
     if (!customerMarker) {
+      const redPinIcon = L.divIcon({
+        className: 'custom-customer-pin',
+        html: `<svg width="32" height="38" viewBox="0 0 32 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35));">
+          <path d="M16 1C8.268 1 2 7.268 2 15C2 24.75 16 36.5 16 36.5C16 36.5 30 24.75 30 15C30 7.268 23.732 1 16 1Z" fill="#e11d48" stroke="#ffffff" stroke-width="2.5"/>
+          <circle cx="16" cy="14.5" r="5" fill="#ffffff"/>
+        </svg>`,
+        iconSize: [32, 38],
+        iconAnchor: [16, 37],
+        popupAnchor: [0, -34]
+      });
+
       customerMarker = L.marker([customerCoords.lat, customerCoords.lng], {
-        draggable: true
+        draggable: true,
+        icon: redPinIcon
       }).addTo(deliveryMap);
 
-      customerMarker.bindPopup('<b>📍 Lokasi Antar</b><br><span style="font-size:11px">Geser pin jika titik belum pas</span>');
+      customerMarker.bindPopup('<b>📍 Lokasi Antar</b><br><span style="font-size:11px">Geser pin merah jika titik belum pas</span>');
       customerMarker.on('dragend', () => {
         const pos = customerMarker.getLatLng();
         setCustomerDeliveryPin(pos.lat, pos.lng, false);
@@ -907,7 +921,7 @@ async function setCustomerDeliveryPin(lat, lng, panToPin = false) {
       deliveryMap.flyTo([customerCoords.lat, customerCoords.lng], 16, { duration: 0.7 });
     }
   }
-
+  
   const straightKm = calculateHaversineKm(STORE_COORDS.lat, STORE_COORDS.lng, customerCoords.lat, customerCoords.lng);
   deliveryDistanceKm = Math.round(straightKm * DELIVERY_CONFIG.roadFactor * 10) / 10;
   updateDeliveryFeeUI();
