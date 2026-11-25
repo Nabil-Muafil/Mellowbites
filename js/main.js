@@ -2721,16 +2721,51 @@ function copyOrderText() {
   }
 }
 
-// 23b. Riwayat Pesanan & Repeat Order untuk Pelanggan
-function openOrderHistoryModal() {
-  const modal = document.getElementById('orderHistoryModal');
-  const box = document.getElementById('orderHistoryContentBox');
+// 23b. Riwayat Pesanan, Live Tracking & Repeat Order untuk Pelanggan
+let customerHistoryChannel = null;
+
+function getOrderTrackingMeta(status, orderMethod) {
+  const normalized = String(status || 'Menunggu Konfirmasi').trim();
+  const isDelivery = orderMethod === 'delivery';
+
+  if (normalized === 'Selesai') {
+    return {
+      step: 3,
+      badgeText: '✅ Selesai',
+      badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+      step2Label: isDelivery ? 'Diantar' : 'Disiapkan',
+      hintText: isDelivery
+        ? 'Pesanan sudah sampai & diterima. Terima kasih sudah jajan di Mellowbites!'
+        : 'Pesanan sudah diambil. Selamat menikmati Es Gabin Mellowbites!'
+    };
+  }
+
+  if (normalized === 'Diproses / Diantar') {
+    return {
+      step: 2,
+      badgeText: isDelivery ? '🛵 Sedang Diantar' : '📦 Sedang Disiapkan',
+      badgeClass: 'bg-sky-100 text-sky-800 border-sky-200',
+      step2Label: isDelivery ? 'Diantar' : 'Disiapkan',
+      hintText: isDelivery
+        ? 'Pesananmu sudah dikonfirmasi & sedang dalam perjalanan ke lokasimu!'
+        : 'Pesananmu sedang disiapkan di kedai. Silakan datang sesuai jam ambil.'
+    };
+  }
+
+  return {
+    step: 1,
+    badgeText: '⏳ Menunggu Konfirmasi',
+    badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
+    step2Label: isDelivery ? 'Diantar' : 'Disiapkan',
+    hintText: 'Pesanan masuk & sedang menunggu konfirmasi dari admin kedai.'
+  };
+}
+
+function renderOrderHistoryCards(orders, isSyncing = false) {
   const listContainer = document.getElementById('orderHistoryList');
-  if (!modal || !box || !listContainer) return;
+  if (!listContainer) return;
 
-  const orders = getCustomerOrderHistory();
-
-  if (orders.length === 0) {
+  if (!orders || orders.length === 0) {
     listContainer.innerHTML = `
       <div class="py-12 px-4 text-center">
         <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-3xl">
@@ -2738,87 +2773,240 @@ function openOrderHistoryModal() {
         </div>
         <h4 class="font-extrabold text-stone-800 text-sm">Belum Ada Riwayat Pesanan</h4>
         <p class="text-xs text-stone-500 mt-1.5 max-w-xs mx-auto leading-relaxed">
-          Pesanan yang Anda buat di sini akan tercatat otomatis. Anda bisa melihat struk atau memesan ulang dengan 1 klik!
+          Pesanan yang Anda buat di sini akan tercatat otomatis. Anda bisa melacak status pesanan, melihat struk, atau memesan ulang dengan 1 klik!
         </p>
         <button onclick="closeOrderHistoryModal()" class="mt-4 px-4 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-sm transition active:scale-95">
           Lihat Menu Es Gabin
         </button>
       </div>
     `;
-  } else {
-    listContainer.innerHTML = orders.map(order => {
-      const itemsListHtml = (order.items || []).map(i => `
-        <div class="flex items-center justify-between text-xs py-1">
-          <span class="text-stone-700 font-medium truncate pr-2">
-            ${escapeHtml(i.name)} <span class="text-stone-400 font-bold">×${i.qty}</span>
-          </span>
-          <span class="text-stone-600 font-bold shrink-0">${formatRupiah(i.subtotal)}</span>
-        </div>
-      `).join('');
-
-      const isPickup = order.orderMethod === 'pickup';
-      const methodLabel = isPickup ? `🏬 Ambil (${escapeHtml(order.pickupTime || '-')})` : `🛵 Antar COD`;
-      const safeOrderNum = escapeHtml(order.orderNumber);
-
-      return `
-        <div class="bg-white p-4 rounded-2xl border border-stone-200/90 shadow-2xs space-y-2.5 transition hover:border-brand-300">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <span class="font-mono font-extrabold text-[11px] text-brand-600 tracking-wide">${safeOrderNum}</span>
-              <p class="text-[10px] text-stone-400 font-medium mt-0.5">${formatDateTime(order.timestamp)}</p>
-            </div>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPickup ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">
-              ${methodLabel}
-            </span>
-          </div>
-
-          <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-100 divide-y divide-stone-100">
-            ${itemsListHtml}
-          </div>
-
-          <div class="flex items-center justify-between text-xs pt-0.5">
-            <span class="text-stone-500 text-[11px]">
-              ${order.totalItems} pcs • <strong class="text-stone-700 uppercase font-bold">${escapeHtml(order.paymentMethod)}</strong>
-            </span>
-            <div class="text-right">
-              <span class="text-[10px] text-stone-400 block -mb-0.5">Total Bayar</span>
-              <span class="font-black text-brand-600 text-sm">${formatRupiah(order.totalPrice)}</span>
-            </div>
-          </div>
-
-          <div class="pt-2 border-t border-stone-100 grid grid-cols-2 gap-2">
-            <button 
-              type="button" 
-              onclick="viewPastOrderReceipt('${safeOrderNum}')"
-              class="py-2 px-3 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-700 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5"
-            >
-              <span>🧾</span>
-              <span>Lihat Struk</span>
-            </button>
-            <button 
-              type="button" 
-              onclick="repeatOrder('${safeOrderNum}')"
-              class="py-2 px-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm shadow-brand-500/20 active:scale-95 transition flex items-center justify-center gap-1.5"
-            >
-              <span>🔁</span>
-              <span>Pesan Lagi</span>
-            </button>
-          </div>
-        </div>
-      `;
-    }).join('');
+    return;
   }
+
+  const syncBarHtml = `
+    <div class="flex items-center justify-between gap-2 px-1 pb-1">
+      <span class="text-[11px] font-semibold text-stone-500 flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full ${isSyncing ? 'bg-amber-400 animate-ping' : 'bg-emerald-500'}"></span>
+        <span>${isSyncing ? 'Menyegarkan status pesanan...' : 'Status terhubung otomatis ke kedai'}</span>
+      </span>
+      <button
+        type="button"
+        onclick="syncCustomerOrderStatuses(true)"
+        ${isSyncing ? 'disabled' : ''}
+        class="px-2.5 py-1 rounded-lg bg-white hover:bg-stone-50 border border-stone-200 text-[11px] font-bold text-stone-700 transition active:scale-95 disabled:opacity-50"
+      >
+        ↻ Refresh Status
+      </button>
+    </div>
+  `;
+
+  const cardsHtml = orders.map(order => {
+    const itemsListHtml = (order.items || []).map(i => `
+      <div class="flex items-center justify-between text-xs py-1">
+        <span class="text-stone-700 font-medium truncate pr-2">
+          ${escapeHtml(i.name)} <span class="text-stone-400 font-bold">×${i.qty}</span>
+        </span>
+        <span class="text-stone-600 font-bold shrink-0">${formatRupiah(i.subtotal)}</span>
+      </div>
+    `).join('');
+
+    const isPickup = order.orderMethod === 'pickup';
+    const methodLabel = isPickup ? `🏬 Ambil (${escapeHtml(order.pickupTime || '-')})` : `🛵 Antar COD`;
+    const safeOrderNum = escapeHtml(order.orderNumber);
+    const track = getOrderTrackingMeta(order.status, order.orderMethod);
+
+    const step1Active = track.step >= 1;
+    const step2Active = track.step >= 2;
+    const step3Active = track.step >= 3;
+
+    return `
+      <div class="bg-white p-4 rounded-2xl border border-stone-200/90 shadow-2xs space-y-3 transition hover:border-brand-300">
+        <!-- Header Nomor Order & Badge Status Live -->
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <span class="font-mono font-extrabold text-[11px] text-brand-600 tracking-wide">${safeOrderNum}</span>
+            <p class="text-[10px] text-stone-400 font-medium mt-0.5">${formatDateTime(order.timestamp)} • ${methodLabel}</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold border shrink-0 ${track.badgeClass}">
+            ${track.badgeText}
+          </span>
+        </div>
+
+        <!-- Tracker Progress 3 Tahap -->
+        <div class="bg-stone-50/90 p-3 rounded-xl border border-stone-200/70 space-y-2">
+          <div class="flex items-center justify-between gap-1 text-[10px] font-bold">
+            <!-- Tahap 1 -->
+            <div class="flex items-center gap-1 ${step1Active ? 'text-brand-600' : 'text-stone-400'}">
+              <span class="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${step1Active ? 'bg-brand-500 text-white' : 'bg-stone-200 text-stone-500'}">1</span>
+              <span>Diterima</span>
+            </div>
+
+            <div class="flex-1 h-0.5 rounded-full ${step2Active ? 'bg-brand-500' : 'bg-stone-200'}"></div>
+
+            <!-- Tahap 2 -->
+            <div class="flex items-center gap-1 ${step2Active ? 'text-sky-700' : 'text-stone-400'}">
+              <span class="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${step2Active ? 'bg-sky-500 text-white' : 'bg-stone-200 text-stone-500'}">2</span>
+              <span>${track.step2Label}</span>
+            </div>
+
+            <div class="flex-1 h-0.5 rounded-full ${step3Active ? 'bg-emerald-500' : 'bg-stone-200'}"></div>
+
+            <!-- Tahap 3 -->
+            <div class="flex items-center gap-1 ${step3Active ? 'text-emerald-700' : 'text-stone-400'}">
+              <span class="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${step3Active ? 'bg-emerald-500 text-white' : 'bg-stone-200 text-stone-500'}">3</span>
+              <span>Selesai</span>
+            </div>
+          </div>
+
+          <p class="text-[11px] text-stone-600 leading-snug">
+            ${track.hintText}
+          </p>
+        </div>
+
+        <!-- Daftar Item -->
+        <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-100 divide-y divide-stone-100">
+          ${itemsListHtml}
+        </div>
+
+        <!-- Ringkasan Pembayaran -->
+        <div class="flex items-center justify-between text-xs pt-0.5">
+          <span class="text-stone-500 text-[11px]">
+            ${order.totalItems} pcs • <strong class="text-stone-700 uppercase font-bold">${escapeHtml(order.paymentMethod)}</strong>
+          </span>
+          <div class="text-right">
+            <span class="text-[10px] text-stone-400 block -mb-0.5">Total Bayar</span>
+            <span class="font-black text-brand-600 text-sm">${formatRupiah(order.totalPrice)}</span>
+          </div>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="pt-2 border-t border-stone-100 grid grid-cols-2 gap-2">
+          <button 
+            type="button" 
+            onclick="viewPastOrderReceipt('${safeOrderNum}')"
+            class="py-2 px-3 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-700 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5"
+          >
+            <span>🧾</span>
+            <span>Lihat Struk</span>
+          </button>
+          <button 
+            type="button" 
+            onclick="repeatOrder('${safeOrderNum}')"
+            class="py-2 px-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm shadow-brand-500/20 active:scale-95 transition flex items-center justify-center gap-1.5"
+          >
+            <span>🔁</span>
+            <span>Pesan Lagi</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  listContainer.innerHTML = syncBarHtml + cardsHtml;
+}
+
+async function syncCustomerOrderStatuses(showFeedback = false) {
+  const localOrders = getCustomerOrderHistory();
+  if (localOrders.length === 0) return;
+
+  renderOrderHistoryCards(localOrders, true);
+
+  if (typeof sbClient === 'undefined' || !sbClient) {
+    renderOrderHistoryCards(localOrders, false);
+    return;
+  }
+
+  try {
+    const orderNumbers = localOrders.map(o => o.orderNumber).filter(Boolean);
+    const { data, error } = await sbClient
+      .from('orders')
+      .select('order_number, status')
+      .in('order_number', orderNumbers);
+
+    if (!error && Array.isArray(data)) {
+      const statusMap = {};
+      data.forEach(row => {
+        if (row.order_number && row.status) {
+          statusMap[row.order_number] = row.status;
+        }
+      });
+
+      let hasChanged = false;
+      const updatedOrders = localOrders.map(order => {
+        const liveStatus = statusMap[order.orderNumber];
+        if (liveStatus && liveStatus !== order.status) {
+          hasChanged = true;
+          return { ...order, status: liveStatus };
+        }
+        return order;
+      });
+
+      if (hasChanged) {
+        localStorage.setItem(STORAGE_ORDER_HISTORY_KEY, JSON.stringify(updatedOrders));
+      }
+
+      renderOrderHistoryCards(updatedOrders, false);
+      if (showFeedback) showToast('Status pesanan diperbarui');
+      return;
+    }
+  } catch (err) {
+    console.warn('Gagal menyinkronkan status pesanan:', err);
+  }
+
+  renderOrderHistoryCards(localOrders, false);
+}
+
+function subscribeCustomerOrderRealtime() {
+  if (customerHistoryChannel || typeof sbClient === 'undefined' || !sbClient) return;
+
+  try {
+    customerHistoryChannel = sbClient
+      .channel('customer-orders-tracking')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
+        const updated = payload?.new;
+        if (!updated?.order_number || !updated?.status) return;
+
+        const localOrders = getCustomerOrderHistory();
+        const idx = localOrders.findIndex(o => o.orderNumber === updated.order_number);
+        if (idx !== -1 && localOrders[idx].status !== updated.status) {
+          localOrders[idx].status = updated.status;
+          localStorage.setItem(STORAGE_ORDER_HISTORY_KEY, JSON.stringify(localOrders));
+          renderOrderHistoryCards(localOrders, false);
+          showToast(`Update ${updated.order_number}: ${updated.status}`);
+        }
+      })
+      .subscribe();
+  } catch (_) { }
+}
+
+function openOrderHistoryModal() {
+  const modal = document.getElementById('orderHistoryModal');
+  const box = document.getElementById('orderHistoryContentBox');
+  if (!modal || !box) return;
+
+  const orders = getCustomerOrderHistory();
+  renderOrderHistoryCards(orders, orders.length > 0);
 
   modal.classList.remove('opacity-0', 'pointer-events-none');
   modal.classList.add('opacity-100');
   box.classList.remove('scale-95');
   box.classList.add('scale-100');
+
+  if (orders.length > 0) {
+    syncCustomerOrderStatuses(false);
+    subscribeCustomerOrderRealtime();
+  }
 }
 
 function closeOrderHistoryModal() {
   const modal = document.getElementById('orderHistoryModal');
   const box = document.getElementById('orderHistoryContentBox');
   if (!modal || !box) return;
+
+  if (customerHistoryChannel && typeof sbClient !== 'undefined' && sbClient) {
+    sbClient.removeChannel(customerHistoryChannel);
+    customerHistoryChannel = null;
+  }
 
   modal.classList.remove('opacity-100');
   modal.classList.add('opacity-0', 'pointer-events-none');

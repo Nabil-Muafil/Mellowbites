@@ -406,6 +406,10 @@
               class="px-3 py-1.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition whitespace-nowrap">
               ⏳ Menunggu Konfirmasi
             </button>
+            <button type="button" id="filterOrderProcessing" onclick="setAdminOrderFilter('Diproses / Diantar')"
+              class="px-3 py-1.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition whitespace-nowrap">
+              🛵 Diproses / Diantar
+            </button>
             <button type="button" id="filterOrderDone" onclick="setAdminOrderFilter('Selesai')"
               class="px-3 py-1.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition whitespace-nowrap">
               ✅ Selesai
@@ -2088,7 +2092,7 @@
       if (!container || !totalBadge) return;
 
       const pendingOrders = (adminOrdersCache || []).filter(o => {
-        if (o.status !== 'Menunggu Konfirmasi') return false;
+        if (o.status === 'Selesai') return false;
         if (orderStatPeriod === 'today') return isOrderCreatedToday(o);
         return true;
       });
@@ -2159,6 +2163,7 @@
       const mapBtn = {
         'all': document.getElementById('filterOrderAll'),
         'Menunggu Konfirmasi': document.getElementById('filterOrderPending'),
+        'Diproses / Diantar': document.getElementById('filterOrderProcessing'),
         'Selesai': document.getElementById('filterOrderDone')
       };
 
@@ -2295,79 +2300,86 @@
       container.innerHTML = paginatedOrders.map(o => {
         const items = parseOrderItems(o.items);
         const itemsText = items.map(i => `${escapeHtml(i.name)} (${Number(i.qty || 0)}x)`).join(', ') || '-';
-        const isDone = o.status === 'Selesai';
+        const currentStatus = o.status || 'Menunggu Konfirmasi';
+        const isDone = currentStatus === 'Selesai';
+        const isProcessing = currentStatus === 'Diproses / Diantar';
         const isDelivery = o.order_method === 'delivery';
         const loc = isDelivery ? parseDeliveryInfo(o.delivery_address) : null;
         const safeIdAttr = escapeAttr(String(o.id));
         const safeProofUrl = sanitizeUrl(o.payment_proof_url);
 
+        const selectColorClass = isDone
+          ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+          : isProcessing
+            ? 'bg-sky-100 text-sky-800 border-sky-300'
+            : 'bg-amber-100 text-amber-800 border-amber-300';
+
         return `
-          <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs space-y-2 text-xs">
-            <div class="flex items-start justify-between gap-2">
-              <div>
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="font-mono font-extrabold text-[11px] text-brand-600">${escapeHtml(o.order_number)}</span>
-                  <span class="text-[10px] text-stone-400">• ${formatAdminDateTime(o.created_at)}</span>
-                </div>
-                <h4 class="font-extrabold text-stone-900 text-sm mt-0.5">${escapeHtml(o.customer_name)}</h4>
-              </div>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                ${escapeHtml(o.status)}
-              </span>
-            </div>
+       <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs space-y-2 text-xs">
+         <div class="flex items-start justify-between gap-2">
+           <div class="min-w-0">
+             <div class="flex items-center gap-1.5 flex-wrap">
+               <span class="font-mono font-extrabold text-[11px] text-brand-600">${escapeHtml(o.order_number)}</span>
+               <span class="text-[10px] text-stone-400">• ${formatAdminDateTime(o.created_at)}</span>
+             </div>
+             <h4 class="font-extrabold text-stone-900 text-sm mt-0.5 truncate">${escapeHtml(o.customer_name)}</h4>
+           </div>
 
-            <p class="text-[11px] text-stone-700 bg-stone-50 p-2 rounded-xl border border-stone-100">
-              ${itemsText}
-            </p>
+           <!-- Dropdown Status Hemat Ruang -->
+           <select
+             aria-label="Ubah status pesanan ${escapeHtml(o.order_number)}"
+             onchange="updateOrderStatus('${safeIdAttr}', this.value)"
+             class="px-2.5 py-1 rounded-full text-[11px] font-extrabold border cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-300 shrink-0 transition ${selectColorClass}"
+           >
+             <option value="Menunggu Konfirmasi" ${!isProcessing && !isDone ? 'selected' : ''}>⏳ Menunggu Konfirmasi</option>
+             <option value="Diproses / Diantar" ${isProcessing ? 'selected' : ''}>🛵 Diproses / Diantar</option>
+             <option value="Selesai" ${isDone ? 'selected' : ''}>✅ Selesai</option>
+           </select>
+         </div>
 
-            <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-500">
-              <span>
-                ${!isDelivery
+         <p class="text-[11px] text-stone-700 bg-stone-50 p-2 rounded-xl border border-stone-100">
+           ${itemsText}
+         </p>
+
+         <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-500">
+           <span>
+             ${!isDelivery
             ? '🏬 Ambil (' + escapeHtml(o.pickup_time || '-') + ')'
             : `🛵 Antar: <strong class="text-stone-700">${escapeHtml(loc.cleanAddress)}</strong>${loc.metaInfo ? ` <span class="text-brand-600 font-bold">(${escapeHtml(loc.metaInfo)})</span>` : ''}`
           }
-              </span>
-              <span class="font-extrabold text-stone-900 uppercase">${escapeHtml(o.payment_method)} • ${formatRupiah(o.total_price)}</span>
-            </div>
+           </span>
+           <span class="font-extrabold text-stone-900 uppercase">${escapeHtml(o.payment_method)} • ${formatRupiah(o.total_price)}</span>
+         </div>
 
-            <div class="pt-1.5 border-t border-stone-100 flex items-center justify-end gap-2 flex-wrap">
-              ${isDelivery && loc && loc.coords ? `
-                <button type="button" onclick="openAdminOrderMap('${safeIdAttr}')"
-                  class="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-bold text-[11px] transition flex items-center gap-1">
-                  📍 Cek Peta
-                </button>
-              ` : ''}
-              ${safeProofUrl ? `
-                <a href="${safeProofUrl}" target="_blank" rel="noopener noreferrer"
-                  class="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-bold text-[11px] transition flex items-center gap-1"
-                  title="Buka foto bukti transfer QRIS">
-                  🖼 Bukti TF
-                </a>
-              ` : ''}
-              <button type="button" onclick="openAdminReceipt('${safeIdAttr}')"
-                class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-[11px] transition flex items-center gap-1.5"
-                title="Cek struk digital dan cetak">
-                🧾 Cek Struk
-              </button>
-              ${!isDone ? `
-                <button type="button" onclick="markOrderDone('${safeIdAttr}')"
-                  class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition">
-                  ✓ Tandai Lunas & Selesai
-                </button>
-              ` : `
-                <button type="button" onclick="markOrderPending('${safeIdAttr}')"
-                  class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold text-[11px] transition">
-                  ↩ Tandai Belum Selesai
-                </button>
-                <button type="button" onclick="deleteOrder('${safeIdAttr}')"
-                  class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-[11px] transition"
-                  title="Hapus pesanan">
-                  🗑 Hapus
-                </button>
-              `}
-            </div>
-          </div>
-        `;
+         <div class="pt-1.5 border-t border-stone-100 flex items-center justify-end gap-2 flex-wrap">
+           ${isDelivery && loc && loc.coords ? `
+             <button type="button" onclick="openAdminOrderMap('${safeIdAttr}')"
+               class="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-bold text-[11px] transition flex items-center gap-1">
+               📍 Cek Peta
+             </button>
+           ` : ''}
+           ${safeProofUrl ? `
+             <a href="${safeProofUrl}" target="_blank" rel="noopener noreferrer"
+               class="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-bold text-[11px] transition flex items-center gap-1"
+               title="Buka foto bukti transfer QRIS">
+               🖼 Bukti TF
+             </a>
+           ` : ''}
+           <button type="button" onclick="openAdminReceipt('${safeIdAttr}')"
+             class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-[11px] transition flex items-center gap-1.5"
+             title="Cek struk digital dan cetak">
+             🧾 Cek Struk
+           </button>
+           ${isDone ? `
+             <button type="button" onclick="deleteOrder('${safeIdAttr}')"
+               class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-[11px] transition"
+               title="Hapus pesanan">
+               🗑 Hapus
+             </button>
+           ` : ''}
+         </div>
+       </div>
+     `;
       }).join('');
 
       renderAdminOrderPagination(filtered.length, totalPages);
@@ -2482,8 +2494,14 @@
 
       const statusBadge = document.getElementById('adminRcptStatus');
       const isDone = order.status === 'Selesai';
-      statusBadge.textContent = order.status || 'Menunggu';
-      statusBadge.className = `font-extrabold px-2 py-0.5 rounded text-[10px] ${isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`;
+      const isProcessing = order.status === 'Diproses / Diantar';
+      statusBadge.textContent = order.status || 'Menunggu Konfirmasi';
+      statusBadge.className = `font-extrabold px-2 py-0.5 rounded text-[10px] ${isDone
+        ? 'bg-emerald-100 text-emerald-800'
+        : isProcessing
+          ? 'bg-sky-100 text-sky-800'
+          : 'bg-amber-100 text-amber-800'
+        }`;
 
       const payBadge = document.getElementById('adminRcptPaymentMethod');
       payBadge.textContent = (order.payment_method || 'QRIS').toUpperCase();
@@ -2581,26 +2599,17 @@
       }
     }
 
-    async function markOrderDone(orderId) {
-      const { error } = await sbClient.from('orders').update({ status: 'Selesai' }).eq('id', orderId);
-      if (error) {
-        showAdminToast('Gagal menandai pesanan selesai: ' + error.message);
-      } else {
-        showAdminToast('Pesanan ditandai selesai');
-        loadAdminOrders();
-      }
-    }
-
-    async function markOrderPending(orderId) {
+    async function updateOrderStatus(orderId, newStatus) {
       const { error } = await sbClient
         .from('orders')
-        .update({ status: 'Menunggu Konfirmasi' })
+        .update({ status: newStatus })
         .eq('id', orderId);
 
       if (error) {
-        showAdminToast('Gagal mengubah status pesanan: ' + error.message);
+        showAdminToast('Gagal mengubah status: ' + error.message);
+        loadAdminOrders();
       } else {
-        showAdminToast('Status dikembalikan ke Menunggu Konfirmasi');
+        showAdminToast(`Status diubah: ${newStatus}`);
         loadAdminOrders();
       }
     }
