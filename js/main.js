@@ -2179,8 +2179,6 @@ async function recordOrderToBackend(order) {
   if (order._recordPromise) return order._recordPromise;
 
   order._recordPromise = (async () => {
-    saveCustomerOrderHistory(order);
-
     const safeCleanAddress = order.deliveryAddress
       ? order.deliveryAddress.trim().replace(/\[/g, '(').replace(/\]/g, ')')
       : null;
@@ -2191,6 +2189,7 @@ async function recordOrderToBackend(order) {
 
     if (!sbClient) {
       order._isRecordedToBackend = true;
+      saveCustomerOrderHistory(order);
       return true;
     }
 
@@ -2211,6 +2210,10 @@ async function recordOrderToBackend(order) {
       console.warn('Gagal mencatat pesanan ke rekap admin:', insertErr);
       return false;
     }
+
+    // Hanya masuk ke Riwayat Pesanan setelah dipastikan tercatat di database admin
+    order._isRecordedToBackend = true;
+    saveCustomerOrderHistory(order);
 
     order._isRecordedToBackend = true;
 
@@ -2728,9 +2731,21 @@ function getOrderTrackingMeta(status, orderMethod) {
   const normalized = String(status || 'Menunggu Konfirmasi').trim();
   const isDelivery = orderMethod === 'delivery';
 
+  if (normalized === 'Tidak Terdeteksi') {
+    return {
+      step: 0,
+      isNotFound: true,
+      badgeText: '❌ Tidak Terdeteksi',
+      badgeClass: 'bg-rose-100 text-rose-800 border-rose-200',
+      step2Label: isDelivery ? 'Diantar' : 'Disiapkan',
+      hintText: 'Pesanan tidak terdeteksi di sistem kedai (kemungkinan belum terkonfirmasi ke admin atau data sudah dihapus).'
+    };
+  }
+
   if (normalized === 'Selesai') {
     return {
       step: 3,
+      isNotFound: false,
       badgeText: '✅ Selesai',
       badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
       step2Label: isDelivery ? 'Diantar' : 'Disiapkan',
@@ -2743,6 +2758,7 @@ function getOrderTrackingMeta(status, orderMethod) {
   if (normalized === 'Diproses / Diantar') {
     return {
       step: 2,
+      isNotFound: false,
       badgeText: isDelivery ? '🛵 Sedang Diantar' : '📦 Sedang Disiapkan',
       badgeClass: 'bg-sky-100 text-sky-800 border-sky-200',
       step2Label: isDelivery ? 'Diantar' : 'Disiapkan',
@@ -2754,6 +2770,7 @@ function getOrderTrackingMeta(status, orderMethod) {
 
   return {
     step: 1,
+    isNotFound: false,
     badgeText: '⏳ Menunggu Konfirmasi',
     badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
     step2Label: isDelivery ? 'Diantar' : 'Disiapkan',
@@ -2761,19 +2778,57 @@ function getOrderTrackingMeta(status, orderMethod) {
   };
 }
 
+function getPendingUnrecordedOrder() {
+  try {
+    const raw = localStorage.getItem('mellowbites_pending_wa_order');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.orderNumber && !parsed._isRecordedToBackend) {
+      return parsed;
+    }
+  } catch (_) { }
+  return null;
+}
+
 function renderOrderHistoryCards(orders, isSyncing = false) {
   const listContainer = document.getElementById('orderHistoryList');
   if (!listContainer) return;
 
+  const pendingOrder = getPendingUnrecordedOrder();
+  const pendingWarningHtml = pendingOrder ? `
+    <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 space-y-2.5 shadow-2xs">
+      <div class="flex items-start gap-2.5">
+        <span class="text-lg leading-none mt-0.5">⚠️</span>
+        <div class="min-w-0 flex-1 space-y-1">
+          <p class="text-xs font-extrabold text-amber-900 leading-snug">
+            Pesanan ${escapeHtml(pendingOrder.orderNumber)} Belum Masuk ke Admin
+          </p>
+          <p class="text-[11px] text-amber-800 leading-relaxed">
+            Pesanan Tunai (COD) senilai <strong>${formatRupiah(pendingOrder.totalPrice || 0)}</strong> belum tercatat di sistem kedai dan belum masuk ke riwayat karena Anda belum menyelesaikan konfirmasi ke WhatsApp.
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onclick="closeOrderHistoryModal(); resumeUnconfirmedOrder();"
+        class="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5"
+      >
+        <span>💬</span>
+        <span>Lanjutkan Konfirmasi WhatsApp Sekarang</span>
+      </button>
+    </div>
+  ` : '';
+
   if (!orders || orders.length === 0) {
     listContainer.innerHTML = `
-      <div class="py-12 px-4 text-center">
+      ${pendingWarningHtml}
+      <div class="py-10 px-4 text-center">
         <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-3xl">
           🛍️
         </div>
         <h4 class="font-extrabold text-stone-800 text-sm">Belum Ada Riwayat Pesanan</h4>
         <p class="text-xs text-stone-500 mt-1.5 max-w-xs mx-auto leading-relaxed">
-          Pesanan yang Anda buat di sini akan tercatat otomatis. Anda bisa melacak status pesanan, melihat struk, atau memesan ulang dengan 1 klik!
+          Pesanan yang sudah terkonfirmasi ke admin akan tercatat otomatis di sini untuk dilacak atau dipesan ulang.
         </p>
         <button onclick="closeOrderHistoryModal()" class="mt-4 px-4 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-sm transition active:scale-95">
           Lihat Menu Es Gabin
@@ -2832,36 +2887,45 @@ function renderOrderHistoryCards(orders, isSyncing = false) {
           </span>
         </div>
 
-        <!-- Tracker Progress 3 Tahap -->
-        <div class="bg-stone-50/90 p-3 rounded-xl border border-stone-200/70 space-y-2">
-          <div class="flex items-center justify-between gap-1 text-[10px] font-bold">
-            <!-- Tahap 1 -->
-            <div class="flex items-center gap-1 ${step1Active ? 'text-brand-600' : 'text-stone-400'}">
-              <span class="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${step1Active ? 'bg-brand-500 text-white' : 'bg-stone-200 text-stone-500'}">1</span>
-              <span>Diterima</span>
-            </div>
-
-            <div class="flex-1 h-0.5 rounded-full ${step2Active ? 'bg-brand-500' : 'bg-stone-200'}"></div>
-
-            <!-- Tahap 2 -->
-            <div class="flex items-center gap-1 ${step2Active ? 'text-sky-700' : 'text-stone-400'}">
-              <span class="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${step2Active ? 'bg-sky-500 text-white' : 'bg-stone-200 text-stone-500'}">2</span>
-              <span>${track.step2Label}</span>
-            </div>
-
-            <div class="flex-1 h-0.5 rounded-full ${step3Active ? 'bg-emerald-500' : 'bg-stone-200'}"></div>
-
-            <!-- Tahap 3 -->
-            <div class="flex items-center gap-1 ${step3Active ? 'text-emerald-700' : 'text-stone-400'}">
-              <span class="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${step3Active ? 'bg-emerald-500 text-white' : 'bg-stone-200 text-stone-500'}">3</span>
-              <span>Selesai</span>
-            </div>
+        <!-- Tracker Progress 3 Tahap / Info Tidak Terdeteksi -->
+        ${track.isNotFound ? `
+          <div class="bg-rose-50/90 p-3 rounded-xl border border-rose-200/80 flex items-start gap-2">
+            <span class="text-sm leading-none mt-0.5">⚠️</span>
+            <p class="text-[11px] text-rose-800 font-medium leading-snug">
+              ${track.hintText}
+            </p>
           </div>
+        ` : `
+          <div class="bg-stone-50/90 p-3 rounded-xl border border-stone-200/70 space-y-2">
+            <div class="flex items-center justify-between gap-1 text-[10px] font-bold">
+              <!-- Tahap 1 -->
+              <div class="flex items-center gap-1 ${step1Active ? 'text-brand-600' : 'text-stone-400'}">
+                <span class="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${step1Active ? 'bg-brand-500 text-white' : 'bg-stone-200 text-stone-500'}">1</span>
+                <span>Diterima</span>
+              </div>
 
-          <p class="text-[11px] text-stone-600 leading-snug">
-            ${track.hintText}
-          </p>
-        </div>
+              <div class="flex-1 h-0.5 rounded-full ${step2Active ? 'bg-brand-500' : 'bg-stone-200'}"></div>
+
+              <!-- Tahap 2 -->
+              <div class="flex items-center gap-1 ${step2Active ? 'text-sky-700' : 'text-stone-400'}">
+                <span class="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${step2Active ? 'bg-sky-500 text-white' : 'bg-stone-200 text-stone-500'}">2</span>
+                <span>${track.step2Label}</span>
+              </div>
+
+              <div class="flex-1 h-0.5 rounded-full ${step3Active ? 'bg-emerald-500' : 'bg-stone-200'}"></div>
+
+              <!-- Tahap 3 -->
+              <div class="flex items-center gap-1 ${step3Active ? 'text-emerald-700' : 'text-stone-400'}">
+                <span class="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black ${step3Active ? 'bg-emerald-500 text-white' : 'bg-stone-200 text-stone-500'}">3</span>
+                <span>Selesai</span>
+              </div>
+            </div>
+
+            <p class="text-[11px] text-stone-600 leading-snug">
+              ${track.hintText}
+            </p>
+          </div>
+        `}
 
         <!-- Daftar Item -->
         <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-100 divide-y divide-stone-100">
@@ -2902,7 +2966,7 @@ function renderOrderHistoryCards(orders, isSyncing = false) {
     `;
   }).join('');
 
-  listContainer.innerHTML = syncBarHtml + cardsHtml;
+  listContainer.innerHTML = pendingWarningHtml + syncBarHtml + cardsHtml;
 }
 
 async function syncCustomerOrderStatuses(showFeedback = false) {
@@ -2934,11 +2998,20 @@ async function syncCustomerOrderStatuses(showFeedback = false) {
       let hasChanged = false;
       const updatedOrders = localOrders.map(order => {
         const liveStatus = statusMap[order.orderNumber];
-        if (liveStatus && liveStatus !== order.status) {
-          hasChanged = true;
-          return { ...order, status: liveStatus };
+        if (liveStatus) {
+          if (order.status !== liveStatus || order._notFoundInServer) {
+            hasChanged = true;
+            return { ...order, status: liveStatus, _notFoundInServer: false };
+          }
+          return order;
+        } else {
+          // Tidak ditemukan di database admin
+          if (!order._notFoundInServer || order.status !== 'Tidak Terdeteksi') {
+            hasChanged = true;
+            return { ...order, status: 'Tidak Terdeteksi', _notFoundInServer: true };
+          }
+          return order;
         }
-        return order;
       });
 
       if (hasChanged) {
