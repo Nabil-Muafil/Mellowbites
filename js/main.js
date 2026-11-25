@@ -388,6 +388,8 @@ function initProductGrid() {
             <img
               src="${safeImage}"
               alt="${safeName}"
+              width="400"
+              height="300"
               loading="${idx < 4 ? 'eager' : 'lazy'}"
               fetchpriority="${idx === 0 ? 'high' : 'auto'}"
               decoding="async"
@@ -966,7 +968,7 @@ async function setCustomerDeliveryPin(lat, lng, panToPin = false) {
       deliveryMap.flyTo([customerCoords.lat, customerCoords.lng], 16, { duration: 0.7 });
     }
   }
-  
+
   const straightKm = calculateHaversineKm(STORE_COORDS.lat, STORE_COORDS.lng, customerCoords.lat, customerCoords.lng);
   deliveryDistanceKm = Math.round(straightKm * DELIVERY_CONFIG.roadFactor * 10) / 10;
   updateDeliveryFeeUI();
@@ -978,9 +980,51 @@ async function setCustomerDeliveryPin(lat, lng, panToPin = false) {
   }
 }
 
-function initDeliveryMap() {
+// Loader Dinamis Leaflet CSS & JS (Hanya aktif saat opsi Delivery dipilih)
+let leafletAssetsPromise = null;
+function loadLeafletAssets() {
+  if (typeof L !== 'undefined') return Promise.resolve();
+  if (leafletAssetsPromise) return leafletAssetsPromise;
+
+  leafletAssetsPromise = new Promise((resolve, reject) => {
+    // 1. Injeksi Leaflet CSS
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css';
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      link.crossOrigin = '';
+      document.head.appendChild(link);
+    }
+
+    // 2. Injeksi Leaflet JS
+    const script = document.createElement('script');
+    script.id = 'leaflet-js';
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.crossOrigin = '';
+    script.onload = () => resolve();
+    script.onerror = (err) => {
+      leafletAssetsPromise = null;
+      console.error('Gagal memuat Leaflet JS:', err);
+      reject(err);
+    };
+    document.head.appendChild(script);
+  });
+
+  return leafletAssetsPromise;
+}
+
+async function initDeliveryMap() {
   const mapEl = document.getElementById('deliveryMap');
-  if (!mapEl || typeof L === 'undefined') return;
+  if (!mapEl) return;
+
+  if (typeof L === 'undefined') {
+    try {
+      await loadLeafletAssets();
+    } catch (_) {
+      return;
+    }
+  }
 
   if (!deliveryMap) {
     deliveryMap = L.map('deliveryMap', {
@@ -1547,7 +1591,9 @@ function openCartModal() {
   }
 
   if (selectedOrderMethod === 'delivery') {
-    setTimeout(() => initDeliveryMap(), 180);
+    loadLeafletAssets().then(() => {
+      setTimeout(() => initDeliveryMap(), 180);
+    });
   }
 
   modal.classList.remove('opacity-0', 'pointer-events-none');
@@ -1717,7 +1763,9 @@ function setOrderMethod(method) {
     pickupSection?.classList.add('hidden');
     deliverySection?.classList.remove('hidden');
     clearFieldError('pickupTime');
-    setTimeout(() => initDeliveryMap(), 80);
+    loadLeafletAssets().then(() => {
+      setTimeout(() => initDeliveryMap(), 80);
+    });
   }
 
   clearFieldError('orderMethod');
@@ -3103,7 +3151,7 @@ function renderOrderHistoryCards(orders, isSyncing = false) {
           </button>
         </div>
         ${String(order.status || '').trim() === 'Selesai' && (order.items || []).length > 0 ? (
-          isOrderFullyReviewed(order) ? `
+        isOrderFullyReviewed(order) ? `
             <div class="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-extrabold flex items-center justify-center gap-1.5">
               <span>✅</span>
               <span>Sudah Diulas</span>
@@ -3118,7 +3166,7 @@ function renderOrderHistoryCards(orders, isSyncing = false) {
               <span>Beri Ulasan</span>
             </button>
           `
-        ) : ''}
+      ) : ''}
       </div>
     `;
   }).join('');
@@ -3834,9 +3882,9 @@ function renderReviewOrderItems() {
           data-review-star="${star}"
           aria-label="Beri ${star} bintang untuk ${safeName}"
           class="review-star-btn w-8 h-8 rounded-lg border transition flex items-center justify-center text-base leading-none active:scale-90 ${isActive
-            ? 'bg-amber-100 border-amber-300 text-amber-500 shadow-2xs'
-            : 'bg-stone-50 border-stone-200 text-stone-300 hover:text-amber-400 hover:border-amber-200'
-          }"
+          ? 'bg-amber-100 border-amber-300 text-amber-500 shadow-2xs'
+          : 'bg-stone-50 border-stone-200 text-stone-300 hover:text-amber-400 hover:border-amber-200'
+        }"
         >★</button>
       `;
     }).join('');
@@ -3913,7 +3961,7 @@ function updateReviewCardStarUI(productId) {
     btn.className = `review-star-btn w-8 h-8 rounded-lg border transition flex items-center justify-center text-base leading-none active:scale-90 ${isActive
       ? 'bg-amber-100 border-amber-300 text-amber-500 shadow-2xs'
       : 'bg-stone-50 border-stone-200 text-stone-300 hover:text-amber-400 hover:border-amber-200'
-    }`;
+      }`;
   });
 
   listEl.querySelectorAll('[data-review-label]').forEach(lbl => {
@@ -4131,38 +4179,48 @@ window.closeReviewOrderModal = closeReviewOrderModal;
 window.submitOrderReviews = submitOrderReviews;
 
 // 26. Inisialisasi Saat Dokumen Siap
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   loadCartFromStorage();
   loadReviewedOrdersFromStorage();
   updateHistoryBadge();
   checkUnconfirmedOrder();
 
-  await syncFromSupabase();
-
+  // 1. Render UI & Product Grid langsung secara instan (FCP & LCP optimal tanpa jeda database)
   initProductGrid();
   updateUI();
   updateStoreStatus();
   initPwaUI();
 
-  if (sbClient) {
+  // 2. Tunda pemanggilan syncFromSupabase(), data ulasan, dan Realtime subscribe selama ±2 detik
+  setTimeout(async () => {
     try {
-      sbClient
-        .channel('public:store_sync')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
-          await syncFromSupabase();
-          initProductGrid();
-          updateUI();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'store_settings' }, async () => {
-          await syncFromSupabase();
-          updateStoreStatus();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'product_reviews' }, async () => {
-          await syncProductReviewsSummary();
-        })
-        .subscribe();
+      await syncFromSupabase();
+      // Perbarui tampilan jika ada sinkronisasi harga/stok terbaru dari database Supabase
+      initProductGrid();
+      updateUI();
+      updateStoreStatus();
     } catch (_) { }
-  }
+
+    if (sbClient) {
+      try {
+        sbClient
+          .channel('public:store_sync')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
+            await syncFromSupabase();
+            initProductGrid();
+            updateUI();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'store_settings' }, async () => {
+            await syncFromSupabase();
+            updateStoreStatus();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'product_reviews' }, async () => {
+            await syncProductReviewsSummary();
+          })
+          .subscribe();
+      } catch (_) { }
+    }
+  }, 2000);
 
   document.getElementById('customerName')?.addEventListener('input', (e) => {
     clearFieldError('customerName');

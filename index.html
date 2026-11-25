@@ -49,23 +49,175 @@
   <!-- External Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
 
-  <!-- Leaflet.js CSS (Non-blocking) & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" media="print"
-    onload="this.media='all'">
-  <noscript>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  </noscript>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-
-  <!-- html2canvas CDN for Digital Receipt Image Export -->
+  <!-- html2canvas CDN for Digital Receipt Image Export (Deferred) -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
 
-  <!-- Supabase JS SDK & Config -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-config.js"></script>
+  <!-- Supabase JS SDK & Config (Deferred - Non Blocking) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase-config.js" defer></script>
 
-  <!-- External Application Logic -->
-  <script src="js/main.js"></script>
+  <!-- External Application Logic (Deferred) -->
+  <script src="js/main.js" defer></script>
+
+  <!-- Schema.org Structured Data (Agentic AI & SEO Readiness) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "FoodEstablishment",
+        "@id": "https://mellowbites.vercel.app/#store",
+        "name": "Mellowbites - Gabin Ice Bar",
+        "alternateName": "Gabin Ice Bar - Mellowbites",
+        "description": "Katalog online Es Gabin homemade & halal berkualitas dengan aneka fla creamy lumer dan biskuit renyah mulai Rp 8.000 di Denanyar, Jombang.",
+        "url": "https://mellowbites.vercel.app/",
+        "logo": "https://mellowbites.vercel.app/img/logo.webp",
+        "image": "https://mellowbites.vercel.app/img/icon-512.png",
+        "priceRange": "Rp 8.000",
+        "servesCuisine": "Dessert, Ice Cream, Snack Indonesia",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Denanyar",
+          "addressLocality": "Jombang",
+          "addressRegion": "Jawa Timur",
+          "addressCountry": "ID"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": -7.5431218,
+          "longitude": 112.2134476
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ],
+            "opens": "08:00",
+            "closes": "20:00"
+          }
+        ],
+        "hasMenu": "https://mellowbites.vercel.app/#menu"
+      },
+      {
+        "@type": "Menu",
+        "@id": "https://mellowbites.vercel.app/#menu",
+        "name": "Menu Es Gabin Mellowbites",
+        "description": "Daftar 8 varian rasa Es Gabin Ice Bar Mellowbites",
+        "hasMenuSection": [
+          {
+            "@type": "MenuSection",
+            "name": "Es Gabin Ice Bar",
+            "hasMenuItem": [
+              {
+                "@type": "MenuItem",
+                "name": "Double Choco",
+                "description": "Fla cokelat pekat ganda dengan lelehan choco chips di antara biskuit gabin renyah.",
+                "image": "https://mellowbites.vercel.app/img/Double%20Choco.webp",
+                "offers": {
+                  "@type": "Offer",
+                  "price": "8000",
+                  "priceCurrency": "IDR",
+                  "availability": "https://schema.org/InStock"
+                }
+              },
+              {
+                "@type": "MenuItem",
+                "name": "Strawberry",
+                "description": "Fla stroberi manis asam segar buah alami, dingin sejuk menyegarkan harimu.",
+                "image": "https://mellowbites.vercel.app/img/Strawberry.webp",
+                "offers": {
+                  "@type": "Offer",
+                  "price": "8000",
+                  "priceCurrency": "IDR",
+                  "availability": "https://schema.org/InStock"
+                }
+              },
+              {
+                "@type": "MenuItem",
+                "name": "Vanilla Oreo",
+                "description": "Fla vanila wangi lembut bertabur remahan biskuit Oreo asli yang renyah legit.",
+                "image": "https://mellowbites.vercel.app/img/vanilla%20oreo.webp",
+                "offers": {
+                  "@type": "Offer",
+                  "price": "8000",
+                  "priceCurrency": "IDR",
+                  "availability": "https://schema.org/InStock"
+                }
+              },
+              {
+                "@type": "MenuItem",
+                "name": "Matcha Regal",
+                "description": "Matcha otentik wangi khas Jepang dipadu remahan biskuit Marie Regal gurih.",
+                "image": "https://mellowbites.vercel.app/img/Matcha%20regal.webp",
+                "offers": {
+                  "@type": "Offer",
+                  "price": "8000",
+                  "priceCurrency": "IDR",
+                  "availability": "https://schema.org/InStock"
+                }
+              },
+              {
+                "@type": "MenuItem",
+                "name": "Mango",
+                "description": "Fla mangga tropis harum manis alami, tekstur creamy lumer saat digigit.",
+                "image": "https://mellowbites.vercel.app/img/Mango.webp",
+                "offers": {
+                  "@type": "Offer",
+                  "price": "8000",
+                  "priceCurrency": "IDR",
+                  "availability": "https://schema.org/InStock"
+                }
+              },
+              {
+                "@type": "MenuItem",
+                "name": "Strawberry Matcha",
+                "description": "Dua lapis fla istimewa: manis asam stroberi berpadu pekat aroma matcha premium.",
+                "image": "https://mellowbites.vercel.app/img/Strawberry%20Matcha.webp",
+                "offers": {
+                  "@type": "Offer",
+                  "price": "8000",
+                  "priceCurrency": "IDR",
+                  "availability": "https://schema.org/InStock"
+                }
+              },
+              {
+                "@type": "MenuItem",
+                "name": "Durian Choco",
+                "description": "Aroma fla durian asli yang legit harum berpadu saus lelehan cokelat pekat.",
+                "image": "https://mellowbites.vercel.app/img/Durian%20Choco.webp",
+                "offers": {
+                  "@type": "Offer",
+                  "price": "8000",
+                  "priceCurrency": "IDR",
+                  "availability": "https://schema.org/InStock"
+                }
+              },
+              {
+                "@type": "MenuItem",
+                "name": "Taro",
+                "description": "Aroma khas taro manis lembut dengan tekstur fla dingin lumer dan gabin renyah.",
+                "image": "https://mellowbites.vercel.app/img/Taro.webp",
+                "offers": {
+                  "@type": "Offer",
+                  "price": "8000",
+                  "priceCurrency": "IDR",
+                  "availability": "https://schema.org/InStock"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 
 <body class="bg-stone-50 font-sans text-stone-800 antialiased min-h-screen pb-0">
@@ -614,7 +766,8 @@
             <input type="tel" id="customerPhone" inputmode="tel" autocomplete="tel" placeholder="Cth: 081234567890"
               class="w-full text-xs px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition">
             <p class="text-[10px] text-stone-500 mt-1 leading-snug">
-              Wajib diisi untuk jaga-jaga agar admin tetap bisa menghubungi Anda jika lupa mengirim konfirmasi ke WhatsApp.
+              Wajib diisi untuk jaga-jaga agar admin tetap bisa menghubungi Anda jika lupa mengirim konfirmasi ke
+              WhatsApp.
             </p>
             <p id="err-customerPhone" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
           </div>
@@ -775,7 +928,8 @@
               </div>
 
               <!-- Keterangan Tarif Ongkir (Menurun) -->
-              <div class="p-2.5 rounded-xl bg-stone-50 border border-stone-200/70 text-[11px] text-stone-600 space-y-1.5">
+              <div
+                class="p-2.5 rounded-xl bg-stone-50 border border-stone-200/70 text-[11px] text-stone-600 space-y-1.5">
                 <p class="font-bold text-stone-800 flex items-center justify-between">
                   <span>🚚 Rincian Tarif Ongkir</span>
                   <span class="text-[10px] font-semibold text-stone-400">Maks. 20 km</span>
@@ -1179,7 +1333,8 @@
       <!-- Header -->
       <div class="px-5 py-4 bg-white border-b border-stone-200 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-500 flex items-center justify-center text-lg">
+          <div
+            class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-500 flex items-center justify-center text-lg">
             ⭐
           </div>
           <div>

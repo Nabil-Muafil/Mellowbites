@@ -1,0 +1,7 @@
+# robots.txt - Mellowbites Gabin Ice Bar
+User-agent: *
+Allow: /
+
+# Agentic AI & LLM Discovery
+# File llms.txt disediakan untuk indexing model AI & crawler
+# https://mellowbites.vercel.app/llms.txt
