@@ -1,57 +1,32 @@
 # Gabin Ice Bar - Mellowbites
 
-> Kedai Es Gabin homemade & 100% halal dengan aneka varian fla creamy lumer dan biskuit renyah gurih. Melayani pemesanan online untuk ambil di tempat (self-pickup) dan pesan antar (delivery).
+> Kedai Es Gabin homemade & 100% halal di Denanyar, Jombang dengan aneka varian fla creamy lumer dan biskuit renyah gurih. Melayani pemesanan online untuk ambil di tempat (self-pickup) dan pesan antar (delivery).
 
-## Informasi Toko
-- **Nama Toko**: Gabin Ice Bar - Mellowbites
-- **Alamat Kedai**: Denanyar, Kabupaten Jombang, Jawa Timur, Indonesia
-- **Koordinat Kedai**: Latitude -7.5431218, Longitude 112.2134476
-- **Jam Operasional**: 08.00 - 20.00 WIB (Buka Setiap Hari: Senin - Minggu)
-- **Website Resmi**: https://mellowbites.vercel.app/
-- **Harga Dasar**: Semua varian Es Gabin dibanderol seragam Rp 8.000 / pcs
+## Tautan Utama & Kontak
+- [Katalog & Pemesanan Online Mellowbites](https://mellowbites.vercel.app/): Halaman utama pemesanan Es Gabin (semua varian Rp 8.000 / pcs) dengan perhitungan ongkir otomatis dan struk digital.
+- [Chat & Konfirmasi WhatsApp](https://api.whatsapp.com/send?phone=6285646409023): Kontak resmi admin Mellowbites (0856-4640-9023) untuk konfirmasi pesanan dan pertanyaan.
+- [Lokasi Kedai di Google Maps](https://www.google.com/maps/search/?api=1&query=-7.5431218,112.2134476): Jl. Bromo, RT/RW 001/006, Dsn. Karangtimongo, Ds. Denanyar, Kabupaten Jombang, Jawa Timur.
+- [Instagram @mellowbite_es](https://instagram.com/mellowbite_es): Galeri foto produk dan info promo terbaru.
+- [TikTok @mellowbite_es](https://www.tiktok.com/@mellowbite_es): Video ulasan dan keseruan Gabin Ice Bar.
+
+## Informasi Operasional
+- **Jam Buka**: Setiap Hari (Senin – Minggu), pukul 08.00 – 20.00 WIB.
+- **Harga Satuan**: Semua varian Es Gabin dibanderol seragam Rp 8.000 / pcs.
+- **Metode Pembayaran**: QRIS (unggah bukti transfer) dan Tunai / COD.
 
 ## Daftar Menu & Varian Rasa Es Gabin (Rp 8.000 / pcs)
-1. **Double Choco** (Best Seller)
-   - Fla cokelat pekat ganda dengan lelehan choco chips di antara biskuit gabin renyah.
-2. **Strawberry** (Fruity Segar)
-   - Fla stroberi manis asam segar buah alami, dingin sejuk menyegarkan harimu.
-3. **Vanilla Oreo** (Favorit Anak / Best Seller)
-   - Fla vanila wangi lembut bertabur remahan biskuit Oreo asli yang renyah legit.
-4. **Matcha Regal** (Signature / Best Seller)
-   - Matcha otentik wangi khas Jepang dipadu remahan biskuit Marie Regal gurih.
-5. **Mango** (Tropis Manis)
-   - Fla mangga tropis harum manis alami, tekstur creamy lumer saat digigit.
-6. **Strawberry Matcha** (2 Layer Rasa / Best Seller)
-   - Dua lapis fla istimewa: manis asam stroberi berpadu pekat aroma matcha premium.
-7. **Durian Choco** (Super Legit)
-   - Aroma fla durian asli yang legit harum berpadu saus lelehan cokelat pekat.
-8. **Taro** (Sweet & Creamy)
-   - Aroma khas taro manis lembut dengan tekstur fla dingin lumer dan gabin renyah.
+- [Double Choco](https://mellowbites.vercel.app/#card-gabin-double-choco): Fla cokelat pekat ganda dengan lelehan choco chips di antara biskuit gabin renyah (Best Seller).
+- [Strawberry](https://mellowbites.vercel.app/#card-gabin-strawberry): Fla stroberi manis asam segar buah alami.
+- [Vanilla Oreo](https://mellowbites.vercel.app/#card-gabin-vanilla-oreo): Fla vanila wangi lembut bertabur remahan biskuit Oreo asli (Best Seller).
+- [Matcha Regal](https://mellowbites.vercel.app/#card-gabin-matcha-regal): Matcha otentik khas Jepang dipadu remahan biskuit Marie Regal gurih (Signature).
+- [Mango](https://mellowbites.vercel.app/#card-gabin-mango): Fla mangga tropis harum manis alami yang creamy lumer.
+- [Strawberry Matcha](https://mellowbites.vercel.app/#card-gabin-strawberry-matcha): Dua lapis fla istimewa stroberi berpadu aroma matcha premium (Best Seller).
+- [Durian Choco](https://mellowbites.vercel.app/#card-gabin-durian-choco): Aroma fla durian asli yang legit berpadu saus cokelat pekat.
+- [Taro](https://mellowbites.vercel.app/#card-gabin-Taro): Aroma khas taro manis lembut dengan tekstur fla dingin lumer.
 
-## Aturan Pengiriman & Tarif Ongkos Kirim (Delivery)
-Pengantaran dilakukan langsung dari kedai di Denanyar, Jombang dengan perhitungan jarak tempuh:
-- **Jarak Maksimal Pengantaran**: 20 km dari kedai.
+## Aturan Pengiriman & Tarif Ongkos Kirim
+Pengantaran dilakukan dari kedai di Denanyar, Jombang dengan jarak tempuh maksimal **20 km**:
 - **Di bawah 8 km (< 8 km)**: Gratis Ongkir (Rp 0)
 - **8 km – 11,9 km**: Rp 4.000
 - **12 km – 15,9 km**: Rp 6.000
-- **16 km – 20 km**: Rp 8.000
-- **Lebih dari 20 km**: Di luar jangkauan pengiriman otomatis.
-
-## Metode Pengambilan & Pemesanan
-1. **Ambil di Tempat (Self-Pickup)**:
-   - Pelanggan memilih tanggal dan jam penjemputan (antara pukul 08.00 s/d 20.00 WIB).
-   - Pesanan disiapkan dingin di kedai sesuai jadwal kedatangan.
-2. **Pesan Antar (Delivery)**:
-   - Pelanggan menentukan titik pengantaran melalui GPS atau penempatan pin pada peta interaktif.
-   - Ongkos kirim dihitung otomatis berdasarkan jarak rute jalan.
-
-## Metode Pembayaran
-- **QRIS**: Scan kode QRIS Mellowbites dan unggah bukti transfer/screenshot pembayaran.
-- **Tunai**: Pembayaran cash saat pesanan diambil atau saat diantar kurir.
-
-## Alur Pemesanan Online
-1. Pelanggan membuka katalog di https://mellowbites.vercel.app/
-2. Memilih varian rasa dan jumlah kuantitas ke keranjang.
-3. Menentukan metode (Pickup / Delivery) dan mengisi data nama serta nomor WhatsApp.
-4. Memilih metode pembayaran (QRIS / Tunai).
-5. Sistem menerbitkan nomor struk digital otomatis dan menghubungkan ke WhatsApp konfirmasi pesanan.
+- **16 km – 20 km

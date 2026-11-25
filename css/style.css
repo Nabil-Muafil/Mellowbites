@@ -44,25 +44,25 @@ body {
 .cat-pill:not(.active):hover {
   background-color: #ffedd5;
   /* brand-100 */
-  color: #ea580c;
+  color: #c2410c;
   /* brand-600 */
   transform: translateY(-1px);
 }
 
 .cat-pill.active {
-  background-color: #f97316;
+  background-color: #c2410c;
   /* brand-500 */
   color: #ffffff;
   font-weight: 700;
-  box-shadow: 0 4px 14px -2px rgba(249, 115, 22, 0.4);
-  border-color: #ea580c;
+  box-shadow: 0 4px 14px -2px rgba(194, 65, 12, 0.4);
+  border-color: #c2410c;
   transform: translateY(-1px) scale(1.04);
 }
 
 .cat-pill.active:hover {
-  background-color: #ea580c;
+  background-color: #c2410c;
   /* brand-600 */
-  box-shadow: 0 6px 16px -2px rgba(234, 88, 12, 0.45);
+  box-shadow: 0 6px 16px -2px rgba(194, 65, 12, 0.45);
 }
 
 /* Subtle micro-animations */
