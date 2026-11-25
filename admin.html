@@ -756,9 +756,9 @@
       </div>
 
       <!-- Scrollable Receipt Body -->
-      <div class="overflow-y-auto p-3.5 sm:p-4 flex-1 flex justify-center bg-stone-100">
+      <div class="overflow-y-auto p-3.5 sm:p-4 flex-1 bg-stone-100">
         <div id="adminReceiptPaper"
-          class="w-full bg-white text-stone-800 p-5 rounded-2xl shadow-sm border border-stone-200/90 font-sans text-xs relative">
+          class="w-full mx-auto bg-white text-stone-800 p-5 rounded-2xl shadow-sm border border-stone-200/90 font-sans text-xs relative">
 
           <!-- Shop Header -->
           <div class="text-center pb-1">
@@ -788,6 +788,10 @@
             <div class="flex justify-between py-0.5">
               <span class="text-stone-500">Nama Pembeli:</span>
               <span id="adminRcptCustomerName" class="font-bold text-stone-900">-</span>
+            </div>
+            <div id="adminRcptCustomerPhoneRow" class="hidden flex justify-between py-0.5">
+              <span class="text-stone-500">No. Telp / WA:</span>
+              <span id="adminRcptCustomerPhone" class="font-bold text-stone-900 font-mono">-</span>
             </div>
             <div class="flex justify-between py-0.5">
               <span class="text-stone-500">Metode Pesanan:</span>
@@ -1069,6 +1073,36 @@
         return escapeHtml(trimmed);
       }
       return '';
+    }
+
+    function normalizeIndonesianPhone(rawPhone) {
+      if (rawPhone === null || rawPhone === undefined) return '';
+      let digits = String(rawPhone).replace(/\D/g, '');
+      if (!digits) return '';
+
+      if (digits.startsWith('620')) {
+        digits = '0' + digits.slice(3);
+      } else if (digits.startsWith('62')) {
+        digits = '0' + digits.slice(2);
+      } else if (digits.startsWith('8')) {
+        digits = '0' + digits;
+      }
+      return digits;
+    }
+
+    function toWhatsAppPhone(rawPhone) {
+      const normalized = normalizeIndonesianPhone(rawPhone);
+      if (!normalized || !/^0\d{8,13}$/.test(normalized)) return '';
+      return '62' + normalized.slice(1);
+    }
+
+    function formatPickupDisplay(rawPickupTime) {
+      const raw = String(rawPickupTime || '').trim();
+      if (!raw) return '-';
+      const cleaned = raw.replace(/^(Hari Ini|Besok|Lusa)\s+adalah\s+/i, '');
+      if (/\bpukul\b/i.test(cleaned)) return cleaned;
+      if (/^\d{1,2}:\d{2}$/.test(cleaned)) return `pukul (${cleaned})`;
+      return cleaned.replace(/\s*\((\d{1,2}:\d{2})\)$/, ' pukul ($1)');
     }
 
     function parseOrderItems(items) {
@@ -2307,6 +2341,23 @@
         const loc = isDelivery ? parseDeliveryInfo(o.delivery_address) : null;
         const safeIdAttr = escapeAttr(String(o.id));
         const safeProofUrl = sanitizeUrl(o.payment_proof_url);
+        const rawPhone = (o.customer_phone || '').trim();
+        const displayPhone = rawPhone ? (normalizeIndonesianPhone(rawPhone) || rawPhone) : '';
+        const waPhone = rawPhone ? toWhatsAppPhone(rawPhone) : '';
+        const waItemsLines = items.length > 0
+          ? items.map((item, idx) => `${idx + 1}. ${item.name || 'Varian'} (${Number(item.qty || 0)} pcs)`).join('\n')
+          : '-';
+        const waTotalPcs = Number(o.total_items || items.reduce((sum, item) => sum + Number(item.qty || 0), 0));
+        const waGreeting = [
+          `Halo Kak ${o.customer_name || ''}, perkenalkan kami dari *Mellowbites*.`,
+          `Kami ingin mengonfirmasi pesanan Kakak dengan kode order *${o.order_number || '-'}*.\n`,
+          `*Rincian Pesanan:*`,
+          waItemsLines,
+          `*Total:* ${waTotalPcs} pcs`
+        ].join('\n');
+        const waCustomerUrl = waPhone
+          ? sanitizeUrl(`https://api.whatsapp.com/send?phone=${waPhone}&text=${encodeURIComponent(waGreeting)}`)
+          : '';
 
         const selectColorClass = isDone
           ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
@@ -2323,6 +2374,7 @@
                <span class="text-[10px] text-stone-400">• ${formatAdminDateTime(o.created_at)}</span>
              </div>
              <h4 class="font-extrabold text-stone-900 text-sm mt-0.5 truncate">${escapeHtml(o.customer_name)}</h4>
+             ${displayPhone ? `<p class="text-[11px] font-semibold text-stone-500 mt-0.5 font-mono">📱 ${escapeHtml(displayPhone)}</p>` : ''}
            </div>
 
            <!-- Dropdown Status Hemat Ruang -->
@@ -2344,7 +2396,7 @@
          <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-500">
            <span>
              ${!isDelivery
-            ? '🏬 Ambil (' + escapeHtml(o.pickup_time || '-') + ')'
+            ? '🏬 Ambil: ' + escapeHtml(formatPickupDisplay(o.pickup_time)) + ' WIB'
             : `🛵 Antar: <strong class="text-stone-700">${escapeHtml(loc.cleanAddress)}</strong>${loc.metaInfo ? ` <span class="text-brand-600 font-bold">(${escapeHtml(loc.metaInfo)})</span>` : ''}`
           }
            </span>
@@ -2352,6 +2404,13 @@
          </div>
 
          <div class="pt-1.5 border-t border-stone-100 flex items-center justify-end gap-2 flex-wrap">
+           ${waCustomerUrl ? `
+             <a href="${waCustomerUrl}" target="_blank" rel="noopener noreferrer"
+               class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-[11px] transition flex items-center gap-1"
+               title="Hubungi pembeli via WhatsApp">
+               💬 Hubungi WA
+             </a>
+           ` : ''}
            ${isDelivery && loc && loc.coords ? `
              <button type="button" onclick="openAdminOrderMap('${safeIdAttr}')"
                class="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-bold text-[11px] transition flex items-center gap-1">
@@ -2480,6 +2539,20 @@
       document.getElementById('adminRcptDateTime').textContent = formatAdminDateTime(order.created_at);
       document.getElementById('adminRcptCustomerName').textContent = order.customer_name || '-';
 
+      const adminPhoneRow = document.getElementById('adminRcptCustomerPhoneRow');
+      const adminPhoneEl = document.getElementById('adminRcptCustomerPhone');
+      const rawPhone = (order.customer_phone || '').trim();
+      const displayPhone = rawPhone ? (normalizeIndonesianPhone(rawPhone) || rawPhone) : '';
+      if (adminPhoneRow && adminPhoneEl) {
+        if (displayPhone) {
+          adminPhoneEl.textContent = displayPhone;
+          adminPhoneRow.classList.remove('hidden');
+        } else {
+          adminPhoneEl.textContent = '-';
+          adminPhoneRow.classList.add('hidden');
+        }
+      }
+
       const methodText = order.order_method === 'pickup' ? 'Ambil Sendiri (Pickup)' : 'Diantar / COD (Delivery)';
       document.getElementById('adminRcptOrderMethod').textContent = methodText;
 
@@ -2487,7 +2560,7 @@
       const loc = order.order_method === 'delivery' ? parseDeliveryInfo(order.delivery_address) : null;
 
       if (order.order_method === 'pickup') {
-        detailRow.innerHTML = `<strong>Jam Rencana Ambil:</strong> Pukul ${escapeHtml(order.pickup_time || '-')} WIB di Kedai Mellowbites`;
+        detailRow.innerHTML = `<strong>Rencana Ambil:</strong> ${escapeHtml(formatPickupDisplay(order.pickup_time))} WIB di Kedai Mellowbites`;
       } else {
         detailRow.innerHTML = `<strong>Alamat Pengiriman:</strong> ${escapeHtml(loc?.cleanAddress || '-')}`;
       }
@@ -2741,7 +2814,7 @@
           const dateStr = o.created_at ? new Date(o.created_at).toLocaleString('id-ID') : '-';
           const methodInfo = o.order_method === 'pickup' ? 'Ambil Sendiri' : 'Delivery (Antar)';
           const detailLokasi = o.order_method === 'pickup'
-            ? (o.pickup_time ? 'Pukul ' + o.pickup_time : '-')
+            ? (o.pickup_time ? formatPickupDisplay(o.pickup_time) + ' WIB' : '-')
             : (o.delivery_address || '-');
 
           sheetData.push([

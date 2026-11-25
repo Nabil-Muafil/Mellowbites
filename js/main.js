@@ -141,6 +141,7 @@ let PRODUCTS = [
 // 3. State, Location & Storage Constants
 const STORAGE_CART_KEY = 'mellowbites_es_gabin_cart_v1';
 const STORAGE_NAME_KEY = 'mellowbites_customer_name';
+const STORAGE_PHONE_KEY = 'mellowbites_customer_phone';
 const STORAGE_ADDRESS_KEY = 'mellowbites_customer_address';
 const STORAGE_ORDER_HISTORY_KEY = 'mellowbites_order_history_v1';
 const STORAGE_COORDS_KEY = 'mellowbites_customer_coords_v1';
@@ -211,6 +212,12 @@ function loadCartFromStorage() {
     const nameInput = document.getElementById('customerName');
     if (savedName && nameInput) {
       nameInput.value = savedName;
+    }
+
+    const savedPhone = localStorage.getItem(STORAGE_PHONE_KEY);
+    const phoneInput = document.getElementById('customerPhone');
+    if (savedPhone && phoneInput) {
+      phoneInput.value = savedPhone;
     }
 
     const savedAddress = localStorage.getItem(STORAGE_ADDRESS_KEY);
@@ -290,6 +297,34 @@ function escapeHtml(str) {
 
 function isQrisOrder(order) {
   return String(order?.paymentMethod || '').toLowerCase() === 'qris';
+}
+
+function normalizeIndonesianPhone(rawPhone) {
+  if (rawPhone === null || rawPhone === undefined) return '';
+  let digits = String(rawPhone).replace(/\D/g, '');
+  if (!digits) return '';
+
+  if (digits.startsWith('620')) {
+    digits = '0' + digits.slice(3);
+  } else if (digits.startsWith('62')) {
+    digits = '0' + digits.slice(2);
+  } else if (digits.startsWith('8')) {
+    digits = '0' + digits;
+  }
+  return digits;
+}
+
+function isValidIndonesianPhone(rawPhone) {
+  const trimmed = String(rawPhone || '').trim();
+  if (!trimmed || /[^\d\s+\-().]/.test(trimmed)) return false;
+  const normalized = normalizeIndonesianPhone(trimmed);
+  return /^08[1-9]\d{7,11}$/.test(normalized);
+}
+
+function toWhatsAppPhone(rawPhone) {
+  const normalized = normalizeIndonesianPhone(rawPhone);
+  if (!/^08[1-9]\d{7,11}$/.test(normalized)) return '';
+  return '62' + normalized.slice(1);
 }
 
 // 6. Utility: Gambar Ilustrasi Gabin SVG (Fallback jika foto offline/loading)
@@ -1419,25 +1454,35 @@ function getTodayWIBIso() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function formatIndonesianPickupDate(isoStr) {
+function formatIndonesianPickupDate(isoStr, withRelativeTag = false) {
   if (!isoStr || !/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) return '';
   const [y, m, d] = isoStr.split('-').map(Number);
   const target = new Date(y, m - 1, d);
 
+  const namaHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const namaBulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const dateText = `${namaHari[target.getDay()]} ${target.getDate()} ${namaBulan[target.getMonth()]} ${y}`;
+
+  if (!withRelativeTag) return dateText;
+
   const todayIso = getTodayWIBIso();
   const [ty, tm, td] = todayIso.split('-').map(Number);
   const today = new Date(ty, tm - 1, td);
-
   const diffDays = Math.round((target - today) / 86400000);
-  const namaHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-  const namaBulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
-  let prefix = '';
-  if (diffDays === 0) prefix = 'Hari Ini adalah ';
-  else if (diffDays === 1) prefix = 'Besok adalah ';
-  else if (diffDays === 2) prefix = 'Lusa adalah ';
+  if (diffDays === 0) return `Hari Ini (${dateText})`;
+  if (diffDays === 1) return `Besok (${dateText})`;
+  if (diffDays === 2) return `Lusa (${dateText})`;
+  return dateText;
+}
 
-  return `${prefix}${namaHari[target.getDay()]}, ${target.getDate()} ${namaBulan[target.getMonth()]} ${y}`;
+function formatPickupDisplay(rawPickupTime) {
+  const raw = String(rawPickupTime || '').trim();
+  if (!raw) return '-';
+  const cleaned = raw.replace(/^(Hari Ini|Besok|Lusa)\s+adalah\s+/i, '');
+  if (/\bpukul\b/i.test(cleaned)) return cleaned;
+  if (/^\d{1,2}:\d{2}$/.test(cleaned)) return `pukul (${cleaned})`;
+  return cleaned.replace(/\s*\((\d{1,2}:\d{2})\)$/, ' pukul ($1)');
 }
 
 function updatePickupDatePreview() {
@@ -1445,7 +1490,7 @@ function updatePickupDatePreview() {
   const previewEl = document.getElementById('pickupDatePreview');
   if (!dateInput || !previewEl) return;
 
-  const formatted = formatIndonesianPickupDate(dateInput.value);
+  const formatted = formatIndonesianPickupDate(dateInput.value, true);
   previewEl.textContent = formatted ? `📅 ${formatted}` : '';
 }
 
@@ -1485,6 +1530,11 @@ function openCartModal() {
   if (!modal || !box) return;
 
   renderModalCart();
+
+  const phoneGroup = document.getElementById('customerPhoneGroup');
+  if (phoneGroup) {
+    phoneGroup.classList.toggle('hidden', selectedPaymentMethod !== 'qris');
+  }
 
   if (selectedOrderMethod === 'delivery') {
     setTimeout(() => initDeliveryMap(), 180);
@@ -1670,6 +1720,7 @@ function setPaymentMethod(method) {
   const tabTunai = document.getElementById('tabPaymentTunai');
   const qrisBox = document.getElementById('qrisPaymentBox');
   const tunaiBox = document.getElementById('tunaiPaymentBox');
+  const phoneGroup = document.getElementById('customerPhoneGroup');
 
   qrisBox?.classList.add('hidden');
 
@@ -1680,6 +1731,7 @@ function setPaymentMethod(method) {
     tabTunai?.classList.remove('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
 
     tunaiBox?.classList.add('hidden');
+    phoneGroup?.classList.remove('hidden');
   } else {
     tabTunai?.classList.add('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
     tabTunai?.classList.remove('border-stone-200', 'bg-white', 'text-stone-700');
@@ -1687,6 +1739,8 @@ function setPaymentMethod(method) {
     tabQris?.classList.remove('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
 
     tunaiBox?.classList.remove('hidden');
+    phoneGroup?.classList.add('hidden');
+    clearFieldError('customerPhone');
   }
 
   clearFieldError('qrisProof');
@@ -1874,6 +1928,35 @@ function validateCheckoutForm() {
     clearFieldError('customerName');
   }
 
+  // 1b. Validasi Nomor WhatsApp / Telepon (Wajib khusus QRIS)
+  let normalizedPhone = null;
+  if (selectedPaymentMethod === 'qris') {
+    const phoneInput = document.getElementById('customerPhone');
+    const phoneRaw = (phoneInput?.value || '').trim();
+    if (!phoneRaw) {
+      setFieldError('customerPhone', 'Nomor WhatsApp / Telepon wajib diisi untuk pembayaran QRIS');
+      hasError = true;
+      if (!firstErrorEl) firstErrorEl = phoneInput;
+    } else if (/[^\d\s+\-().]/.test(phoneRaw)) {
+      setFieldError('customerPhone', 'Nomor telepon hanya boleh berisi angka (cth: 081234567890)');
+      hasError = true;
+      if (!firstErrorEl) firstErrorEl = phoneInput;
+    } else if (!isValidIndonesianPhone(phoneRaw)) {
+      setFieldError('customerPhone', 'Format nomor HP Indonesia tidak valid (cth: 081234567890, 10–14 digit)');
+      hasError = true;
+      if (!firstErrorEl) firstErrorEl = phoneInput;
+    } else {
+      clearFieldError('customerPhone');
+      normalizedPhone = normalizeIndonesianPhone(phoneRaw);
+      if (phoneInput) phoneInput.value = normalizedPhone;
+      try {
+        localStorage.setItem(STORAGE_PHONE_KEY, normalizedPhone);
+      } catch (_) { }
+    }
+  } else {
+    clearFieldError('customerPhone');
+  }
+
   // 2. Validasi Metode Pesanan
   let pickupDateLabel = '';
   if (selectedOrderMethod === 'pickup') {
@@ -1980,7 +2063,7 @@ function validateCheckoutForm() {
     const h = parseInt(document.getElementById('pickupHour').value, 10);
     const m = parseInt(document.getElementById('pickupMinute').value, 10);
     const clockStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    pickupTimeFormatted = pickupDateLabel ? `${pickupDateLabel} (${clockStr})` : clockStr;
+    pickupTimeFormatted = pickupDateLabel ? `${pickupDateLabel} pukul (${clockStr})` : `pukul (${clockStr})`;
   }
 
   const deliveryInfo = getDeliveryFeeSummary();
@@ -1988,6 +2071,7 @@ function validateCheckoutForm() {
 
   pendingOrder = {
     customerName: nameVal,
+    customerPhone: normalizedPhone,
     orderMethod: selectedOrderMethod,
     pickupTime: pickupTimeFormatted,
     deliveryAddress: selectedOrderMethod === 'delivery' ? document.getElementById('deliveryAddress').value.trim() : null,
@@ -2034,12 +2118,24 @@ function renderConfirmModal(order) {
 
   document.getElementById('cfmCustomerName').textContent = order.customerName;
 
+  const cfmPhoneRow = document.getElementById('cfmCustomerPhoneRow');
+  const cfmPhoneEl = document.getElementById('cfmCustomerPhone');
+  if (cfmPhoneRow && cfmPhoneEl) {
+    if (isQrisOrder(order) && order.customerPhone) {
+      cfmPhoneEl.textContent = order.customerPhone;
+      cfmPhoneRow.classList.remove('hidden');
+    } else {
+      cfmPhoneEl.textContent = '-';
+      cfmPhoneRow.classList.add('hidden');
+    }
+  }
+
   const methodText = order.orderMethod === 'pickup' ? 'Ambil Sendiri (Pickup)' : 'Diantar / COD (Delivery)';
   document.getElementById('cfmOrderMethod').textContent = methodText;
 
   const detailBox = document.getElementById('cfmDetailBox');
   if (order.orderMethod === 'pickup') {
-    detailBox.innerHTML = `<strong>Rencana Ambil:</strong> Pukul ${escapeHtml(order.pickupTime)} WIB di Kedai Mellowbites`;
+    detailBox.innerHTML = `<strong>Rencana Ambil:</strong> ${escapeHtml(formatPickupDisplay(order.pickupTime))} WIB di Kedai Mellowbites`;
   } else {
     const ongkirLabel = (order.deliveryFee || 0) > 0 ? formatRupiah(order.deliveryFee) : 'Gratis';
     detailBox.innerHTML = `
@@ -2210,6 +2306,7 @@ async function recordOrderToBackend(order) {
     const { error: insertErr } = await sbClient.from('orders').insert([{
       order_number: order.orderNumber,
       customer_name: order.customerName,
+      customer_phone: isQrisOrder(order) ? (order.customerPhone || null) : null,
       order_method: order.orderMethod,
       pickup_time: order.pickupTime,
       delivery_address: formattedDeliveryAddress,
@@ -2245,7 +2342,7 @@ async function recordOrderToBackend(order) {
         No_Order: order.orderNumber,
         Nama_Pemesan: order.customerName,
         Metode_Pesanan: order.orderMethod === 'pickup'
-          ? `Ambil Sendiri (Jam ${order.pickupTime} WIB)`
+          ? `Ambil Sendiri (${formatPickupDisplay(order.pickupTime)} WIB)`
           : `Diantar / COD (${formattedDeliveryAddress})`,
         Metode_Pembayaran: order.paymentMethod.toUpperCase(),
         Bukti_Transfer: order.paymentProofUrl || '-',
@@ -2274,6 +2371,9 @@ async function finalizeAndIssueReceipt(finalOrder) {
 
   try {
     localStorage.setItem(STORAGE_NAME_KEY, currentOrder.customerName);
+    if (isQrisOrder(currentOrder) && currentOrder.customerPhone) {
+      localStorage.setItem(STORAGE_PHONE_KEY, currentOrder.customerPhone);
+    }
     if (currentOrder.deliveryAddress) {
       localStorage.setItem(STORAGE_ADDRESS_KEY, currentOrder.deliveryAddress);
     }
@@ -2459,12 +2559,24 @@ function renderReceiptModal(order) {
   document.getElementById('rcptDateTime').textContent = formatDateTime(order.timestamp);
   document.getElementById('rcptCustomerName').textContent = order.customerName;
 
+  const rcptPhoneRow = document.getElementById('rcptCustomerPhoneRow');
+  const rcptPhoneEl = document.getElementById('rcptCustomerPhone');
+  if (rcptPhoneRow && rcptPhoneEl) {
+    if (isQrisOrder(order) && order.customerPhone) {
+      rcptPhoneEl.textContent = order.customerPhone;
+      rcptPhoneRow.classList.remove('hidden');
+    } else {
+      rcptPhoneEl.textContent = '-';
+      rcptPhoneRow.classList.add('hidden');
+    }
+  }
+
   const methodText = order.orderMethod === 'pickup' ? 'Ambil Sendiri (Pickup)' : 'Diantar / COD (Delivery)';
   document.getElementById('rcptOrderMethod').textContent = methodText;
 
   const detailRow = document.getElementById('rcptDetailRow');
   if (order.orderMethod === 'pickup') {
-    detailRow.innerHTML = `<strong>Jam Rencana Ambil:</strong> Pukul ${escapeHtml(order.pickupTime)} WIB di Kedai Mellowbites`;
+    detailRow.innerHTML = `<strong>Rencana Ambil:</strong> ${escapeHtml(formatPickupDisplay(order.pickupTime))} WIB di Kedai Mellowbites`;
   } else {
     detailRow.innerHTML = `<strong>Alamat Pengiriman:</strong> ${escapeHtml(order.deliveryAddress)}`;
   }
@@ -2636,9 +2748,13 @@ function buildOrderString() {
   let text = `Halo Kak, saya mau konfirmasi pesanan *Es Gabin - Mellowbites*:\n\n`;
   text += `*No. Order:* ${o.orderNumber}\n`;
   text += `*Waktu Pesan:* ${formattedDate}\n`;
-  text += `*Nama Pemesan:* ${o.customerName}\n\n`;
+  text += `*Nama Pemesan:* ${o.customerName}\n`;
+  if (isQrisOrder(o) && o.customerPhone) {
+    text += `*No. Telp / WA:* ${o.customerPhone}\n`;
+  }
+  text += `\n`;
 
-  text += `*Metode Pesanan:* ${o.orderMethod === 'pickup' ? `Ambil Sendiri (Pickup) - Jam ${o.pickupTime} WIB` : `Diantar / COD (Delivery)`}\n`;
+  text += `*Metode Pesanan:* ${o.orderMethod === 'pickup' ? `Ambil Sendiri (Pickup) - ${formatPickupDisplay(o.pickupTime)} WIB` : `Diantar / COD (Delivery)`}\n`;
   if (o.orderMethod === 'delivery') {
     text += `*Alamat Pengiriman:* ${o.deliveryAddress}\n`;
     text += `*Jarak & Ongkir:* ${o.deliveryDistanceKm ?? '-'} km (${(o.deliveryFee || 0) === 0 ? 'Gratis' : formatRupiah(o.deliveryFee)})\n`;
@@ -2880,7 +2996,7 @@ function renderOrderHistoryCards(orders, isSyncing = false) {
     `).join('');
 
     const isPickup = order.orderMethod === 'pickup';
-    const methodLabel = isPickup ? `🏬 Ambil (${escapeHtml(order.pickupTime || '-')})` : `🛵 Antar COD`;
+    const methodLabel = isPickup ? `🏬 Ambil: ${escapeHtml(formatPickupDisplay(order.pickupTime))} WIB` : `🛵 Antar COD`;
     const safeOrderNum = escapeHtml(order.orderNumber);
     const track = getOrderTrackingMeta(order.status, order.orderMethod);
 
@@ -3561,6 +3677,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     clearFieldError('customerName');
     try {
       localStorage.setItem(STORAGE_NAME_KEY, e.target.value);
+    } catch (_) { }
+  });
+
+  document.getElementById('customerPhone')?.addEventListener('input', (e) => {
+    clearFieldError('customerPhone');
+    try {
+      localStorage.setItem(STORAGE_PHONE_KEY, e.target.value);
     } catch (_) { }
   });
 

@@ -598,6 +598,19 @@
             <p id="err-customerName" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
           </div>
 
+          <!-- Input Nomor WhatsApp / Telepon (Khusus Payment QRIS) -->
+          <div id="customerPhoneGroup">
+            <label for="customerPhone" class="block text-xs font-bold text-stone-700 mb-1">
+              Nomor WhatsApp / Telepon <span class="text-rose-500">*</span>
+            </label>
+            <input type="tel" id="customerPhone" inputmode="tel" autocomplete="tel" placeholder="Cth: 081234567890"
+              class="w-full text-xs px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition">
+            <p class="text-[10px] text-stone-500 mt-1 leading-snug">
+              Wajib diisi untuk jaga-jaga agar admin tetap bisa menghubungi Anda jika lupa mengirim konfirmasi ke WhatsApp.
+            </p>
+            <p id="err-customerPhone" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
+          </div>
+
           <!-- Pilihan Metode Pesanan -->
           <div>
             <label class="block text-xs font-bold text-stone-700 mb-1.5">
@@ -912,6 +925,10 @@
             <span class="text-stone-500 font-medium shrink-0">Nama Pemesan:</span>
             <span id="cfmCustomerName" class="font-bold text-stone-900 text-right">-</span>
           </div>
+          <div id="cfmCustomerPhoneRow" class="hidden flex justify-between items-start gap-2">
+            <span class="text-stone-500 font-medium shrink-0">No. Telp / WA:</span>
+            <span id="cfmCustomerPhone" class="font-bold text-stone-900 text-right font-mono">-</span>
+          </div>
           <div class="flex justify-between items-start gap-2">
             <span class="text-stone-500 font-medium shrink-0">Metode:</span>
             <span id="cfmOrderMethod" class="font-bold text-stone-900 text-right">-</span>
@@ -1164,9 +1181,9 @@
       </div>
 
       <!-- Scrollable Receipt Body -->
-      <div class="overflow-y-auto p-3.5 sm:p-4 flex-1 flex justify-center bg-stone-100">
+      <div class="overflow-y-auto p-3.5 sm:p-4 flex-1 bg-stone-100">
         <div id="receiptPaper"
-          class="w-full bg-white text-stone-800 p-5 rounded-2xl shadow-sm border border-stone-200/90 font-sans text-xs relative">
+          class="w-full mx-auto bg-white text-stone-800 p-5 rounded-2xl shadow-sm border border-stone-200/90 font-sans text-xs relative">
 
           <!-- Shop Header -->
           <div class="text-center pb-1">
@@ -1196,6 +1213,10 @@
             <div class="flex justify-between py-0.5">
               <span class="text-stone-500">Nama Pemesan:</span>
               <span id="rcptCustomerName" class="font-bold text-stone-900">-</span>
+            </div>
+            <div id="rcptCustomerPhoneRow" class="hidden flex justify-between py-0.5">
+              <span class="text-stone-500">No. Telp / WA:</span>
+              <span id="rcptCustomerPhone" class="font-bold text-stone-900 font-mono">-</span>
             </div>
             <div class="flex justify-between py-0.5">
               <span class="text-stone-500">Metode Pesanan:</span>
