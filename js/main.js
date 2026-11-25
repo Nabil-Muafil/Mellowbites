@@ -1319,15 +1319,43 @@ function updateQty(productId, delta) {
 
 function clearEntireCart() {
   if (Object.keys(cart).length === 0) return;
-  if (confirm('Kosongkan semua pesanan di keranjang?')) {
-    const productIds = Object.keys(cart);
-    cart = {};
-    saveCartToStorage();
-    productIds.forEach(id => updateProductCardState(id));
-    updateUI();
-    showToast('Keranjang berhasil dikosongkan');
-    closeCartModal();
-  }
+  openResetCartModal();
+}
+
+function openResetCartModal() {
+  const modal = document.getElementById('resetCartConfirmModal');
+  const box = document.getElementById('resetCartConfirmBox');
+  if (!modal || !box) return;
+
+  modal.classList.remove('opacity-0', 'pointer-events-none');
+  modal.classList.add('opacity-100');
+  box.classList.remove('scale-95');
+  box.classList.add('scale-100');
+}
+
+function closeResetCartModal() {
+  const modal = document.getElementById('resetCartConfirmModal');
+  const box = document.getElementById('resetCartConfirmBox');
+  if (!modal || !box) return;
+
+  modal.classList.add('opacity-0', 'pointer-events-none');
+  modal.classList.remove('opacity-100');
+  box.classList.add('scale-95');
+  box.classList.remove('scale-100');
+}
+
+function confirmResetCart() {
+  closeResetCartModal();
+
+  const productIds = Object.keys(cart);
+  if (productIds.length === 0) return;
+
+  cart = {};
+  saveCartToStorage();
+  productIds.forEach(id => updateProductCardState(id));
+  updateUI();
+  showToast('Keranjang berhasil dikosongkan');
+  closeCartModal();
 }
 
 // 13. Filter Kategori & Pencarian

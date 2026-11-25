@@ -1375,6 +1375,41 @@
 
     </div>
   </div>
+  <!-- MODAL KONFIRMASI RESET KERANJANG (#resetCartConfirmModal) -->
+<div id="resetCartConfirmModal"
+  class="fixed inset-0 z-[60] bg-black/70 backdrop-blur-xs opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center p-4">
+  <div class="absolute inset-0" onclick="closeResetCartModal()"></div>
+
+  <div id="resetCartConfirmBox"
+    class="relative z-10 w-full max-w-xs bg-white rounded-3xl shadow-2xl overflow-hidden border border-stone-200 transform scale-95 transition-transform duration-200 p-5 text-center space-y-3.5">
+    
+    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-2xs">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+        </path>
+      </svg>
+    </div>
+
+    <div class="space-y-1">
+      <h3 class="font-extrabold text-stone-900 text-base leading-tight">Kosongkan Keranjang?</h3>
+      <p class="text-xs text-stone-500 leading-relaxed">
+        Semua varian es gabin yang sudah dipilih di keranjang akan dihapus. Yakin ingin reset pesanan?
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2 pt-1">
+      <button type="button" onclick="closeResetCartModal()"
+        class="flex-1 py-2.5 px-3 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs transition active:scale-95">
+        Batal
+      </button>
+      <button type="button" onclick="confirmResetCart()"
+        class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md shadow-rose-600/20 transition active:scale-95">
+        Ya, Kosongkan
+      </button>
+    </div>
+  </div>
+</div>
 
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toast"
