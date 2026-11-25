@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Admin Panel - Es Gabin Mellowbites</title>
+  <title>Admin Panel - Gabin Ice Bar Mellowbites</title>
   <link rel="icon" type="image/webp" href="img/logo.webp">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ea580c">
@@ -15,11 +15,13 @@
   <link rel="apple-touch-icon" href="img/icon-192.png">
   <link rel="apple-touch-icon" sizes="512x512" href="img/icon-512.png">
 
+  <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
 
+  <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -41,16 +43,16 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
 
-  <!-- SheetJS Library for Native .xlsx Excel Generation (Tanpa Peringatan Format) -->
+  <!-- SheetJS Library for Native .xlsx Excel Generation -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <!-- html2canvas for Admin Receipt Image Generation -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-  <!-- Main CSS for Thermal Receipt Styles -->
+  <!-- Main CSS & Leaflet Map -->
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <style>
     @media print {
@@ -119,6 +121,7 @@
             placeholder="admin@mellowbites.com"
             class="w-full text-xs px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
         </div>
+
         <div>
           <label for="adminPassword" class="block text-xs font-bold text-stone-700 mb-1">Password</label>
           <div class="relative">
@@ -128,7 +131,6 @@
 
             <button type="button" onclick="toggleAdminPassword()" aria-label="Lihat atau sembunyikan password"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none">
-              <!-- Ikon Mata Terbuka (Default) -->
               <svg id="eyeIconShow" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -136,7 +138,6 @@
                   d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
                 </path>
               </svg>
-              <!-- Ikon Mata Dicoret (Muncul saat password terlihat) -->
               <svg id="eyeIconHide" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21">
@@ -150,7 +151,7 @@
         <div class="flex items-center justify-between pt-0.5">
           <label for="rememberMeCheckbox" class="inline-flex items-center gap-2 cursor-pointer select-none">
             <input type="checkbox" id="rememberMeCheckbox" checked
-              class="w-4 h-4 rounded border-stone-300 text-brand-500 focus:ring-brand-500/30 cursor-pointer accent-orange-500" />
+              class="w-4 h-4 rounded border-stone-300 text-brand-500 focus:ring-brand-500/30 cursor-pointer accent-orange-500">
             <span class="text-xs font-semibold text-stone-600">Ingat saya di perangkat ini</span>
           </label>
         </div>
@@ -183,7 +184,8 @@
             <img src="img/logo.webp" alt="Logo Mellowbites" class="w-full h-full object-contain">
           </div>
           <div class="min-w-0 flex-1">
-            <h1 class="text-sm sm:text-base font-extrabold text-stone-900 leading-tight truncate">Dashboard Mellowbites
+            <h1 class="text-sm sm:text-base font-extrabold text-stone-900 leading-tight truncate">
+              Dashboard Mellowbites
             </h1>
             <p id="adminUserEmail" class="text-[11px] text-stone-500 font-medium truncate">admin</p>
           </div>
@@ -194,11 +196,11 @@
             class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1">
             ← <span class="hidden sm:inline">Ke</span> Toko
           </a>
-          <button onclick="openProfileModal()"
+          <button type="button" onclick="openProfileModal()"
             class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold transition">
             👤 <span class="hidden sm:inline">Profil</span>
           </button>
-          <button onclick="handleAdminLogout()"
+          <button type="button" onclick="handleAdminLogout()"
             class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition">
             Keluar
           </button>
@@ -223,8 +225,7 @@
         </div>
 
         <div class="flex items-center gap-2.5 shrink-0">
-          <!-- Tombol Izin Notifikasi HP Admin -->
-          <button id="btnEnableAdminNotif" onclick="requestAdminNotificationPermission()"
+          <button type="button" id="btnEnableAdminNotif" onclick="requestAdminNotificationPermission()"
             class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300/80 text-xs font-bold transition flex items-center gap-1.5 active:scale-95 shadow-2xs"
             title="Aktifkan Notifikasi Pop-up HP saat ada pesanan baru">
             <span>🔔</span> <span>Aktifkan Notif HP</span>
@@ -252,17 +253,17 @@
 
         <form onsubmit="savePromoBanner(event)" class="px-4 pb-4 pt-1 space-y-3 text-xs border-t border-stone-100">
           <div>
-            <label class="block font-bold text-stone-700 mb-1">Label Kecil Atas (Badge)</label>
+            <label for="adminPromoBadge" class="block font-bold text-stone-700 mb-1">Label Kecil Atas (Badge)</label>
             <input type="text" id="adminPromoBadge" placeholder="❄️ 100% Homemade & Halal"
               class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
           </div>
           <div>
-            <label class="block font-bold text-stone-700 mb-1">Judul Utama Banner</label>
+            <label for="adminPromoTitle" class="block font-bold text-stone-700 mb-1">Judul Utama Banner</label>
             <input type="text" id="adminPromoTitle" placeholder="Sensasi Es Krim Gabin Lumer!"
               class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
           </div>
           <div>
-            <label class="block font-bold text-stone-700 mb-1">Deskripsi Singkat</label>
+            <label for="adminPromoDesc" class="block font-bold text-stone-700 mb-1">Deskripsi Singkat</label>
             <textarea id="adminPromoDesc" rows="2"
               placeholder="Renyah di luar, creamy dingin lumer di dalam. Praktis & bikin nagih!"
               class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200"></textarea>
@@ -276,11 +277,11 @@
 
       <!-- Tab Navigasi: Kelola Menu vs Rekap Pesanan -->
       <div class="grid grid-cols-2 gap-2 bg-stone-200/70 p-1 rounded-2xl">
-        <button onclick="switchAdminTab('menu')" id="tabAdminMenu"
+        <button type="button" onclick="switchAdminTab('menu')" id="tabAdminMenu"
           class="py-2 px-3 rounded-xl text-xs font-extrabold bg-white text-brand-600 shadow-2xs transition">
           🥪 Kelola Stok & Menu
         </button>
-        <button onclick="switchAdminTab('orders')" id="tabAdminOrders"
+        <button type="button" onclick="switchAdminTab('orders')" id="tabAdminOrders"
           class="py-2 px-3 rounded-xl text-xs font-bold text-stone-600 hover:text-stone-900 transition flex items-center justify-center gap-1.5">
           <span>🧾 Rekap Pesanan</span>
           <span id="pendingOrderBadge"
@@ -291,8 +292,8 @@
       <!-- TAB 1: KELOLA STOK & MENU -->
       <section id="panelMenu" class="space-y-3">
         <div class="flex items-center justify-between">
-          <h3 class="font-extrabold text-sm text-stone-800">Daftar Varian Es Gabin</h3>
-          <button onclick="openAddProductModal()"
+          <h3 class="font-extrabold text-sm text-stone-800">Daftar Varian Gabin Ice Bar</h3>
+          <button type="button" onclick="openAddProductModal()"
             class="px-3 py-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-xs active:scale-95 transition">
             + Tambah Varian
           </button>
@@ -308,7 +309,7 @@
         <div class="flex flex-wrap items-center justify-between gap-2">
           <h3 class="font-extrabold text-sm text-stone-800">Riwayat Checkout Pembeli</h3>
           <div class="flex items-center gap-2">
-            <button onclick="exportOrdersToExcel()"
+            <button type="button" onclick="exportOrdersToExcel()"
               class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-2xs active:scale-95">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -316,14 +317,14 @@
               </svg>
               <span>Download Excel</span>
             </button>
-            <button onclick="loadAdminOrders()"
+            <button type="button" onclick="loadAdminOrders()"
               class="px-3 py-1.5 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-bold transition">
               ↻ Refresh
             </button>
           </div>
         </div>
 
-        <!-- RINGKASAN OMZET & JUMLAH TERJUAL -->
+        <!-- RINGKASAN OMZET, JUMLAH TERJUAL & REKAP PACKING -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-bold text-stone-500">Filter Periode Rekap & Omzet</span>
@@ -350,8 +351,18 @@
               <p id="statOrderCount" class="text-[10px] text-stone-400 mt-0.5">0 pesanan selesai</p>
             </div>
 
-            <!-- Kartu Rekap Produksi / Packing (Pesanan Menunggu Konfirmasi) -->
-            <div class="bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200/80 shadow-2xs space-y-2">
+            <!-- Kartu Jumlah Terjual -->
+            <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs">
+              <div class="flex items-center gap-1.5 text-[11px] font-bold text-stone-500">
+                <span>🥪</span>
+                <span>Jumlah Terjual</span>
+              </div>
+              <p id="statTotalSold" class="text-base sm:text-lg font-black text-brand-600 mt-1">0 pcs</p>
+              <p id="statTopProduct" class="text-[10px] text-stone-400 truncate mt-0.5">Terlaris: -</p>
+            </div>
+
+            <!-- Kartu Rekap Produksi / Packing (Full Width) -->
+            <div class="col-span-2 bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200/80 shadow-2xs space-y-2">
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-1.5 text-[11px] font-extrabold text-amber-950">
                   <span>📦</span>
@@ -366,38 +377,11 @@
                 <span class="text-[11px] text-amber-800/70 italic">Semua pesanan sudah selesai 🎉</span>
               </div>
             </div>
-
-            <!-- Kartu Jumlah Terjual -->
-            <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs">
-              <div class="flex items-center gap-1.5 text-[11px] font-bold text-stone-500">
-                <span>🥪</span>
-                <span>Jumlah Terjual</span>
-              </div>
-              <p id="statTotalSold" class="text-base sm:text-lg font-black text-brand-600 mt-1">0 pcs</p>
-              <p id="statTopProduct" class="text-[10px] text-stone-400 truncate mt-0.5">Terlaris: -</p>
-            </div>
           </div>
         </div>
 
-        <!-- FILTER STATUS & PENCARIAN PESANAN -->
+        <!-- FILTER STATUS, METODE & PENCARIAN PESANAN -->
         <div id="adminOrderFilterBox" class="bg-white p-3 rounded-2xl border border-stone-200 shadow-2xs space-y-2.5">
-          <!-- Tombol Filter Metode Pesanan (Pickup vs Delivery) -->
-          <div
-            class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[11px] font-bold pt-2 border-t border-stone-100">
-            <span class="text-[10px] text-stone-400 uppercase tracking-wider mr-0.5 shrink-0">Metode:</span>
-            <button type="button" id="filterMethodAll" onclick="setAdminOrderMethodFilter('all')"
-              class="px-3 py-1 rounded-xl bg-stone-800 text-white shadow-2xs transition whitespace-nowrap">
-              Semua Metode
-            </button>
-            <button type="button" id="filterMethodPickup" onclick="setAdminOrderMethodFilter('pickup')"
-              class="px-3 py-1 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition whitespace-nowrap">
-              🏬 Ambil Sendiri
-            </button>
-            <button type="button" id="filterMethodDelivery" onclick="setAdminOrderMethodFilter('delivery')"
-              class="px-3 py-1 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition whitespace-nowrap">
-              🛵 Diantar (Delivery)
-            </button>
-          </div>
           <!-- Kotak Cari Nama / No. Order -->
           <div class="relative">
             <input type="text" id="adminOrderSearch" oninput="onAdminOrderSearchInput()"
@@ -408,7 +392,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
-            <button type="button" onclick="clearAdminOrderSearch()"
+            <button type="button" onclick="clearAdminOrderSearch()" aria-label="Hapus pencarian"
               class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 text-xs">✕</button>
           </div>
 
@@ -427,6 +411,24 @@
               ✅ Selesai
             </button>
           </div>
+
+          <!-- Tombol Filter Metode Pesanan (Pickup vs Delivery) -->
+          <div
+            class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[11px] font-bold pt-2 border-t border-stone-100">
+            <span class="text-[10px] text-stone-400 uppercase tracking-wider mr-0.5 shrink-0">Metode:</span>
+            <button type="button" id="filterMethodAll" onclick="setAdminOrderMethodFilter('all')"
+              class="px-3 py-1 rounded-xl bg-stone-800 text-white shadow-2xs transition whitespace-nowrap">
+              Semua Metode
+            </button>
+            <button type="button" id="filterMethodPickup" onclick="setAdminOrderMethodFilter('pickup')"
+              class="px-3 py-1 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition whitespace-nowrap">
+              🏬 Ambil Sendiri
+            </button>
+            <button type="button" id="filterMethodDelivery" onclick="setAdminOrderMethodFilter('delivery')"
+              class="px-3 py-1 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition whitespace-nowrap">
+              🛵 Diantar (Delivery)
+            </button>
+          </div>
         </div>
 
         <div id="adminOrderList" class="space-y-2.5">
@@ -439,18 +441,19 @@
     </main>
   </div>
 
-  <!-- MODAL PROFIL ADMIN ALA MEDSOS & GANTI SANDI -->
+  <!-- ==================== 3. KUMPULAN MODAL ADMIN ==================== -->
+
+  <!-- MODAL PROFIL ADMIN & GANTI SANDI -->
   <div id="profileModal"
     class="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4">
     <div class="absolute inset-0" onclick="closeProfileModal()"></div>
     <div
       class="relative z-10 bg-white w-full max-w-md max-h-[92vh] flex flex-col rounded-3xl shadow-2xl border border-stone-200 overflow-hidden">
 
-      <!-- Scrollable Body (Banner ikut di dalam agar foto tidak terpotong) -->
       <div class="overflow-y-auto flex-1">
         <!-- Cover Banner & Header -->
         <div class="relative h-20 bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500">
-          <button type="button" onclick="closeProfileModal()"
+          <button type="button" onclick="closeProfileModal()" aria-label="Tutup profil"
             class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/25 hover:bg-black/40 text-white text-xs font-bold flex items-center justify-center backdrop-blur-xs transition">
             ✕
           </button>
@@ -461,14 +464,13 @@
         </div>
 
         <div class="px-5 pb-5">
-          <!-- Avatar Bulat Kecil & Identitas Utama -->
+          <!-- Avatar Bulat & Identitas Utama -->
           <div class="relative z-10 -mt-10 mb-4 flex flex-col items-center text-center">
             <div class="relative">
               <div
                 class="w-20 h-20 rounded-full border-4 border-white bg-amber-50 shadow-md overflow-hidden flex items-center justify-center">
                 <img id="profileAvatarPreview" src="img/logo.webp" alt="Foto Profil" class="w-full h-full object-cover">
               </div>
-              <!-- Tombol Kamera Hanya Muncul Saat Mode Edit Aktif -->
               <label id="profileAvatarEditBtn" for="profileAvatarInput"
                 class="hidden absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-brand-500 hover:bg-brand-600 text-white border-2 border-white shadow-sm items-center justify-center cursor-pointer transition active:scale-90"
                 title="Ganti & atur posisi foto profil">
@@ -478,22 +480,24 @@
                 class="hidden" disabled>
             </div>
 
-            <h3 id="profileDisplayName" class="font-extrabold text-base text-stone-900 mt-2 leading-tight">Admin
-              Mellowbites</h3>
+            <h3 id="profileDisplayName" class="font-extrabold text-base text-stone-900 mt-2 leading-tight">
+              Admin Mellowbites
+            </h3>
             <div class="flex items-center justify-center gap-1.5 mt-1">
               <span id="profileDisplayRole"
-                class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-brand-100 text-brand-700">Owner /
-                Admin</span>
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-brand-100 text-brand-700">
+                Owner / Admin
+              </span>
               <span class="text-[11px] text-stone-400">•</span>
               <span id="profileUserEmail"
                 class="text-[11px] font-medium text-stone-500 truncate max-w-[180px]">admin</span>
             </div>
             <p id="profileDisplayBio" class="text-[11px] text-stone-500 mt-1.5 max-w-xs leading-relaxed">
-              Pengelola operasional & pesanan Es Gabin Mellowbites.
+              Pengelola operasional & pesanan Gabin Ice Bar Mellowbites.
             </p>
           </div>
 
-          <!-- Form Informasi Profil (Default Terkunci / Read-Only) -->
+          <!-- Form Informasi Profil -->
           <form id="profileBioForm" onsubmit="handleUpdateProfileData(event)"
             class="space-y-3 text-xs border-t border-stone-100 pt-3.5">
             <div class="flex items-center justify-between">
@@ -508,12 +512,12 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
-                <label class="block font-bold text-stone-700 mb-1">Nama Lengkap *</label>
+                <label for="profFullName" class="block font-bold text-stone-700 mb-1">Nama Lengkap *</label>
                 <input type="text" id="profFullName" required readonly placeholder="Belum diisi"
                   class="prof-editable-field w-full px-3 py-2 bg-stone-100/80 border border-stone-200 rounded-xl text-stone-700 cursor-default focus:outline-none">
               </div>
               <div>
-                <label class="block font-bold text-stone-700 mb-1">Jabatan / Role</label>
+                <label for="profJobTitle" class="block font-bold text-stone-700 mb-1">Jabatan / Role</label>
                 <input type="text" id="profJobTitle" readonly placeholder="Owner / Admin"
                   class="prof-editable-field w-full px-3 py-2 bg-stone-100/80 border border-stone-200 rounded-xl text-stone-700 cursor-default focus:outline-none">
               </div>
@@ -521,30 +525,29 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
-                <label class="block font-bold text-stone-700 mb-1">No. Telepon / WhatsApp</label>
+                <label for="profPhone" class="block font-bold text-stone-700 mb-1">No. Telepon / WhatsApp</label>
                 <input type="tel" id="profPhone" readonly placeholder="-"
                   class="prof-editable-field w-full px-3 py-2 bg-stone-100/80 border border-stone-200 rounded-xl text-stone-700 cursor-default focus:outline-none">
               </div>
               <div>
-                <label class="block font-bold text-stone-700 mb-1">Email Akun</label>
+                <label for="profEmailReadonly" class="block font-bold text-stone-700 mb-1">Email Akun</label>
                 <input type="email" id="profEmailReadonly" readonly
                   class="w-full px-3 py-2 bg-stone-100 border border-stone-200 rounded-xl text-stone-500 cursor-not-allowed">
               </div>
             </div>
 
             <div>
-              <label class="block font-bold text-stone-700 mb-1">Alamat / Domisili</label>
+              <label for="profAddress" class="block font-bold text-stone-700 mb-1">Alamat / Domisili</label>
               <input type="text" id="profAddress" readonly placeholder="-"
                 class="prof-editable-field w-full px-3 py-2 bg-stone-100/80 border border-stone-200 rounded-xl text-stone-700 cursor-default focus:outline-none">
             </div>
 
             <div>
-              <label class="block font-bold text-stone-700 mb-1">Bio Singkat</label>
+              <label for="profBio" class="block font-bold text-stone-700 mb-1">Bio Singkat</label>
               <textarea id="profBio" rows="2" readonly placeholder="-"
                 class="prof-editable-field w-full px-3 py-2 bg-stone-100/80 border border-stone-200 rounded-xl text-stone-700 cursor-default focus:outline-none"></textarea>
             </div>
 
-            <!-- Tombol Batal & Simpan Hanya Muncul Saat Mode Edit Aktif -->
             <div id="profileEditActions" class="hidden grid-cols-2 gap-2 pt-0.5">
               <button type="button" onclick="cancelProfileEdit()"
                 class="py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition">
@@ -557,7 +560,7 @@
             </div>
           </form>
 
-          <!-- Accordion / Section Ganti Kata Sandi -->
+          <!-- Accordion Ganti Kata Sandi -->
           <details class="mt-4 pt-3.5 border-t border-stone-200/80 group">
             <summary
               class="cursor-pointer list-none flex items-center justify-between text-xs font-extrabold text-stone-800 select-none hover:text-brand-600 transition">
@@ -567,7 +570,7 @@
 
             <form id="profilePasswordForm" onsubmit="handleUpdatePassword(event)" class="space-y-3 text-xs pt-3">
               <div>
-                <label class="block font-bold text-stone-700 mb-1">Kata Sandi Baru</label>
+                <label for="newAdminPassword" class="block font-bold text-stone-700 mb-1">Kata Sandi Baru</label>
                 <div class="relative">
                   <input type="password" id="newAdminPassword" required minlength="6" placeholder="Minimal 6 karakter"
                     class="w-full pl-3 pr-10 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
@@ -592,7 +595,8 @@
               </div>
 
               <div>
-                <label class="block font-bold text-stone-700 mb-1">Konfirmasi Kata Sandi Baru</label>
+                <label for="confirmAdminPassword" class="block font-bold text-stone-700 mb-1">Konfirmasi Kata Sandi
+                  Baru</label>
                 <div class="relative">
                   <input type="password" id="confirmAdminPassword" required minlength="6"
                     placeholder="Ketik ulang kata sandi baru"
@@ -636,18 +640,17 @@
     </div>
   </div>
 
-  <!-- MODAL ATUR POSISI & ZOOM FOTO PROFIL (ALA INSTAGRAM) -->
-
-  <!-- MODAL ATUR POSISI & ZOOM FOTO PROFIL (ALA INSTAGRAM) -->
+  <!-- MODAL ATUR POSISI & ZOOM FOTO PROFIL -->
   <div id="avatarCropModal"
     class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-4 text-center">
+    <div class="absolute inset-0" onclick="closeAvatarCropModal()"></div>
+    <div
+      class="relative z-10 bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-4 text-center">
       <div class="space-y-1">
         <h3 class="font-extrabold text-sm text-stone-900">Sesuaikan Foto Profil</h3>
         <p class="text-[11px] text-stone-500">Geser foto untuk mengatur posisi atau atur zoom</p>
       </div>
 
-      <!-- Area Bingkai Lingkaran Interaktif -->
       <div class="flex justify-center">
         <div id="avatarCropViewport"
           class="relative w-[220px] h-[220px] rounded-full overflow-hidden bg-stone-900 border-4 border-brand-500 shadow-inner cursor-grab active:cursor-grabbing select-none touch-none">
@@ -656,7 +659,6 @@
         </div>
       </div>
 
-      <!-- Slider Zoom -->
       <div class="flex items-center gap-2.5 px-2">
         <span class="text-xs text-stone-400 font-bold">−</span>
         <input type="range" id="avatarZoomRange" min="1" max="3" step="0.02" value="1"
@@ -680,28 +682,29 @@
   <!-- MODAL TAMBAH VARIAN BARU -->
   <div id="addProductModal"
     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-3.5">
+    <div class="absolute inset-0" onclick="closeAddProductModal()"></div>
+    <div class="relative z-10 bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-3.5">
       <div class="flex items-center justify-between">
         <h3 class="font-extrabold text-sm text-stone-900">Tambah Varian Baru</h3>
-        <button onclick="closeAddProductModal()"
-          class="w-7 h-7 rounded-full bg-stone-100 text-stone-500 text-xs font-bold">✕</button>
+        <button type="button" onclick="closeAddProductModal()" aria-label="Tutup modal tambah varian"
+          class="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 text-xs font-bold transition">✕</button>
       </div>
 
       <form onsubmit="handleAddProduct(event)" class="space-y-2.5 text-xs">
         <div>
-          <label class="block font-bold text-stone-700 mb-1">Nama Varian *</label>
+          <label for="newProdName" class="block font-bold text-stone-700 mb-1">Nama Varian *</label>
           <input type="text" id="newProdName" required placeholder="cth: Tiramisu Almond"
             class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block font-bold text-stone-700 mb-1">Harga (Rp) *</label>
+            <label for="newProdPrice" class="block font-bold text-stone-700 mb-1">Harga (Rp) *</label>
             <input type="number" id="newProdPrice" required value="8000" min="0" step="500"
               oninput="if(this.value !== '' && Number(this.value) < 0) this.value = 0;"
               class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
           </div>
           <div>
-            <label class="block font-bold text-stone-700 mb-1">Kategori</label>
+            <label for="newProdCategory" class="block font-bold text-stone-700 mb-1">Kategori</label>
             <select id="newProdCategory"
               class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
               <option value="special">Spesial Mix</option>
@@ -711,17 +714,17 @@
           </div>
         </div>
         <div>
-          <label class="block font-bold text-stone-700 mb-1">Deskripsi Singkat</label>
+          <label for="newProdDesc" class="block font-bold text-stone-700 mb-1">Deskripsi Singkat</label>
           <textarea id="newProdDesc" rows="2" placeholder="Fla tiramisu lembut dengan taburan kacang almond..."
             class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500"></textarea>
         </div>
         <div>
-          <label class="block font-bold text-stone-700 mb-1">URL Gambar (Opsional)</label>
+          <label for="newProdImage" class="block font-bold text-stone-700 mb-1">URL Gambar (Opsional)</label>
           <input type="url" id="newProdImage" placeholder="https://..."
             class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
         </div>
 
-        <button type="submit"
+        <button type="submit" id="btnAddProduct"
           class="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm transition mt-2">
           Simpan Menu Baru
         </button>
@@ -732,27 +735,24 @@
   <!-- MODAL CEK STRUK PESANAN ADMIN (#adminReceiptModal) -->
   <div id="adminReceiptModal"
     class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4">
-    <!-- Backdrop dismiss (No Print) -->
     <div class="absolute inset-0 no-print" onclick="closeAdminReceiptModal()"></div>
 
-    <!-- Modal Box -->
     <div id="adminReceiptContentBox"
       class="relative z-10 w-full max-w-sm max-h-[95vh] flex flex-col bg-stone-100 rounded-3xl shadow-2xl overflow-hidden border border-stone-300">
 
-      <!-- Modal Header Bar (No Print) -->
+      <!-- Modal Header Bar -->
       <div class="px-4 py-2.5 bg-stone-900 text-white flex items-center justify-between shrink-0 no-print">
         <div class="flex items-center gap-1.5">
           <span class="text-sm">🧾</span>
           <span class="text-xs font-bold tracking-tight">Struk Digital Pesanan</span>
         </div>
-        <button onclick="closeAdminReceiptModal()"
+        <button type="button" onclick="closeAdminReceiptModal()" aria-label="Tutup struk"
           class="w-6 h-6 rounded-full bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-300 text-xs transition"
           title="Tutup">✕</button>
       </div>
 
       <!-- Scrollable Receipt Body -->
       <div class="overflow-y-auto p-3.5 sm:p-4 flex-1 flex justify-center bg-stone-100">
-        <!-- Physical Receipt Paper (#adminReceiptPaper) -->
         <div id="adminReceiptPaper"
           class="w-full bg-white text-stone-800 p-5 rounded-2xl shadow-sm border border-stone-200/90 font-sans text-xs relative">
 
@@ -760,14 +760,15 @@
           <div class="text-center pb-1">
             <img src="img/logo.webp" alt="Logo Mellowbites" width="64" height="64"
               class="w-16 h-16 object-contain mx-auto mb-1.5 rounded-2xl border border-stone-200/80 bg-[#fbf6ea] p-1">
-            <h4 class="font-black text-stone-900 text-base tracking-tight uppercase leading-snug">Es Gabin - Mellowbites
+            <h4 class="font-black text-stone-900 text-base tracking-tight uppercase leading-snug">
+              Gabin Ice Bar - Mellowbites
             </h4>
             <p class="text-[10px] text-stone-500 font-medium mt-0.5">Biskuit Renyah, Fla Creamy Lumer</p>
-            <p class="text-[9px] text-stone-400 mt-0.5">jl. bromo, RT/RW:001/006, Dsn. Karangtimongo, Ds. Denanyar,
-              Jombang • WA: 0856-4640-9023</p>
+            <p class="text-[9px] text-stone-400 mt-0.5">
+              Jl. Bromo, RT/RW 001/006, Dsn. Karangtimongo, Ds. Denanyar, Jombang • WA: 0856-4640-9023
+            </p>
           </div>
 
-          <!-- Divider 1 -->
           <div class="rcpt-divider"></div>
 
           <!-- Order Metadata -->
@@ -788,7 +789,6 @@
               <span class="text-stone-500">Metode Pesanan:</span>
               <span id="adminRcptOrderMethod" class="font-bold text-stone-800">-</span>
             </div>
-            <!-- Detail Row (Alamat atau Jam Ambil) -->
             <div id="adminRcptDetailRow"
               class="text-[10px] text-stone-600 bg-stone-50 p-2 rounded-lg border border-stone-200/60 leading-normal my-1.5">
               -
@@ -804,7 +804,6 @@
             </div>
           </div>
 
-          <!-- Divider 2 -->
           <div class="rcpt-divider"></div>
 
           <!-- Items Table -->
@@ -813,12 +812,9 @@
               <span>Item Menu</span>
               <span>Subtotal</span>
             </div>
-            <div id="adminRcptItemsList" class="text-xs">
-              <!-- Rendered dynamically -->
-            </div>
+            <div id="adminRcptItemsList" class="text-xs"></div>
           </div>
 
-          <!-- Divider 3 -->
           <div class="rcpt-divider"></div>
 
           <!-- Total Calculation -->
@@ -838,18 +834,17 @@
             </div>
           </div>
 
-          <!-- Divider 4 -->
           <div class="rcpt-divider"></div>
 
           <!-- Receipt Footer Note -->
           <div class="text-center text-[10px] text-stone-400 pt-0.5">
             <p class="font-semibold text-stone-600">Dokumen Struk Transaksi Resmi</p>
-            <p class="mt-0.5">Es Gabin Mellowbites • Dicetak oleh Kasir/Admin</p>
+            <p class="mt-0.5">Gabin Ice Bar Mellowbites • Dicetak oleh Kasir/Admin</p>
           </div>
         </div>
       </div>
 
-      <!-- Modal Bottom Actions (No Print) -->
+      <!-- Modal Bottom Actions -->
       <div class="p-3 bg-white border-t border-stone-200 grid grid-cols-3 gap-2 shrink-0 no-print">
         <button type="button" onclick="printAdminReceipt()"
           class="py-2 px-2 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1">
@@ -866,23 +861,22 @@
           Tutup
         </button>
       </div>
-
     </div>
   </div>
 
   <!-- MODAL EDIT VARIAN MENU -->
   <div id="editProductModal"
     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-3.5">
+    <div class="absolute inset-0" onclick="closeEditProductModal()"></div>
+    <div class="relative z-10 bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-3.5">
       <div class="flex items-center justify-between">
         <h3 class="font-extrabold text-sm text-stone-900 flex items-center gap-2">
           <span>✏️</span> Edit Detail Varian
         </h3>
-        <button onclick="closeEditProductModal()"
+        <button type="button" onclick="closeEditProductModal()" aria-label="Tutup modal edit varian"
           class="w-7 h-7 rounded-full bg-stone-100 text-stone-500 text-xs font-bold hover:bg-stone-200 transition">✕</button>
       </div>
 
-      <!-- Preview Foto Saat Ini -->
       <div id="editProdImagePreviewBox" class="hidden">
         <p class="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Foto Saat Ini</p>
         <div
@@ -894,19 +888,19 @@
       <form onsubmit="handleEditProduct(event)" class="space-y-2.5 text-xs">
         <input type="hidden" id="editProdId">
         <div>
-          <label class="block font-bold text-stone-700 mb-1">Nama Varian *</label>
+          <label for="editProdName" class="block font-bold text-stone-700 mb-1">Nama Varian *</label>
           <input type="text" id="editProdName" required
             class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block font-bold text-stone-700 mb-1">Harga (Rp) *</label>
+            <label for="editProdPrice" class="block font-bold text-stone-700 mb-1">Harga (Rp) *</label>
             <input type="number" id="editProdPrice" required min="0" step="500"
               oninput="if(this.value !== '' && Number(this.value) < 0) this.value = 0;"
               class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
           </div>
           <div>
-            <label class="block font-bold text-stone-700 mb-1">Kategori</label>
+            <label for="editProdCategory" class="block font-bold text-stone-700 mb-1">Kategori</label>
             <select id="editProdCategory"
               class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500">
               <option value="special">Spesial Mix</option>
@@ -916,16 +910,14 @@
           </div>
         </div>
         <div>
-          <label class="block font-bold text-stone-700 mb-1">Deskripsi Singkat</label>
+          <label for="editProdDesc" class="block font-bold text-stone-700 mb-1">Deskripsi Singkat</label>
           <textarea id="editProdDesc" rows="2"
             class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500"></textarea>
         </div>
         <div>
-          <label class="block font-bold text-stone-700 mb-1">URL Foto / Upload Foto Baru</label>
-          <!-- Opsi 1: Input URL langsung -->
+          <label for="editProdImageUrl" class="block font-bold text-stone-700 mb-1">URL Foto / Upload Foto Baru</label>
           <input type="url" id="editProdImageUrl" placeholder="https://images.unsplash.com/..."
             class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500 mb-1.5">
-          <!-- Opsi 2: Upload file gambar ke Supabase Storage -->
           <div class="flex items-center gap-2">
             <span class="text-[10px] text-stone-400 font-bold uppercase">atau</span>
             <div class="flex-1 h-px bg-stone-200"></div>
@@ -937,7 +929,6 @@
             ingin mempertahankan foto saat ini.</p>
         </div>
 
-        <!-- Error display -->
         <p id="editProdError" class="text-rose-600 text-[11px] font-bold hidden"></p>
 
         <button type="submit" id="btnSaveEditProduct"
@@ -947,6 +938,7 @@
       </form>
     </div>
   </div>
+
   <!-- MODAL KONFIRMASI HAPUS PESANAN -->
   <div id="deleteOrderModal"
     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
@@ -975,6 +967,7 @@
       </div>
     </div>
   </div>
+
   <!-- MODAL KONFIRMASI HAPUS MENU -->
   <div id="deleteProductModal"
     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4">
@@ -1004,20 +997,97 @@
     </div>
   </div>
 
-  <!-- TOAST -->
+  <!-- MODAL CEK LOKASI PENGIRIMAN (ADMIN) -->
+  <div id="adminMapModal"
+    class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+    <div class="absolute inset-0" onclick="closeAdminMapModal()"></div>
+    <div id="adminMapBox"
+      class="relative z-10 bg-white w-full max-w-md rounded-2xl shadow-xl border border-stone-200 overflow-hidden scale-95 transition-transform duration-200">
+      <div class="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
+        <div>
+          <h3 class="font-extrabold text-stone-900 text-sm">📍 Cek Titik Lokasi Pengiriman</h3>
+          <p id="adminMapMetaText" class="text-[11px] font-bold text-brand-600 mt-0.5">-</p>
+        </div>
+        <button type="button" onclick="closeAdminMapModal()" aria-label="Tutup peta lokasi"
+          class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center font-bold text-sm">✕</button>
+      </div>
+
+      <div class="p-4 space-y-3">
+        <div id="adminMapContainer" class="w-full h-60 rounded-xl border border-stone-200 bg-stone-100 overflow-hidden">
+        </div>
+        <div class="p-2.5 rounded-xl bg-stone-50 border border-stone-200/80 text-xs text-stone-700 leading-relaxed">
+          <span class="font-bold text-stone-900 block mb-0.5">Alamat & Patokan:</span>
+          <span id="adminMapAddressText">-</span>
+        </div>
+        <a id="adminMapGoogleLink" href="#" target="_blank" rel="noopener noreferrer"
+          class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition">
+          <span>🗺️</span>
+          <span>Buka Navigasi Rute di Google Maps</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
   <div id="adminToast"
-    class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-stone-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-xl pointer-events-none opacity-0 transition-opacity duration-200">
+    class="fixed top-5 left-1/2 -translate-x-1/2 z-[70] bg-stone-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-xl pointer-events-none opacity-0 transition-opacity duration-200">
     Tersimpan
   </div>
 
+  <!-- ==================== 4. JAVASCRIPT ADMIN ==================== -->
   <script>
-    // --- 1. Helper UI & Toggle Password (Diletakkan di atas agar selalu siap dipanggil) ---
+    // --- 1. Helper Keamanan (XSS Protection) & Utilitas Umum ---
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '\x26amp;')
+        .replace(/</g, '\x26lt;')
+        .replace(/>/g, '\x26gt;')
+        .replace(/"/g, '\x26quot;')
+        .replace(/'/g, '\x26#39;');
+    }
+
+    function escapeAttr(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '\\u0022')
+        .replace(/</g, '\\u003C')
+        .replace(/>/g, '\\u003E')
+        .replace(/&/g, '\\u0026');
+    }
+
+    function sanitizeUrl(url) {
+      if (!url) return '';
+      const trimmed = String(url).trim();
+      if (/^(https?:\/\/|img\/|\.\/|data:image\/)/i.test(trimmed)) {
+        return escapeHtml(trimmed);
+      }
+      return '';
+    }
+
+    function parseOrderItems(items) {
+      if (Array.isArray(items)) return items;
+      if (typeof items === 'string') {
+        try {
+          const parsed = JSON.parse(items);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (_) {
+          return [];
+        }
+      }
+      return [];
+    }
+
+    let adminToastTimer = null;
     function showAdminToast(msg) {
       const el = document.getElementById('adminToast');
       if (!el) return;
       el.textContent = msg;
       el.classList.remove('opacity-0');
-      setTimeout(() => el.classList.add('opacity-0'), 2000);
+      if (adminToastTimer) clearTimeout(adminToastTimer);
+      adminToastTimer = setTimeout(() => el.classList.add('opacity-0'), 2400);
     }
 
     function formatRupiah(num) {
@@ -1030,15 +1100,10 @@
       const eyeHide = document.getElementById('eyeIconHide');
       if (!input || !eyeShow || !eyeHide) return;
 
-      if (input.type === 'password') {
-        input.type = 'text';
-        eyeShow.classList.add('hidden');
-        eyeHide.classList.remove('hidden');
-      } else {
-        input.type = 'password';
-        eyeShow.classList.remove('hidden');
-        eyeHide.classList.add('hidden');
-      }
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      eyeShow.classList.toggle('hidden', isHidden);
+      eyeHide.classList.toggle('hidden', !isHidden);
     }
 
     function togglePasswordVisibility(inputId, showIconId, hideIconId) {
@@ -1047,26 +1112,40 @@
       const eyeHide = document.getElementById(hideIconId);
       if (!input || !eyeShow || !eyeHide) return;
 
-      if (input.type === 'password') {
-        input.type = 'text';
-        eyeShow.classList.add('hidden');
-        eyeHide.classList.remove('hidden');
-      } else {
-        input.type = 'password';
-        eyeShow.classList.remove('hidden');
-        eyeHide.classList.add('hidden');
-      }
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      eyeShow.classList.toggle('hidden', isHidden);
+      eyeHide.classList.toggle('hidden', !isHidden);
     }
 
     window.toggleAdminPassword = toggleAdminPassword;
     window.togglePasswordVisibility = togglePasswordVisibility;
 
-    // --- 2. Cek Sesi Login & Preferensi "Ingat Saya" Saat Halaman Dibuka ---
+    // --- 2. Inisialisasi Halaman, Sesi Login & Event Listener Global ---
     const REMEMBER_ME_KEY = 'mellowbites_remember_me';
     const SAVED_ADMIN_EMAIL_KEY = 'mellowbites_saved_admin_email';
+    let currentAdminUser = null;
+    let ordersSubscription = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
-      // Pulihkan status centang "Ingat Saya" & email tersimpan
+      // A. Setup Cropper Drag/Touch pada bingkai lingkaran
+      initAvatarCropEvents();
+
+      // B. Tutup modal yang sedang terbuka jika menekan tombol Escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeAvatarCropModal();
+          closeProfileModal();
+          closeAddProductModal();
+          closeEditProductModal();
+          closeAdminReceiptModal();
+          closeDeleteOrderModal();
+          closeDeleteProductModal();
+          closeAdminMapModal();
+        }
+      });
+
+      // C. Pulihkan status centang "Ingat Saya" & email tersimpan
       try {
         const savedRemember = localStorage.getItem(REMEMBER_ME_KEY);
         const rememberEl = document.getElementById('rememberMeCheckbox');
@@ -1081,8 +1160,9 @@
         }
       } catch (_) { }
 
+      // D. Validasi koneksi Supabase
       const errEl = document.getElementById('loginError');
-      if (!sbClient) {
+      if (typeof sbClient === 'undefined' || !sbClient) {
         if (errEl) {
           errEl.textContent = 'Konfigurasi Supabase belum diisi di js/supabase-config.js';
           errEl.classList.remove('hidden');
@@ -1090,11 +1170,11 @@
         return;
       }
 
+      // E. Cek sesi login admin aktif
       try {
         const { data: { session } } = await sbClient.auth.getSession();
         if (session && session.user) {
           showDashboard(session.user);
-          // Ambil data user_metadata terbaru dari server (agar sinkron dengan perubahan dari perangkat lain)
           const { data: freshData } = await sbClient.auth.getUser();
           if (freshData && freshData.user) {
             currentAdminUser = freshData.user;
@@ -1109,19 +1189,24 @@
         if (session && session.user) {
           showDashboard(session.user);
         } else {
+          currentAdminUser = null;
+          if (ordersSubscription && sbClient) {
+            sbClient.removeChannel(ordersSubscription);
+            ordersSubscription = null;
+          }
           document.getElementById('loginView').classList.remove('hidden');
           document.getElementById('dashboardView').classList.add('hidden');
         }
       });
     });
 
-    // --- 3. Proses Login Admin ---
+    // --- 3. Proses Login & Logout Admin ---
     async function handleAdminLogin(e) {
       e.preventDefault();
       const errEl = document.getElementById('loginError');
       const btn = document.getElementById('btnLogin');
 
-      if (!sbClient) {
+      if (typeof sbClient === 'undefined' || !sbClient) {
         if (errEl) {
           errEl.textContent = 'Koneksi database Supabase belum siap.';
           errEl.classList.remove('hidden');
@@ -1141,7 +1226,6 @@
         return;
       }
 
-      // Simpan preferensi "Ingat Saya" sebelum signInWithPassword agar storage token langsung menyesuaikan
       try {
         localStorage.setItem(REMEMBER_ME_KEY, String(isRemember));
         if (isRemember) {
@@ -1158,9 +1242,6 @@
       try {
         const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
 
-        btn.disabled = false;
-        btn.textContent = 'Masuk ke Dashboard';
-
         if (error) {
           if (errEl) {
             errEl.textContent = 'Email atau password salah: ' + error.message;
@@ -1171,25 +1252,32 @@
           showAdminToast('Berhasil masuk ke Dashboard');
         }
       } catch (err) {
-        btn.disabled = false;
-        btn.textContent = 'Masuk ke Dashboard';
         if (errEl) {
           errEl.textContent = 'Gagal masuk: ' + (err.message || 'Terjadi gangguan koneksi');
           errEl.classList.remove('hidden');
         }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Masuk ke Dashboard';
       }
     }
 
     window.handleAdminLogin = handleAdminLogin;
 
     async function handleAdminLogout() {
-      if (!sbClient) return;
+      if (typeof sbClient === 'undefined' || !sbClient) return;
+      if (ordersSubscription) {
+        sbClient.removeChannel(ordersSubscription);
+        ordersSubscription = null;
+      }
+      currentAdminUser = null;
       await sbClient.auth.signOut();
       showAdminToast('Berhasil keluar');
     }
 
-    let currentAdminUser = null;
-    let pendingCroppedAvatar = null; // { blob, dataUrl } hasil crop lingkaran
+    // --- 4. Profil Pengelola & Crop Foto Profil ---
+    let pendingCroppedAvatar = null;
+    let isProfileEditMode = false;
 
     function isProfileModalOpen() {
       const modal = document.getElementById('profileModal');
@@ -1203,16 +1291,14 @@
       const jobTitle = meta.job_title || 'Owner / Admin';
       const phone = meta.phone || '';
       const address = meta.address || '';
-      const bio = meta.bio || 'Pengelola operasional & pesanan Es Gabin Mellowbites.';
+      const bio = meta.bio || 'Pengelola operasional & pesanan Gabin Ice Bar Mellowbites.';
       const avatarUrl = meta.avatar_url || 'img/logo.webp';
 
-      // Header Dashboard
       const headerEmailEl = document.getElementById('adminUserEmail');
       if (headerEmailEl) {
         headerEmailEl.textContent = meta.full_name ? `${meta.full_name} • ${jobTitle}` : (user.email || 'admin');
       }
 
-      // Header Kartu Profil
       const dispName = document.getElementById('profileDisplayName');
       const dispRole = document.getElementById('profileDisplayRole');
       const dispEmail = document.getElementById('profileUserEmail');
@@ -1223,15 +1309,17 @@
       if (dispEmail) dispEmail.textContent = user.email || 'admin';
       if (dispBio) dispBio.textContent = bio;
 
-      // Cegah menimpa draft ketikan & foto baru jika modal sedang dibuka (misal saat balik dari galeri HP)
       if (isProfileModalOpen() && !forceOverwriteForm) {
         return;
       }
 
       const avatarPrev = document.getElementById('profileAvatarPreview');
       if (avatarPrev && !pendingCroppedAvatar) {
+        avatarPrev.onerror = () => {
+          avatarPrev.onerror = null;
+          avatarPrev.src = 'img/logo.webp';
+        };
         avatarPrev.src = avatarUrl;
-        avatarPrev.onerror = () => { avatarPrev.src = 'img/logo.webp'; };
       }
 
       const inName = document.getElementById('profFullName');
@@ -1255,7 +1343,6 @@
       document.getElementById('loginView').classList.add('hidden');
       document.getElementById('dashboardView').classList.remove('hidden');
 
-      // Jangan reset form profil jika hanya event fokus ulang tab browser
       syncProfileUI(user, !isSameUser);
 
       if (!isSameUser) {
@@ -1266,8 +1353,6 @@
         checkAdminNotificationState();
       }
     }
-
-    let isProfileEditMode = false;
 
     function setProfileEditMode(isEditing) {
       isProfileEditMode = isEditing;
@@ -1322,7 +1407,6 @@
         syncProfileUI(currentAdminUser, true);
       }
 
-      // Selalu mulai dalam mode baca (terkunci) agar aman dari salah pencet
       setProfileEditMode(false);
 
       const form = document.getElementById('profilePasswordForm');
@@ -1334,7 +1418,6 @@
       modal.classList.remove('hidden');
       modal.classList.add('flex');
 
-      // Tarik pembaruan terbaru dari server Supabase di latar belakang
       if (sbClient) {
         try {
           const { data } = await sbClient.auth.getUser();
@@ -1441,7 +1524,6 @@
       const oldScale = cropState.baseScale * cropState.zoom;
       const newScale = cropState.baseScale * newZoom;
 
-      // Zoom tetap terpusat di tengah lingkaran
       const centerX = CROP_VIEW_SIZE / 2;
       const centerY = CROP_VIEW_SIZE / 2;
       const imgPointX = (centerX - cropState.offsetX) / oldScale;
@@ -1486,6 +1568,10 @@
 
       const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
       canvas.toBlob((blob) => {
+        if (!blob) {
+          showAdminToast('Gagal memproses foto profil');
+          return;
+        }
         pendingCroppedAvatar = { blob, dataUrl };
         const prev = document.getElementById('profileAvatarPreview');
         if (prev) prev.src = dataUrl;
@@ -1494,8 +1580,7 @@
       }, 'image/jpeg', 0.85);
     }
 
-    // Event drag sentuh (HP) & mouse (Laptop/PC) pada bingkai lingkaran
-    document.addEventListener('DOMContentLoaded', () => {
+    function initAvatarCropEvents() {
       const viewport = document.getElementById('avatarCropViewport');
       if (!viewport) return;
 
@@ -1535,7 +1620,7 @@
         }
       }, { passive: false });
       viewport.addEventListener('touchend', endDrag);
-    });
+    }
 
     async function handleUpdateProfileData(e) {
       e.preventDefault();
@@ -1556,29 +1641,19 @@
 
         let avatar_url = currentAdminUser.user_metadata?.avatar_url || '';
 
-        if (pendingCroppedAvatar) {
-          const { blob, dataUrl } = pendingCroppedAvatar;
-          let uploaded = false;
+        if (pendingCroppedAvatar && pendingCroppedAvatar.blob) {
+          const filePath = `avatar-${currentAdminUser.id}-${Date.now()}.jpg`;
+          const { error: upErr } = await sbClient.storage
+            .from('product-images')
+            .upload(filePath, pendingCroppedAvatar.blob, { contentType: 'image/jpeg', upsert: true });
 
-          if (blob) {
-            try {
-              const filePath = `avatar-${currentAdminUser.id}-${Date.now()}.jpg`;
-              const { error: upErr } = await sbClient.storage
-                .from('product-images')
-                .upload(filePath, blob, { contentType: 'image/jpeg', upsert: true });
-
-              if (!upErr) {
-                const { data: pubData } = sbClient.storage.from('product-images').getPublicUrl(filePath);
-                if (pubData?.publicUrl) {
-                  avatar_url = pubData.publicUrl;
-                  uploaded = true;
-                }
-              }
-            } catch (_) { }
+          if (upErr) {
+            throw new Error('Gagal mengunggah foto ke Storage: ' + upErr.message);
           }
 
-          if (!uploaded && dataUrl) {
-            avatar_url = dataUrl;
+          const { data: pubData } = sbClient.storage.from('product-images').getPublicUrl(filePath);
+          if (pubData?.publicUrl) {
+            avatar_url = pubData.publicUrl;
           }
         }
 
@@ -1605,7 +1680,7 @@
           showAdminToast('Profil berhasil diperbarui!');
         }
       } catch (err) {
-        showAdminToast('Terjadi kesalahan: ' + err.message);
+        showAdminToast(err.message || 'Terjadi kesalahan saat menyimpan profil');
       } finally {
         if (btn) {
           btn.disabled = false;
@@ -1645,9 +1720,6 @@
       try {
         const { error } = await sbClient.auth.updateUser({ password: newPass });
 
-        btn.disabled = false;
-        btn.textContent = 'Perbarui Kata Sandi';
-
         if (error) {
           errEl.textContent = 'Gagal mengubah kata sandi: ' + error.message;
           errEl.classList.remove('hidden');
@@ -1658,10 +1730,11 @@
           showAdminToast('Kata sandi berhasil diperbarui');
         }
       } catch (err) {
-        btn.disabled = false;
-        btn.textContent = 'Perbarui Kata Sandi';
         errEl.textContent = 'Terjadi kesalahan: ' + err.message;
         errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Perbarui Kata Sandi';
       }
     }
 
@@ -1679,30 +1752,25 @@
         : 'py-2 px-3 rounded-xl text-xs font-bold text-stone-600 hover:text-stone-900 transition flex items-center justify-center gap-1.5';
     }
 
-    // 2. Kelola Status Buka / Tutup Toko & Banner Promo
+    // --- 5. Kelola Status Buka / Tutup Toko & Banner Promo ---
     async function loadStoreSettings() {
       const { data } = await sbClient.from('store_settings').select('*').eq('id', 1).single();
       if (data) {
         document.getElementById('toggleStoreOpen').checked = data.is_open;
         updateAdminStoreBadge(data.is_open);
 
-        // Isi form input banner promo dari Supabase
         const badgeInput = document.getElementById('adminPromoBadge');
         const titleInput = document.getElementById('adminPromoTitle');
         const descInput = document.getElementById('adminPromoDesc');
 
         if (badgeInput) {
-          badgeInput.value = data.promo_badge !== undefined && data.promo_badge !== null && data.promo_badge !== ''
-            ? data.promo_badge
-            : '❄️ 100% Homemade & Halal';
+          badgeInput.value = data.promo_badge ? data.promo_badge : '❄️ 100% Homemade & Halal';
         }
         if (titleInput) {
-          titleInput.value = data.promo_title !== undefined && data.promo_title !== null && data.promo_title !== ''
-            ? data.promo_title
-            : 'Sensasi Es Krim Gabin Lumer!';
+          titleInput.value = data.promo_title ? data.promo_title : 'Sensasi Es Krim Gabin Lumer!';
         }
         if (descInput) {
-          descInput.value = data.promo_desc !== undefined && data.promo_desc !== null && data.promo_desc !== ''
+          descInput.value = data.promo_desc
             ? data.promo_desc
             : 'Renyah di luar, creamy dingin lumer di dalam. Praktis & bikin nagih!';
         }
@@ -1747,32 +1815,33 @@
         btn.textContent = 'Menyimpan...';
       }
 
-      const { error } = await sbClient
-        .from('store_settings')
-        .update({
-          promo_badge,
-          promo_title,
-          promo_desc,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', 1);
+      try {
+        const { error } = await sbClient
+          .from('store_settings')
+          .update({
+            promo_badge,
+            promo_title,
+            promo_desc,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', 1);
 
-      if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = '💾 Simpan Banner Promo';
-      }
-
-      if (error) {
-        showAdminToast('Gagal menyimpan banner: ' + error.message);
-      } else {
-        showAdminToast('Banner promo berhasil diperbarui!');
+        if (error) {
+          showAdminToast('Gagal menyimpan banner: ' + error.message);
+        } else {
+          showAdminToast('Banner promo berhasil diperbarui!');
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '💾 Simpan Banner Promo';
+        }
       }
     }
 
-    // 3. Kelola Produk (Stok Ready/Habis, Edit Harga & Hapus)
+    // --- 6. Kelola Produk (Stok Ready/Habis, Edit Harga & Hapus) ---
     let adminProductsCache = [];
 
-    // 3. Kelola Produk (Stok Ready/Habis, Edit Harga & Hapus)
     async function loadAdminProducts() {
       const { data, error } = await sbClient.from('products').select('*').order('sort_order', { ascending: true });
       const container = document.getElementById('adminProductList');
@@ -1786,49 +1855,49 @@
 
       container.innerHTML = data.map(p => {
         const isAvail = p.is_available !== false && p.is_available !== 'false';
-        const safeId = String(p.id).replace(/'/g, "\\'");
-        const safeName = String(p.name).replace(/'/g, "\\'");
-        const hasImg = p.image_url && p.image_url.length > 5;
+        const safeIdAttr = escapeAttr(String(p.id));
+        const safeNameAttr = escapeAttr(String(p.name));
+        const safeNameHtml = escapeHtml(p.name);
+        const safeImgUrl = sanitizeUrl(p.image_url);
+        const hasImg = safeImgUrl.length > 5;
+
         return `
         <div class="bg-white p-3.5 rounded-2xl border ${isAvail ? 'border-stone-200' : 'border-rose-200 bg-rose-50/30'} shadow-2xs flex items-center gap-3">
-          <!-- Thumbnail -->
           <div class="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-stone-100 border border-stone-200 flex items-center justify-center">
             ${hasImg
-            ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-lg\\'>🧁</span>'">`
+            ? `<img src="${safeImgUrl}" alt="${safeNameHtml}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'text-lg\\'>🧁</span>'">`
             : '<span class="text-lg">🧁</span>'}
           </div>
 
-          <!-- Info -->
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5">
-              <h4 class="font-extrabold text-xs sm:text-sm text-stone-900 truncate">${p.name}</h4>
+              <h4 class="font-extrabold text-xs sm:text-sm text-stone-900 truncate">${safeNameHtml}</h4>
               <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isAvail ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}">
                 ${isAvail ? 'Ready' : 'Habis'}
               </span>
             </div>
             <div class="flex items-center gap-2 mt-1.5">
               <span class="text-[11px] text-stone-500">Harga: Rp</span>
-              <input type="number" value="${p.price}" min="0" step="500"
+              <input type="number" value="${Number(p.price || 0)}" min="0" step="500"
                 oninput="if(this.value !== '' && Number(this.value) < 0) this.value = 0;"
-                onchange="updateProductPrice('${safeId}', this.value, this)"
+                onchange="updateProductPrice('${safeIdAttr}', this.value, this)"
                 class="w-24 text-xs font-bold px-2 py-1 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:border-brand-500">
             </div>
           </div>
 
-          <!-- Tombol Aksi -->
           <div class="flex items-center gap-2 shrink-0">
-            <button onclick="toggleProductStock('${safeId}', ${!isAvail})"
+            <button type="button" onclick="toggleProductStock('${safeIdAttr}', ${!isAvail})"
               class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${isAvail ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}">
               ${isAvail ? 'Set Habis' : 'Set Ready'}
             </button>
             <div class="flex flex-col items-center gap-1.5">
-              <button onclick="deleteProduct('${safeId}', '${safeName}')"
-                title="Hapus varian"
+              <button type="button" onclick="deleteProduct('${safeIdAttr}', '${safeNameAttr}')"
+                title="Hapus varian" aria-label="Hapus varian ${safeNameHtml}"
                 class="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold flex items-center justify-center transition">
                 🗑
               </button>
-              <button onclick="openEditProductModal('${safeId}')"
-                title="Edit detail & foto"
+              <button type="button" onclick="openEditProductModal('${safeIdAttr}')"
+                title="Edit detail & foto" aria-label="Edit detail ${safeNameHtml}"
                 class="w-7 h-7 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-600 text-xs font-bold flex items-center justify-center transition">
                 ✏️
               </button>
@@ -1869,7 +1938,7 @@
       const infoEl = document.getElementById('deleteProductInfoText');
       if (infoEl) {
         infoEl.innerHTML = name
-          ? `Varian menu <strong class="text-stone-800">${name}</strong> akan dihapus secara permanen dari katalog.`
+          ? `Varian menu <strong class="text-stone-800">${escapeHtml(name)}</strong> akan dihapus secara permanen dari katalog.`
           : 'Varian menu ini akan dihapus secara permanen.';
       }
 
@@ -1929,31 +1998,49 @@
 
     async function handleAddProduct(e) {
       e.preventDefault();
-      const name = document.getElementById('newProdName').value.trim();
-      let price = parseInt(document.getElementById('newProdPrice').value, 10);
-      if (isNaN(price) || price < 0) price = 0;
-      const category = document.getElementById('newProdCategory').value;
-      const description = document.getElementById('newProdDesc').value.trim();
-      const image_url = document.getElementById('newProdImage').value.trim();
-      const id = 'gabin-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString().slice(-3);
+      const btn = document.getElementById('btnAddProduct');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan...';
+      }
 
-      const { error } = await sbClient.from('products').insert([{
-        id, name, price, category, description,
-        image_url: image_url || null,
-        is_available: true,
-        sort_order: 99
-      }]);
+      try {
+        const name = document.getElementById('newProdName').value.trim();
+        let price = parseInt(document.getElementById('newProdPrice').value, 10);
+        if (isNaN(price) || price < 0) price = 0;
+        const category = document.getElementById('newProdCategory').value;
+        const description = document.getElementById('newProdDesc').value.trim();
+        const image_url = document.getElementById('newProdImage').value.trim();
+        const id = 'gabin-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString().slice(-3);
 
-      if (error) {
-        showAdminToast('Gagal menambah menu: ' + error.message);
-      } else {
-        showAdminToast('Varian baru ditambahkan!');
-        e.target.reset();
-        closeAddProductModal();
-        loadAdminProducts();
+        const { error } = await sbClient.from('products').insert([{
+          id,
+          name,
+          price,
+          category,
+          description,
+          image_url: image_url || null,
+          is_available: true,
+          sort_order: 99
+        }]);
+
+        if (error) {
+          showAdminToast('Gagal menambah menu: ' + error.message);
+        } else {
+          showAdminToast('Varian baru ditambahkan!');
+          e.target.reset();
+          closeAddProductModal();
+          loadAdminProducts();
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Simpan Menu Baru';
+        }
       }
     }
 
+    // --- 7. Kelola Rekap Pesanan Masuk, Filter & Pagination ---
     let adminOrdersCache = [];
     let currentAdminReceiptOrder = null;
 
@@ -1971,11 +2058,10 @@
     }
 
     let adminOrderStatusFilter = 'all';
-    let orderStatPeriod = 'today'; // 'today' | 'all'
+    let adminOrderMethodFilter = 'all';
+    let orderStatPeriod = 'today';
     const ORDERS_PER_PAGE = 10;
     let currentOrderPage = 1;
-
-    let adminOrderMethodFilter = 'all'; // 'all' | 'pickup' | 'delivery'
 
     function setAdminOrderMethodFilter(method) {
       adminOrderMethodFilter = method;
@@ -2001,7 +2087,6 @@
       const totalBadge = document.getElementById('prepTotalPcsBadge');
       if (!container || !totalBadge) return;
 
-      // Hitung semua pesanan yang masih 'Menunggu Konfirmasi' sesuai periode aktif (Hari Ini / Semua)
       const pendingOrders = (adminOrdersCache || []).filter(o => {
         if (o.status !== 'Menunggu Konfirmasi') return false;
         if (orderStatPeriod === 'today') return isOrderCreatedToday(o);
@@ -2012,7 +2097,7 @@
       let grandTotalPcs = 0;
 
       pendingOrders.forEach(o => {
-        const items = Array.isArray(o.items) ? o.items : [];
+        const items = parseOrderItems(o.items);
         items.forEach(item => {
           const name = item.name || 'Varian';
           const qty = Number(item.qty || 0);
@@ -2034,7 +2119,7 @@
 
       container.innerHTML = sortedVariants.map(([name, qty]) => `
         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white border border-amber-200/90 text-[11px] font-bold text-stone-800 shadow-2xs">
-          <span>${name}</span>
+          <span>${escapeHtml(name)}</span>
           <span class="px-1.5 py-0.2 rounded-md bg-brand-500 text-white font-extrabold text-[10px]">${qty}</span>
         </span>
       `).join('');
@@ -2049,7 +2134,7 @@
 
     function setOrderStatPeriod(period) {
       orderStatPeriod = period;
-      currentOrderPage = 1; // Reset ke halaman 1 saat ganti filter Hari Ini / Semua
+      currentOrderPage = 1;
 
       const btnToday = document.getElementById('btnStatToday');
       const btnAll = document.getElementById('btnStatAll');
@@ -2069,7 +2154,7 @@
 
     function setAdminOrderFilter(status) {
       adminOrderStatusFilter = status;
-      currentOrderPage = 1; // Reset ke halaman 1 saat ganti filter status
+      currentOrderPage = 1;
 
       const mapBtn = {
         'all': document.getElementById('filterOrderAll'),
@@ -2103,7 +2188,6 @@
       renderFilteredAdminOrders();
     }
 
-    // Menghasilkan susunan nomor halaman ringkas (contoh: [1, '...', 4, 5, 6, '...', 12])
     function getPaginationNumbers(current, total) {
       if (total <= 5) {
         return Array.from({ length: total }, (_, i) => i + 1);
@@ -2193,7 +2277,7 @@
       });
 
       if (filtered.length === 0) {
-        const emptyMsg = orderStatPeriod === 'today' && !query && adminOrderStatusFilter === 'all'
+        const emptyMsg = orderStatPeriod === 'today' && !query && adminOrderStatusFilter === 'all' && adminOrderMethodFilter === 'all'
           ? 'Belum ada pesanan masuk untuk hari ini.'
           : 'Tidak ada pesanan yang cocok dengan filter/pencarian.';
         container.innerHTML = `<div class="bg-white p-8 rounded-2xl border border-stone-200 text-center text-xs text-stone-400">${emptyMsg}</div>`;
@@ -2209,23 +2293,26 @@
       const paginatedOrders = filtered.slice(startIndex, startIndex + ORDERS_PER_PAGE);
 
       container.innerHTML = paginatedOrders.map(o => {
-        const itemsText = (o.items || []).map(i => `${i.name} (${i.qty}x)`).join(', ');
+        const items = parseOrderItems(o.items);
+        const itemsText = items.map(i => `${escapeHtml(i.name)} (${Number(i.qty || 0)}x)`).join(', ') || '-';
         const isDone = o.status === 'Selesai';
         const isDelivery = o.order_method === 'delivery';
         const loc = isDelivery ? parseDeliveryInfo(o.delivery_address) : null;
+        const safeIdAttr = escapeAttr(String(o.id));
+        const safeProofUrl = sanitizeUrl(o.payment_proof_url);
 
         return `
           <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs space-y-2 text-xs">
             <div class="flex items-start justify-between gap-2">
               <div>
                 <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="font-mono font-extrabold text-[11px] text-brand-600">${o.order_number}</span>
+                  <span class="font-mono font-extrabold text-[11px] text-brand-600">${escapeHtml(o.order_number)}</span>
                   <span class="text-[10px] text-stone-400">• ${formatAdminDateTime(o.created_at)}</span>
                 </div>
-                <h4 class="font-extrabold text-stone-900 text-sm mt-0.5">${o.customer_name}</h4>
+                <h4 class="font-extrabold text-stone-900 text-sm mt-0.5">${escapeHtml(o.customer_name)}</h4>
               </div>
               <span class="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                ${o.status}
+                ${escapeHtml(o.status)}
               </span>
             </div>
 
@@ -2236,43 +2323,43 @@
             <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-500">
               <span>
                 ${!isDelivery
-            ? '🏬 Ambil (' + o.pickup_time + ')'
-            : `🛵 Antar: <strong class="text-stone-700">${loc.cleanAddress}</strong>${loc.metaInfo ? ` <span class="text-brand-600 font-bold">(${loc.metaInfo})</span>` : ''}`
+            ? '🏬 Ambil (' + escapeHtml(o.pickup_time || '-') + ')'
+            : `🛵 Antar: <strong class="text-stone-700">${escapeHtml(loc.cleanAddress)}</strong>${loc.metaInfo ? ` <span class="text-brand-600 font-bold">(${escapeHtml(loc.metaInfo)})</span>` : ''}`
           }
               </span>
-              <span class="font-extrabold text-stone-900 uppercase">${o.payment_method} • ${formatRupiah(o.total_price)}</span>
+              <span class="font-extrabold text-stone-900 uppercase">${escapeHtml(o.payment_method)} • ${formatRupiah(o.total_price)}</span>
             </div>
 
             <div class="pt-1.5 border-t border-stone-100 flex items-center justify-end gap-2 flex-wrap">
               ${isDelivery && loc && loc.coords ? `
-                <button type="button" onclick="openAdminOrderMap(${o.id})"
+                <button type="button" onclick="openAdminOrderMap('${safeIdAttr}')"
                   class="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-bold text-[11px] transition flex items-center gap-1">
                   📍 Cek Peta
                 </button>
               ` : ''}
-              ${o.payment_proof_url ? `
-                <a href="${o.payment_proof_url}" target="_blank" rel="noopener noreferrer"
+              ${safeProofUrl ? `
+                <a href="${safeProofUrl}" target="_blank" rel="noopener noreferrer"
                   class="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-bold text-[11px] transition flex items-center gap-1"
                   title="Buka foto bukti transfer QRIS">
                   🖼 Bukti TF
                 </a>
               ` : ''}
-              <button onclick="openAdminReceipt(${o.id})"
+              <button type="button" onclick="openAdminReceipt('${safeIdAttr}')"
                 class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-[11px] transition flex items-center gap-1.5"
                 title="Cek struk digital dan cetak">
                 🧾 Cek Struk
               </button>
               ${!isDone ? `
-                <button onclick="markOrderDone(${o.id})"
+                <button type="button" onclick="markOrderDone('${safeIdAttr}')"
                   class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition">
                   ✓ Tandai Lunas & Selesai
                 </button>
               ` : `
-                <button onclick="markOrderPending(${o.id})"
+                <button type="button" onclick="markOrderPending('${safeIdAttr}')"
                   class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold text-[11px] transition">
                   ↩ Tandai Belum Selesai
                 </button>
-                <button onclick="deleteOrder(${o.id})"
+                <button type="button" onclick="deleteOrder('${safeIdAttr}')"
                   class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-[11px] transition"
                   title="Hapus pesanan">
                   🗑 Hapus
@@ -2305,7 +2392,7 @@
 
       filteredOrders.forEach(o => {
         totalRevenue += Number(o.total_price || 0);
-        const items = Array.isArray(o.items) ? o.items : [];
+        const items = parseOrderItems(o.items);
         let orderPcs = 0;
 
         items.forEach(item => {
@@ -2335,24 +2422,27 @@
       updateProductionSummary();
     }
 
-    // 4. Kelola Rekap Pesanan Masuk
     async function loadAdminOrders() {
+      const container = document.getElementById('adminOrderList');
+      const badge = document.getElementById('pendingOrderBadge');
+
       const { data, error } = await sbClient
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(1000);
 
-      adminOrdersCache = data || [];
-      updateOrderStats();
-
-      const container = document.getElementById('adminOrderList');
-      const badge = document.getElementById('pendingOrderBadge');
-
       if (error || !data) {
-        container.innerHTML = '<p class="text-xs text-rose-600 text-center py-6">Gagal memuat pesanan.</p>';
+        if (adminOrdersCache.length === 0) {
+          container.innerHTML = '<p class="text-xs text-rose-600 text-center py-6">Gagal memuat pesanan.</p>';
+        } else {
+          showAdminToast('Gagal menyegarkan data pesanan');
+        }
         return;
       }
+
+      adminOrdersCache = data;
+      updateOrderStats();
 
       const pendingCount = data.filter(o => o.status === 'Menunggu Konfirmasi').length;
       if (pendingCount > 0) {
@@ -2365,9 +2455,9 @@
       renderFilteredAdminOrders();
     }
 
-    // 4b. Modal Cek Struk & Cetak untuk Admin
+    // --- 8. Modal Cek Struk & Cetak untuk Admin ---
     function openAdminReceipt(orderId) {
-      const order = adminOrdersCache.find(o => o.id === orderId);
+      const order = adminOrdersCache.find(o => String(o.id) === String(orderId));
       if (!order) {
         showAdminToast('Data pesanan tidak ditemukan');
         return;
@@ -2385,9 +2475,9 @@
       const loc = order.order_method === 'delivery' ? parseDeliveryInfo(order.delivery_address) : null;
 
       if (order.order_method === 'pickup') {
-        detailRow.innerHTML = `<strong>Jam Rencana Ambil:</strong> Pukul ${order.pickup_time || '-'} WIB di Kedai Mellowbites`;
+        detailRow.innerHTML = `<strong>Jam Rencana Ambil:</strong> Pukul ${escapeHtml(order.pickup_time || '-')} WIB di Kedai Mellowbites`;
       } else {
-        detailRow.innerHTML = `<strong>Alamat Pengiriman:</strong> ${loc?.cleanAddress || '-'}`;
+        detailRow.innerHTML = `<strong>Alamat Pengiriman:</strong> ${escapeHtml(loc?.cleanAddress || '-')}`;
       }
 
       const statusBadge = document.getElementById('adminRcptStatus');
@@ -2403,15 +2493,14 @@
         payBadge.className = 'font-extrabold px-2 py-0.5 rounded text-[10px] bg-brand-100 text-brand-800';
       }
 
-      // Render daftar item menu
       const itemsList = document.getElementById('adminRcptItemsList');
-      const items = Array.isArray(order.items) ? order.items : [];
+      const items = parseOrderItems(order.items);
       if (items.length > 0) {
         itemsList.innerHTML = items.map(item => `
           <div class="rcpt-item-row">
             <div style="min-width: 0; flex: 1;">
-              <p class="rcpt-item-name">${item.name || 'Es Gabin'}</p>
-              <p class="rcpt-item-sub">${formatRupiah(item.price || 0)} × ${item.qty || 1}</p>
+              <p class="rcpt-item-name">${escapeHtml(item.name || 'Gabin Ice Bar')}</p>
+              <p class="rcpt-item-sub">${formatRupiah(item.price || 0)} × ${Number(item.qty || 1)}</p>
             </div>
             <span class="rcpt-item-price">${formatRupiah(item.subtotal || ((item.price || 0) * (item.qty || 1)))}</span>
           </div>
@@ -2420,8 +2509,9 @@
         itemsList.innerHTML = '<p class="text-stone-400 py-1 text-center italic text-[11px]">Rincian item tidak tersedia</p>';
       }
 
-      const totalItems = order.total_items || items.reduce((sum, i) => sum + (i.qty || 1), 0);
+      const totalItems = order.total_items || items.reduce((sum, i) => sum + Number(i.qty || 1), 0);
       document.getElementById('adminRcptTotalItems').textContent = `${totalItems} pcs`;
+
       const feeRow = document.getElementById('adminRcptDeliveryFeeRow');
       const feeLabel = document.getElementById('adminRcptDeliveryFeeLabel');
       const feeVal = document.getElementById('adminRcptDeliveryFee');
@@ -2493,7 +2583,9 @@
 
     async function markOrderDone(orderId) {
       const { error } = await sbClient.from('orders').update({ status: 'Selesai' }).eq('id', orderId);
-      if (!error) {
+      if (error) {
+        showAdminToast('Gagal menandai pesanan selesai: ' + error.message);
+      } else {
         showAdminToast('Pesanan ditandai selesai');
         loadAdminOrders();
       }
@@ -2517,12 +2609,12 @@
 
     function deleteOrder(orderId) {
       pendingDeleteOrderId = orderId;
-      const target = (adminOrdersCache || []).find(o => o.id === orderId);
+      const target = (adminOrdersCache || []).find(o => String(o.id) === String(orderId));
       const infoEl = document.getElementById('deleteOrderInfoText');
 
       if (infoEl) {
         infoEl.innerHTML = target
-          ? `Pesanan <strong class="text-stone-800">${target.order_number}</strong> atas nama <strong class="text-stone-800">${target.customer_name}</strong> akan dihapus permanen.`
+          ? `Pesanan <strong class="text-stone-800">${escapeHtml(target.order_number)}</strong> atas nama <strong class="text-stone-800">${escapeHtml(target.customer_name)}</strong> akan dihapus permanen.`
           : 'Data pesanan ini akan dihapus secara permanen.';
       }
 
@@ -2567,8 +2659,7 @@
       }
     }
 
-    // 5. Ekspor Rekap Jualan ke Excel Asli (.xlsx / .csv) Tanpa Peringatan Format
-    // 5. Ekspor Rekap Jualan ke Excel Asli (.xlsx / .csv) Sesuai Filter Periode (Hari Ini / Semua)
+    // --- 9. Ekspor Rekap Jualan ke Excel (.xlsx / .csv) ---
     async function exportOrdersToExcel() {
       if (!sbClient) {
         showAdminToast('Koneksi database tidak tersedia');
@@ -2589,7 +2680,6 @@
           return;
         }
 
-        // Filter data mengikuti periode rekap yang sedang aktif ('today' atau 'all')
         const filteredData = isTodayOnly
           ? data.filter(o => isOrderCreatedToday(o))
           : data;
@@ -2608,9 +2698,8 @@
           ? `Hari Ini (${now.toLocaleDateString('id-ID')})`
           : 'Semua Penjualan';
 
-        // Siapkan struktur array 2D untuk data spreadsheet
         const sheetData = [
-          [isTodayOnly ? 'REKAP PENJUALAN HARI INI - ES GABIN MELLOWBITES' : 'REKAP SEMUA PENJUALAN - ES GABIN MELLOWBITES'],
+          [isTodayOnly ? 'REKAP PENJUALAN HARI INI - GABIN ICE BAR MELLOWBITES' : 'REKAP SEMUA PENJUALAN - GABIN ICE BAR MELLOWBITES'],
           ['Periode Rekap:', periodLabel],
           ['Waktu Ekspor:', now.toLocaleString('id-ID')],
           [],
@@ -2630,7 +2719,8 @@
         ];
 
         filteredData.forEach((o, index) => {
-          const itemsDetail = (o.items || [])
+          const items = parseOrderItems(o.items);
+          const itemsDetail = items
             .map(i => `${i.name} (${i.qty}x)`)
             .join(', ');
 
@@ -2660,7 +2750,6 @@
           ]);
         });
 
-        // Tambahkan baris total di bagian bawah
         sheetData.push([]);
         sheetData.push([
           '',
@@ -2680,35 +2769,32 @@
           ? `Rekap-Penjualan-Hari-Ini-Mellowbites-${nowStr}`
           : `Rekap-Semua-Penjualan-Mellowbites-${nowStr}`;
 
-        // Prioritas 1: Buat file .xlsx murni via SheetJS (Bebas peringatan format)
         if (typeof XLSX !== 'undefined') {
           const wb = XLSX.utils.book_new();
           const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
-          // Atur lebar kolom agar rapi saat dibuka
           ws['!cols'] = [
-            { wch: 6 },  // No
-            { wch: 18 }, // No. Pesanan
-            { wch: 22 }, // Tanggal & Waktu
-            { wch: 20 }, // Nama Pembeli
-            { wch: 16 }, // Metode Pesan
-            { wch: 26 }, // Alamat / Waktu
-            { wch: 36 }, // Item Menu
-            { wch: 10 }, // Total Pcs
-            { wch: 14 }, // Metode Bayar
-            { wch: 18 }, // Total Tagihan
-            { wch: 16 }  // Status
+            { wch: 6 },
+            { wch: 18 },
+            { wch: 22 },
+            { wch: 20 },
+            { wch: 16 },
+            { wch: 26 },
+            { wch: 36 },
+            { wch: 10 },
+            { wch: 14 },
+            { wch: 18 },
+            { wch: 16 }
           ];
 
           XLSX.utils.book_append_sheet(wb, ws, isTodayOnly ? 'Rekap Hari Ini' : 'Semua Penjualan');
           XLSX.writeFile(wb, `${filePrefix}.xlsx`);
           showAdminToast(isTodayOnly ? 'Excel rekap hari ini (.xlsx) berhasil diunduh!' : 'Excel semua penjualan (.xlsx) berhasil diunduh!');
         } else {
-          // Fallback jika library belum termuat: Unduh sebagai CSV ber-BOM UTF-8
-          function escapeCsv(val) {
+          const escapeCsv = (val) => {
             if (val === null || val === undefined) return '""';
             return `"${String(val).replace(/"/g, '""')}"`;
-          }
+          };
           const csvContent = '\uFEFF' + sheetData.map(row => row.map(escapeCsv).join(',')).join('\n');
           const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
           const link = document.createElement('a');
@@ -2724,10 +2810,11 @@
       }
     }
 
-    // ==================== FITUR 4: REALTIME ORDERS + SUARA & NOTIFIKASI ====================
+    // --- 10. Realtime Orders + Suara Bel & Notifikasi HP ---
     function playOrderBell() {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
         const ctx = new AudioCtx();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -2738,12 +2825,14 @@
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
         osc.connect(gain);
         gain.connect(ctx.destination);
+        osc.onended = () => {
+          ctx.close().catch(() => { });
+        };
         osc.start();
         osc.stop(ctx.currentTime + 0.6);
       } catch (_) { }
     }
 
-    // 4a. Cek Status Izin Notifikasi Browser / HP
     function checkAdminNotificationState() {
       const btn = document.getElementById('btnEnableAdminNotif');
       if (!btn) return;
@@ -2773,7 +2862,6 @@
       }
     }
 
-    // 4b. Minta Izin Notifikasi Browser / HP
     async function requestAdminNotificationPermission() {
       if (!('Notification' in window)) {
         showAdminToast('Browser Anda tidak mendukung Web Notification');
@@ -2797,7 +2885,6 @@
 
         if (permission === 'granted') {
           showAdminToast('Notifikasi HP berhasil diaktifkan!');
-          // Tampilkan notifikasi percobaan singkat untuk memastikan suara & banner HP berjalan
           try {
             const testNotif = new Notification('🔔 Notifikasi Mellowbites Aktif!', {
               body: 'Notifikasi pesanan baru akan muncul di layar & berdering otomatis saat ada order masuk.',
@@ -2823,50 +2910,45 @@
 
     window.requestAdminNotificationPermission = requestAdminNotificationPermission;
 
-    // 4c. Langganan Realtime Supabase untuk Pesanan Baru
-    let ordersSubscription = null;
     function subscribeRealtimeOrders() {
       if (ordersSubscription || !sbClient) return;
       ordersSubscription = sbClient
         .channel('admin-orders-realtime')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
-          // 1. Suara bel dering (AudioContext fallback)
-          playOrderBell();
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+          if (payload.eventType === 'INSERT') {
+            playOrderBell();
+            showAdminToast(`🔔 Pesanan baru dari ${payload?.new?.customer_name || 'Pembeli'}!`);
 
-          // 2. Notifikasi Toast di dalam layar
-          showAdminToast(`🔔 Pesanan baru dari ${payload?.new?.customer_name || 'Pembeli'}!`);
+            if ('Notification' in window && Notification.permission === 'granted') {
+              try {
+                const customerName = payload?.new?.customer_name || 'Pembeli';
+                const totalPrice = formatRupiah(payload?.new?.total_price || 0);
 
-          // 3. Notifikasi Sistem Browser / HP
-          if ('Notification' in window && Notification.permission === 'granted') {
-            try {
-              const customerName = payload?.new?.customer_name || 'Pembeli';
-              const totalPrice = formatRupiah(payload?.new?.total_price || 0);
+                const notif = new Notification('🛎️ Pesanan Baru Mellowbites!', {
+                  body: `Order baru dari ${customerName} • ${totalPrice}`,
+                  icon: 'img/logo.webp',
+                  badge: 'img/logo.webp',
+                  tag: 'mellowbites-new-order',
+                  silent: false
+                });
 
-              const notif = new Notification('🛎️ Pesanan Baru Mellowbites!', {
-                body: `Order baru dari ${customerName} • ${totalPrice}`,
-                icon: 'img/logo.webp',
-                badge: 'img/logo.webp',
-                tag: 'mellowbites-new-order',
-                silent: false
-              });
-
-              notif.onclick = () => {
-                window.focus();
-                switchAdminTab('orders');
-                notif.close();
-              };
-            } catch (err) {
-              console.warn('Gagal memicu browser notification:', err);
+                notif.onclick = () => {
+                  window.focus();
+                  switchAdminTab('orders');
+                  notif.close();
+                };
+              } catch (err) {
+                console.warn('Gagal memicu browser notification:', err);
+              }
             }
           }
 
-          // 4. Muat ulang daftar pesanan
           loadAdminOrders();
         })
         .subscribe();
     }
 
-    // ==================== FITUR 5: EDIT MENU & UPLOAD FOTO ====================
+    // --- 11. Edit Menu & Upload Foto Produk ---
     function openEditProductModal(productId) {
       const product = adminProductsCache.find(p => String(p.id) === String(productId));
       if (!product) {
@@ -2883,16 +2965,20 @@
       document.getElementById('editProdImageUrl').value = product.image_url || '';
       document.getElementById('editProdFile').value = '';
 
-      // Error state reset
       const errEl = document.getElementById('editProdError');
-      if (errEl) { errEl.classList.add('hidden'); errEl.textContent = ''; }
+      if (errEl) {
+        errEl.classList.add('hidden');
+        errEl.textContent = '';
+      }
 
-      // Preview foto saat ini
       const previewBox = document.getElementById('editProdImagePreviewBox');
       const previewImg = document.getElementById('editProdImagePreview');
       if (product.image_url) {
+        previewImg.onerror = () => {
+          previewImg.onerror = null;
+          previewBox.classList.add('hidden');
+        };
         previewImg.src = product.image_url;
-        previewImg.onerror = () => { previewBox.classList.add('hidden'); };
         previewBox.classList.remove('hidden');
       } else {
         previewBox.classList.add('hidden');
@@ -2909,7 +2995,6 @@
       modal.classList.remove('flex');
     }
 
-    // Helper: konversi file ke Data URL (fallback jika Supabase Storage belum dikonfigurasi)
     function fileToDataUrl(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -2925,7 +3010,10 @@
       const errEl = document.getElementById('editProdError');
       btn.disabled = true;
       btn.textContent = 'Menyimpan...';
-      if (errEl) { errEl.classList.add('hidden'); errEl.textContent = ''; }
+      if (errEl) {
+        errEl.classList.add('hidden');
+        errEl.textContent = '';
+      }
 
       try {
         const id = document.getElementById('editProdId').value;
@@ -2935,10 +3023,9 @@
         const category = document.getElementById('editProdCategory').value;
         const description = document.getElementById('editProdDesc').value.trim();
 
-        // Prioritas foto: file upload > URL input > foto lama
         const currentImage = document.getElementById('editProdCurrentImage').value;
         const urlInput = document.getElementById('editProdImageUrl').value.trim();
-        let image_url = currentImage; // default: foto lama
+        let image_url = currentImage;
 
         const fileInput = document.getElementById('editProdFile');
         const hasFile = fileInput.files && fileInput.files[0];
@@ -2946,12 +3033,10 @@
         if (hasFile) {
           const file = fileInput.files[0];
 
-          // Validasi ukuran file (maks 5MB)
           if (file.size > 5 * 1024 * 1024) {
             throw new Error('Ukuran foto terlalu besar (maks 5 MB)');
           }
 
-          // Coba upload ke Supabase Storage jika bucket tersedia
           let uploaded = false;
           try {
             const fileExt = file.name.split('.').pop().toLowerCase();
@@ -2968,11 +3053,8 @@
                 uploaded = true;
               }
             }
-          } catch (_) {
-            // Storage bucket belum ada, jangan error — gunakan fallback
-          }
+          } catch (_) { }
 
-          // Fallback: konversi ke Data URL jika upload storage gagal
           if (!uploaded) {
             try {
               image_url = await fileToDataUrl(file);
@@ -2980,13 +3062,10 @@
               throw new Error('Gagal membaca file foto: ' + readErr.message);
             }
           }
-
-        } else if (urlInput && urlInput !== currentImage) {
-          // User mengetik URL baru yang berbeda dari foto lama
-          image_url = urlInput;
+        } else if (urlInput !== currentImage) {
+          image_url = urlInput || null;
         }
 
-        // Validasi nama wajib diisi
         if (!name) {
           throw new Error('Nama varian wajib diisi');
         }
@@ -3003,7 +3082,6 @@
         showAdminToast('Varian berhasil diperbarui!');
         closeEditProductModal();
         loadAdminProducts();
-
       } catch (err) {
         if (errEl) {
           errEl.textContent = err.message || 'Terjadi kesalahan';
@@ -3016,11 +3094,11 @@
       }
     }
 
+    // --- 12. Peta Lokasi Pengiriman Pelanggan ---
     const STORE_COORDS = { lat: -7.5431218, lng: 112.2134476 };
     let adminPreviewMap = null;
     let adminMarkersGroup = null;
 
-    // Memecah alamat bersih, info jarak/ongkir, koordinat, dan link rute dari delivery_address
     function parseDeliveryInfo(rawAddress) {
       if (!rawAddress) {
         return { cleanAddress: '-', metaInfo: '', distanceText: '', feeText: '', routeUrl: null, coords: null };
@@ -3058,7 +3136,7 @@
     }
 
     function openAdminOrderMap(orderId) {
-      const order = (adminOrdersCache || []).find(o => o.id === orderId);
+      const order = (adminOrdersCache || []).find(o => String(o.id) === String(orderId));
       if (!order) {
         showAdminToast('Data pesanan tidak ditemukan');
         return;
@@ -3098,6 +3176,11 @@
       box.classList.add('scale-100');
 
       setTimeout(() => {
+        if (typeof L === 'undefined') {
+          showAdminToast('Library peta gagal dimuat');
+          return;
+        }
+
         if (!adminPreviewMap) {
           adminPreviewMap = L.map('adminMapContainer', { attributionControl: false });
           L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
@@ -3120,12 +3203,13 @@
         const storePin = L.marker([STORE_COORDS.lat, STORE_COORDS.lng], { icon: storeIcon })
           .bindPopup('<b>Kedai Mellowbites</b>');
         const custPin = L.marker([lat, lng])
-          .bindPopup(`<b>Lokasi Antar</b><br><span style="font-size:11px">${cleanAddress}</span>`)
+          .bindPopup(`<b>Lokasi Antar</b><br><span style="font-size:11px">${escapeHtml(cleanAddress)}</span>`)
           .openPopup();
 
         adminMarkersGroup.addLayer(storePin);
         adminMarkersGroup.addLayer(custPin);
 
+        adminPreviewMap.invalidateSize();
         adminPreviewMap.fitBounds(adminMarkersGroup.getBounds(), { padding: [35, 35], maxZoom: 16 });
       }, 150);
     }
@@ -3140,37 +3224,7 @@
       box.classList.add('scale-95');
       box.classList.remove('scale-100');
     }
-
   </script>
-  <!-- Modal Cek Lokasi Pengiriman (Admin) -->
-  <div id="adminMapModal"
-    class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
-    <div id="adminMapBox"
-      class="bg-white w-full max-w-md rounded-2xl shadow-xl border border-stone-200 overflow-hidden scale-95 transition-transform duration-200">
-      <div class="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
-        <div>
-          <h3 class="font-extrabold text-stone-900 text-sm">📍 Cek Titik Lokasi Pengiriman</h3>
-          <p id="adminMapMetaText" class="text-[11px] font-bold text-brand-600 mt-0.5">-</p>
-        </div>
-        <button type="button" onclick="closeAdminMapModal()"
-          class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center font-bold text-sm">✕</button>
-      </div>
-
-      <div class="p-4 space-y-3">
-        <div id="adminMapContainer" class="w-full h-60 rounded-xl border border-stone-200 bg-stone-100 overflow-hidden">
-        </div>
-        <div class="p-2.5 rounded-xl bg-stone-50 border border-stone-200/80 text-xs text-stone-700 leading-relaxed">
-          <span class="font-bold text-stone-900 block mb-0.5">Alamat & Patokan:</span>
-          <span id="adminMapAddressText">-</span>
-        </div>
-        <a id="adminMapGoogleLink" href="#" target="_blank" rel="noopener"
-          class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition">
-          <span>🗺️</span>
-          <span>Buka Navigasi Rute di Google Maps</span>
-        </a>
-      </div>
-    </div>
-  </div>
 </body>
 
 </html>

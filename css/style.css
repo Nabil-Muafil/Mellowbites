@@ -1,10 +1,18 @@
 /* ============================================================
-   Katalog Es Gabin Kress - Custom Stylesheet
+   Gabin Ice Bar - Mellowbites - Custom Stylesheet
    ============================================================ */
 
-/* Touch & tap highlight optimization */
+/* Base layout & touch optimization */
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
 body {
   -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Hide scrollbar for category pills / horizontal scroll */
@@ -22,6 +30,7 @@ body {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   border: 1px solid transparent;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -96,9 +105,10 @@ body {
 }
 
 /* ============================================================
-   Receipt Paper - Optimized for html2canvas Export
+   Receipt Paper (Buyer & Admin) - Optimized for html2canvas
    ============================================================ */
-#receiptPaper {
+#receiptPaper,
+#adminReceiptPaper {
   box-sizing: border-box;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   line-height: 1.45;
@@ -164,7 +174,7 @@ textarea {
 /* Isolasi render per kartu agar scroll 60fps di HP */
 .product-card {
   content-visibility: auto;
-  contain-intrinsic-size: 250px;
+  contain-intrinsic-size: auto 260px;
   contain: layout style;
 }
 

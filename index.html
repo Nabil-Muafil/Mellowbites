@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="css/style.css">
 
   <!-- Leaflet.js CSS & JS (Peta Interaktif Gratis Tanpa API Key) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <!-- html2canvas CDN for Digital Receipt Image Export -->
@@ -40,7 +40,6 @@
 
   <!-- External Application Logic -->
   <script src="js/main.js"></script>
-
 </head>
 
 <body class="bg-stone-50 font-sans text-stone-800 antialiased min-h-screen pb-0">
@@ -74,31 +73,32 @@
         </div>
       </div>
 
-      <!-- Header Action Buttons (Download App, Riwayat Pesanan & Keranjang) -->
-      <!-- Riwayat Pesanan Button -->
-      <button onclick="openOrderHistoryModal()"
-        class="relative p-2 sm:p-2.5 text-stone-600 hover:text-brand-600 rounded-xl hover:bg-stone-100 transition active:scale-95"
-        title="Riwayat Pesanan Saya" aria-label="Riwayat Pesanan">
-        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <span id="historyBadge"
-          class="hidden absolute top-0.5 right-0.5 bg-stone-700 text-white text-[9px] font-bold w-4 h-4 rounded-full items-center justify-center ring-2 ring-white">0</span>
-      </button>
+      <!-- Header Action Buttons (Riwayat Pesanan & Keranjang) -->
+      <div class="flex items-center gap-1 shrink-0">
+        <!-- Riwayat Pesanan Button -->
+        <button type="button" onclick="openOrderHistoryModal()"
+          class="relative p-2 sm:p-2.5 text-stone-600 hover:text-brand-600 rounded-xl hover:bg-stone-100 transition active:scale-95"
+          title="Riwayat Pesanan Saya" aria-label="Riwayat Pesanan">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span id="historyBadge"
+            class="hidden absolute top-0.5 right-0.5 bg-stone-700 text-white text-[9px] font-bold w-4 h-4 rounded-full items-center justify-center ring-2 ring-white">0</span>
+        </button>
 
-      <!-- Quick Cart Button in Header -->
-      <button onclick="openCartModal()"
-        class="relative p-2 sm:p-2.5 text-stone-600 hover:text-brand-600 rounded-xl hover:bg-stone-100 transition active:scale-95"
-        aria-label="Buka Keranjang">
-        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-        </svg>
-        <span id="headerCartCount"
-          class="hidden absolute top-0.5 right-0.5 bg-brand-500 text-white text-[9px] font-bold w-4 h-4 rounded-full items-center justify-center ring-2 ring-white">0</span>
-      </button>
-    </div>
+        <!-- Quick Cart Button in Header -->
+        <button type="button" onclick="openCartModal()"
+          class="relative p-2 sm:p-2.5 text-stone-600 hover:text-brand-600 rounded-xl hover:bg-stone-100 transition active:scale-95"
+          aria-label="Buka Keranjang">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+          </svg>
+          <span id="headerCartCount"
+            class="hidden absolute top-0.5 right-0.5 bg-brand-500 text-white text-[9px] font-bold w-4 h-4 rounded-full items-center justify-center ring-2 ring-white">0</span>
+        </button>
+      </div>
     </div>
 
     <!-- Search & Category Filters -->
@@ -113,26 +113,30 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
         </svg>
-        <button id="clearSearchBtn" onclick="clearSearch()"
+        <button type="button" id="clearSearchBtn" onclick="clearSearch()" aria-label="Hapus pencarian"
           class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 text-xs bg-stone-200/80 w-5 h-5 rounded-full items-center justify-center">✕</button>
       </div>
 
       <!-- Categories Pills -->
       <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1.5 pb-2 px-0.5 text-xs font-semibold">
-        <button id="catAllBtn" onclick="setCategory('all', this)"
+        <button type="button" id="catAllBtn" onclick="setCategory('all', this)"
           class="cat-pill active px-3.5 py-1.5 rounded-full whitespace-nowrap">
           Semua Rasa
         </button>
-        <button onclick="setCategory('bestseller', this)" class="cat-pill px-3.5 py-1.5 rounded-full whitespace-nowrap">
+        <button type="button" onclick="setCategory('bestseller', this)"
+          class="cat-pill px-3.5 py-1.5 rounded-full whitespace-nowrap">
           ⭐ Terlaris
         </button>
-        <button onclick="setCategory('choco', this)" class="cat-pill px-3.5 py-1.5 rounded-full whitespace-nowrap">
+        <button type="button" onclick="setCategory('choco', this)"
+          class="cat-pill px-3.5 py-1.5 rounded-full whitespace-nowrap">
           🍫 Cokelat
         </button>
-        <button onclick="setCategory('fruity', this)" class="cat-pill px-3.5 py-1.5 rounded-full whitespace-nowrap">
+        <button type="button" onclick="setCategory('fruity', this)"
+          class="cat-pill px-3.5 py-1.5 rounded-full whitespace-nowrap">
           🍓 Fruity
         </button>
-        <button onclick="setCategory('special', this)" class="cat-pill px-3.5 py-1.5 rounded-full whitespace-nowrap">
+        <button type="button" onclick="setCategory('special', this)"
+          class="cat-pill px-3.5 py-1.5 rounded-full whitespace-nowrap">
           ✨ Spesial Mix
         </button>
       </div>
@@ -155,13 +159,13 @@
         </div>
       </div>
       <div class="flex items-center gap-1.5 shrink-0">
-        <button onclick="handleInstallAppClick()"
+        <button type="button" onclick="handleInstallAppClick()"
           class="px-3 py-1.5 rounded-xl bg-white text-orange-600 hover:bg-orange-50 font-extrabold text-xs shadow-xs active:scale-95 transition">
           Download
         </button>
-        <button onclick="dismissInstallBanner()"
+        <button type="button" onclick="dismissInstallBanner()"
           class="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 text-xs transition"
-          title="Tutup banner">
+          title="Tutup banner" aria-label="Tutup banner instalasi">
           ✕
         </button>
       </div>
@@ -175,7 +179,7 @@
       <div class="flex items-center gap-2">
         <span class="text-base">🌙</span>
         <p>
-          <span class="font-bold">Toko Sedang Tutup:</span> Jam operasional 08.00 - 20.00 WIB. checkout dapat diakses
+          <span class="font-bold">Toko Sedang Tutup:</span> Jam operasional 08.00 – 20.00 WIB. Checkout dapat diakses
           kembali pukul 08.00 WIB.
         </p>
       </div>
@@ -189,10 +193,12 @@
       <div class="flex items-start gap-2 min-w-0">
         <span class="text-base shrink-0">⏳</span>
         <div class="min-w-0">
-          <p class="font-extrabold text-amber-900 leading-tight">Pesanan <span id="bannerOrderNumber"
-              class="font-mono"></span> belum dikonfirmasi WA!</p>
-          <p class="text-[11px] text-amber-800/90 mt-0.5 leading-snug">Klik tombol di samping untuk membuka struk &
-            kirim konfirmasi agar pesanan segera diproses.</p>
+          <p class="font-extrabold text-amber-900 leading-tight">
+            Pesanan <span id="bannerOrderNumber" class="font-mono"></span> belum dikonfirmasi WA!
+          </p>
+          <p class="text-[11px] text-amber-800/90 mt-0.5 leading-snug">
+            Klik tombol di samping untuk membuka struk & kirim konfirmasi agar pesanan segera diproses.
+          </p>
         </div>
       </div>
       <button type="button" onclick="resumeUnconfirmedOrder()"
@@ -202,8 +208,10 @@
     </div>
   </div>
 
-  <!-- HERO PROMO CARD -->
+  <!-- MAIN CONTENT -->
   <main class="max-w-3xl mx-auto px-4 pt-3">
+
+    <!-- HERO PROMO CARD -->
     <div
       class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-rose-400 p-4 text-white shadow-md mb-5">
       <div class="relative z-10 flex items-center justify-between gap-3">
@@ -214,17 +222,18 @@
           </span>
           <h2 id="heroPromoTitle" class="text-base sm:text-lg font-black leading-tight">Sensasi Es Krim Gabin Lumer!
           </h2>
-          <p id="heroPromoDesc" class="text-xs text-orange-50 mt-1 leading-snug">Renyah di luar, creamy dingin lumer di
-            dalam. Praktis & bikin nagih!</p>
+          <p id="heroPromoDesc" class="text-xs text-orange-50 mt-1 leading-snug">
+            Renyah di luar, creamy dingin lumer di dalam. Praktis & bikin nagih!
+          </p>
         </div>
-        <div
-          class="shrink-0 w-20 sm:w-24 bg-white/20 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center p-2.5 text-center border border-white/30 shadow-inner">
-          <span class="text-[9px] font-bold uppercase tracking-wider text-amber-100">Harga Mulai</span>
-          <span class="text-sm sm:text-base font-extrabold text-white">Rp.8000</span>
-          <span class="text-[9px] text-orange-100">per bungkus</span>
+        <div class="shrink-0 bg-white/15 backdrop-blur-xs border border-white/25 rounded-2xl px-3.5 py-2.5 text-center">
+          <p class="text-[10px] font-bold text-amber-100 uppercase tracking-wider">Harga Mulai</p>
+          <p class="text-lg sm:text-xl font-black text-white leading-tight whitespace-nowrap mt-0.5">
+            Rp 8.000
+          </p>
+          <p class="text-[10px] font-medium text-orange-100 mt-0.5">per bungkus</p>
         </div>
       </div>
-      <!-- Decorative background blur -->
       <div class="absolute -right-6 -bottom-8 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
     </div>
 
@@ -256,7 +265,7 @@
       </div>
       <p class="font-bold text-stone-700 text-sm">Varian rasa tidak ditemukan</p>
       <p class="text-xs text-stone-400 mt-1 max-w-xs">Coba kata kunci lain atau pilih dari kategori rasa di atas.</p>
-      <button id="emptyStateResetBtn" onclick="clearSearch()"
+      <button type="button" id="emptyStateResetBtn" onclick="clearSearch()"
         class="mt-3 px-4 py-1.5 text-xs font-semibold text-brand-600 bg-brand-50 rounded-lg hover:bg-brand-100 transition">
         Lihat Semua Varian
       </button>
@@ -299,7 +308,7 @@
         </div>
 
         <a href="https://api.whatsapp.com/send?phone=6285646409023&text=Halo%20kak%2C%20saya%20mau%20pesan%20Gabin%20Ice%20Bar%20Mellowbites%20%E2%98%BA%EF%B8%8F%F0%9F%A4%97"
-          onclick="this.href='https://api.whatsapp.com/send?phone=6285646409023&text=' + encodeURIComponent('halo kak, saya boleh tanya mengenai gabin ice bar Mellowbites? 🤗')"
+          onclick="this.href='https://api.whatsapp.com/send?phone=6285646409023&text=' + encodeURIComponent('Halo kak, saya boleh tanya mengenai Gabin Ice Bar Mellowbites? 🤗')"
           target="_blank" rel="noopener noreferrer"
           class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm shadow-emerald-600/20 active:scale-95 transition">
           <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
@@ -352,7 +361,7 @@
         </div>
       </div>
 
-      <!-- CTA Download Aplikasi Mellowbites (Ringkas) -->
+      <!-- CTA Download Aplikasi Mellowbites -->
       <div class="pt-3 border-t border-stone-200/60 flex items-center justify-between gap-2">
         <span class="text-[11px] font-semibold text-stone-500">Pasang di layar HP:</span>
         <button id="btnInstallApp" type="button" onclick="handleInstallAppClick()"
@@ -377,7 +386,6 @@
 
     </div>
   </footer>
-  </main>
 
   <!-- FLOATING BOTTOM BAR (CART SUMMARY) -->
   <aside id="floatingBar"
@@ -414,7 +422,7 @@
       </div>
 
       <!-- Action Button Right -->
-      <button id="btnCheckout" onclick="openCartModal()" disabled
+      <button type="button" id="btnCheckout" onclick="openCartModal()" disabled
         class="flex-1 sm:flex-none sm:min-w-[180px] py-2.5 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition flex items-center justify-center gap-2">
         <span>Lihat Pesanan</span>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -428,14 +436,12 @@
   <!-- PRODUCT DETAIL POP-UP MODAL (#productDetailModal) -->
   <div id="productDetailModal"
     class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs opacity-0 pointer-events-none transition-opacity duration-300 flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <!-- Backdrop Dismiss -->
     <div class="absolute inset-0" onclick="closeProductDetailModal()"></div>
 
-    <!-- Modal Box (Bottom-sheet on mobile, centered dialog on desktop) -->
     <div id="productDetailContentBox"
       class="relative z-10 w-full sm:max-w-md max-h-[92vh] flex flex-col bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border border-stone-200 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300">
 
-      <!-- Drawer Handle for Mobile Drag Hint -->
+      <!-- Drawer Handle for Mobile -->
       <div class="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0" onclick="closeProductDetailModal()">
         <div class="w-10 h-1 bg-stone-300 rounded-full cursor-pointer"></div>
       </div>
@@ -449,43 +455,29 @@
 
       <!-- Scrollable Modal Content -->
       <div class="overflow-y-auto flex-1 p-4 sm:p-5 space-y-4">
-
-        <!-- Large Variant Photo & Badges -->
         <div id="detailProdFlavorBg"
           class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden shadow-inner flex items-center justify-center bg-stone-800">
-          <!-- Fallback SVG Vector -->
           <div id="detailProdSvg"
-            class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          </div>
-
-          <!-- Product Image -->
+            class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"></div>
           <img id="detailProdImage" src="" alt="Foto Detail Produk" class="absolute inset-0 w-full h-full object-cover"
-            onerror="this.classList.add('hidden')" />
-
-          <!-- Gradient Shadow Overlay -->
+            onerror="this.classList.add('hidden')">
           <div
             class="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none">
           </div>
 
-          <!-- Top-Left Tag Badge (Best Seller / Fruity / Favorit) -->
           <span id="detailProdTag"
             class="absolute top-3 left-3 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-xs z-10">
             Favorit
           </span>
 
-          <!-- Top-Right Category Badge -->
           <span id="detailProdCategoryBadge"
             class="absolute top-3 right-12 text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-stone-900/60 backdrop-blur-md text-white shadow-xs z-10">
             Cokelat
           </span>
 
-          <!-- Bottom-Left Stock Status Badge -->
-          <div id="detailProdStockBadge" class="absolute bottom-3 left-3 z-10">
-            <!-- Rendered dynamically: Ready or Habis -->
-          </div>
+          <div id="detailProdStockBadge" class="absolute bottom-3 left-3 z-10"></div>
         </div>
 
-        <!-- Variant Name & Unit Price -->
         <div>
           <div class="flex items-start justify-between gap-3">
             <h3 id="detailProdName" class="font-extrabold text-stone-900 text-lg sm:text-xl leading-snug">
@@ -500,7 +492,6 @@
           </p>
         </div>
 
-        <!-- Taste & Texture Description -->
         <div class="space-y-1 bg-stone-50 p-3 rounded-2xl border border-stone-100">
           <span class="text-[10px] font-extrabold uppercase tracking-wider text-stone-400 block">Karakter Rasa &
             Tekstur</span>
@@ -509,35 +500,29 @@
           </p>
         </div>
 
-        <!-- Box Saran Penyajian (❄️) -->
         <div
           class="p-3.5 rounded-2xl bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50/40 border border-sky-100 flex items-start gap-2.5">
           <span class="text-lg shrink-0 select-none">❄️</span>
           <div class="text-xs leading-relaxed">
             <strong class="font-extrabold text-sky-950 block mb-0.5">Saran Penyajian:</strong>
-            <p class="text-sky-900/90 text-[11px] leading-snug">Nikmati langsung saat dingin dari freezer untuk sensasi
-              es krim padat lumer, atau diamkan 2–3 menit di suhu ruang agar fla lebih creamy lembut.</p>
+            <p class="text-sky-900/90 text-[11px] leading-snug">
+              Nikmati langsung saat dingin dari freezer untuk sensasi es krim padat lumer, atau diamkan 2–3 menit di
+              suhu ruang agar fla lebih creamy lembut.
+            </p>
           </div>
         </div>
-
       </div>
 
-      <!-- Bottom Sticky Action Bar (Add to Cart / Quantity Stepper) -->
-      <div id="detailProdActionContainer" class="p-3.5 sm:p-4 bg-white border-t border-stone-100 shrink-0">
-        <!-- Rendered dynamically -->
-      </div>
-
+      <!-- Bottom Sticky Action Bar -->
+      <div id="detailProdActionContainer" class="p-3.5 sm:p-4 bg-white border-t border-stone-100 shrink-0"></div>
     </div>
   </div>
 
   <!-- CART & CHECKOUT MODAL DRAWER -->
   <div id="cartModal"
     class="fixed inset-0 z-50 bg-black/60 opacity-0 pointer-events-none transition-opacity duration-150 flex items-end sm:items-center justify-center">
-
-    <!-- Modal Backdrop Click Dismiss -->
     <div class="absolute inset-0" onclick="closeCartModal()"></div>
 
-    <!-- Modal Content Box -->
     <div id="cartContentBox"
       class="relative z-10 w-full max-w-lg bg-white rounded-t-3xl sm:rounded-2xl max-h-[90vh] flex flex-col shadow-2xl">
 
@@ -562,7 +547,7 @@
           </div>
         </div>
 
-        <button onclick="closeCartModal()"
+        <button type="button" onclick="closeCartModal()" aria-label="Tutup keranjang"
           class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-500 font-bold transition">
           ✕
         </button>
@@ -572,11 +557,9 @@
       <div class="overflow-y-auto flex-1 divide-y divide-stone-100 overscroll-contain">
 
         <!-- Scrollable Cart Item List -->
-        <div class="px-5 py-2.5 space-y-2" id="cartItemList">
-          <!-- Rendered by js/main.js -->
-        </div>
+        <div class="px-5 py-2.5 space-y-2" id="cartItemList"></div>
 
-        <!-- Checkout Form Area (Scrollable & Mobile-friendly) -->
+        <!-- Checkout Form Area -->
         <div class="px-5 py-3.5 bg-stone-50/90 space-y-3.5 text-xs">
 
           <!-- Input Nama Pemesan -->
@@ -589,7 +572,7 @@
             <p id="err-customerName" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
           </div>
 
-          <!-- Pilihan Metode Pesanan (Tab / Radio Card) -->
+          <!-- Pilihan Metode Pesanan -->
           <div>
             <label class="block text-xs font-bold text-stone-700 mb-1.5">
               Metode Pesanan <span class="text-rose-500">*</span>
@@ -618,7 +601,6 @@
 
           <!-- Sub-form Pickup (Ambil Sendiri) -->
           <div id="pickupSection" class="space-y-2.5 p-3 rounded-xl bg-white border border-stone-200/90 shadow-2xs">
-            <!-- Alamat Toko Statis, Mini-Map Embed & Maps Link -->
             <div id="storeLocationBox"
               class="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/70 text-amber-950 space-y-2.5">
               <div class="flex items-start justify-between gap-2">
@@ -627,7 +609,7 @@
                     <span>📍</span> Kedai Gabin Ice Bar - Mellowbites
                   </p>
                   <p class="text-[10px] text-stone-600 mt-0.5 leading-snug">
-                    jl. bromo, RT/RW:001/006, Dsn. Karangtimongo, Ds. Denanyar, Jombang
+                    Jl. Bromo, RT/RW 001/006, Dsn. Karangtimongo, Ds. Denanyar, Jombang
                   </p>
                 </div>
                 <a href="https://www.google.com/maps/search/?api=1&query=-7.5431218,112.2134476" target="_blank"
@@ -647,7 +629,7 @@
               </div>
             </div>
 
-            <!-- Pilihan Hari & Tanggal Pengambilan (Kalender) -->
+            <!-- Pilihan Hari & Tanggal Pengambilan -->
             <div>
               <label for="pickupDateSelect" class="block text-xs font-bold text-stone-700 mb-1">
                 Hari & Tanggal Ambil <span class="text-rose-500">*</span>
@@ -682,9 +664,8 @@
           <div id="deliverySection"
             class="hidden space-y-3 p-3 rounded-xl bg-white border border-stone-200/90 shadow-2xs">
 
-            <!-- 1. Titik Lokasi Pengantaran (Peta Interaktif + GPS) -->
+            <!-- 1. Titik Lokasi Pengantaran -->
             <div class="space-y-1.5">
-              <!-- Header Lokasi Pengiriman & Tombol Lokasi Saya -->
               <div class="flex items-center justify-between gap-2">
                 <label class="block text-xs font-bold text-stone-700">
                   Titik Lokasi Antar <span class="text-rose-500">*</span>
@@ -702,7 +683,7 @@
                   <div class="relative flex-1">
                     <input type="text" id="mapSearchInput" placeholder="Cari nama jalan, perumahan, sekolah..."
                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); searchMapLocation(); }"
-                      class="w-full pl-8 pr-3 py-2 text-xs bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200 text-stone-800 placeholder:text-stone-400" />
+                      class="w-full pl-8 pr-3 py-2 text-xs bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200 text-stone-800 placeholder:text-stone-400">
                     <svg
                       class="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
                       fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -761,7 +742,7 @@
             </div>
           </div>
 
-          <!-- Pilihan Metode Pembayaran (Tab / Radio Card) -->
+          <!-- Pilihan Metode Pembayaran -->
           <div>
             <label class="block text-xs font-bold text-stone-700 mb-1.5">
               Metode Pembayaran <span class="text-rose-500">*</span>
@@ -788,10 +769,9 @@
             <p id="err-paymentMethod" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
           </div>
 
-          <!-- QRIS disembunyikan di keranjang agar tampilan bersih -->
           <div id="qrisPaymentBox" class="hidden"></div>
 
-          <!-- Container Box Tunai / COD (Tampil jika Tunai dipilih) -->
+          <!-- Container Box Tunai / COD -->
           <div id="tunaiPaymentBox"
             class="hidden p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-[11px] flex items-start gap-2">
             <span class="text-sm shrink-0">💵</span>
@@ -842,8 +822,7 @@
             class="flex-1 py-3 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-extrabold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition flex items-center justify-center gap-2">
             <span>Selanjutnya</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3">
-              </path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
             </svg>
           </button>
         </div>
@@ -868,7 +847,7 @@
             <p class="text-[11px] text-amber-100">Pastikan data Anda sudah benar</p>
           </div>
         </div>
-        <button type="button" onclick="closeConfirmModal()"
+        <button type="button" onclick="closeConfirmModal()" aria-label="Tutup konfirmasi"
           class="w-6 h-6 rounded-full bg-black/20 hover:bg-black/30 flex items-center justify-center text-white text-xs transition">✕</button>
       </div>
 
@@ -934,7 +913,7 @@
             <p id="qrisStepOrderSub" class="text-[11px] text-amber-100 font-mono">No. Order: MB-...</p>
           </div>
         </div>
-        <button type="button" onclick="cancelQrisStepModal()"
+        <button type="button" onclick="cancelQrisStepModal()" aria-label="Tutup layar QRIS"
           class="w-7 h-7 rounded-full bg-black/20 hover:bg-black/30 flex items-center justify-center text-white text-xs transition"
           title="Kembali">✕</button>
       </div>
@@ -955,8 +934,7 @@
               <span
                 class="w-4 h-4 rounded-full bg-brand-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
               <span><strong>Langsung scan kode QRIS</strong> di bawah lewat m-Banking / e-Wallet (<em>tidak wajib
-                  download</em>, atau tekan <strong>Download Gambar QRIS</strong> jika bayar dari HP yang
-                sama).</span>
+                  download</em>, atau tekan <strong>Download Gambar QRIS</strong> jika bayar dari HP yang sama).</span>
             </li>
             <li class="flex items-start gap-2">
               <span
@@ -966,8 +944,7 @@
             <li class="flex items-start gap-2">
               <span
                 class="w-4 h-4 rounded-full bg-brand-500 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
-              <span>Screenshot bukti berhasil, lalu tekan tombol <strong>Upload Bukti Transfer</strong> di
-                bawah.</span>
+              <span>Screenshot bukti berhasil, lalu tekan tombol <strong>Upload Bukti Transfer</strong> di bawah.</span>
             </li>
           </ol>
         </div>
@@ -977,7 +954,7 @@
             class="relative w-64 sm:w-72 mx-auto bg-white rounded-2xl p-3 border-2 border-stone-200 shadow-sm">
             <img id="qrisImgElement" src="img/QRIS.webp" alt="QRIS Gabin Ice Bar Mellowbites" decoding="async"
               class="w-full h-auto object-contain mx-auto rounded-xl"
-              onerror="this.classList.add('hidden'); document.getElementById('qrisSvgFallback').classList.remove('hidden');" />
+              onerror="this.classList.add('hidden'); document.getElementById('qrisSvgFallback').classList.remove('hidden');">
             <div id="qrisSvgFallback"
               class="hidden w-full aspect-square bg-gradient-to-tr from-stone-100 to-amber-50 rounded-xl flex flex-col items-center justify-center p-3 text-center border border-dashed border-stone-300">
               <p class="text-xs font-bold text-stone-700">QRIS Gabin Ice Bar Mellowbites</p>
@@ -989,7 +966,7 @@
             class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-stone-100 hover:bg-brand-50 hover:text-brand-700 text-stone-700 border border-stone-200 text-xs font-bold active:scale-95 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
             <span>Download Gambar QRIS (Opsional)</span>
           </button>
@@ -997,18 +974,19 @@
 
         <div class="space-y-2.5 pt-1">
           <div class="flex items-center justify-between">
-            <span class="font-extrabold text-stone-800 text-xs">Bukti Transfer QRIS <span
-                class="text-rose-500">*</span></span>
+            <span class="font-extrabold text-stone-800 text-xs">
+              Bukti Transfer QRIS <span class="text-rose-500">*</span>
+            </span>
             <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">Wajib diisi</span>
           </div>
 
           <!-- Input 1: Galeri / File -->
           <input type="file" id="qrisProofInput" accept="image/*" onchange="handleQrisProofChange(event)"
-            class="hidden" />
+            class="hidden">
 
-          <!-- Input 2: Kamera Langsung (Ambil Foto) -->
+          <!-- Input 2: Kamera Langsung -->
           <input type="file" id="qrisProofCameraInput" accept="image/*" capture="environment"
-            onchange="handleQrisProofChange(event)" class="hidden" />
+            onchange="handleQrisProofChange(event)" class="hidden">
 
           <!-- Pilihan 2 Tombol Upload -->
           <div id="qrisProofDropzone" class="grid grid-cols-2 gap-2.5">
@@ -1017,9 +995,10 @@
               <div class="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center shadow-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+                  </path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
                 </svg>
               </div>
               <span class="font-extrabold text-xs text-brand-800 leading-tight">Ambil Foto</span>
@@ -1031,7 +1010,8 @@
               <div class="w-10 h-10 rounded-xl bg-stone-700 text-white flex items-center justify-center shadow-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                  </path>
                 </svg>
               </div>
               <span class="font-extrabold text-xs text-stone-800 leading-tight">Pilih Galeri</span>
@@ -1057,7 +1037,7 @@
               </div>
             </div>
             <img id="qrisProofPreviewImg" src="" alt="Preview Bukti Transfer"
-              class="w-full max-h-52 object-contain rounded-xl bg-white border border-stone-200 mx-auto" />
+              class="w-full max-h-52 object-contain rounded-xl bg-white border border-stone-200 mx-auto">
             <button type="button" onclick="clearQrisProof()"
               class="w-full py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-[11px] transition">
               ✕ Hapus & Pilih Ulang Foto
@@ -1076,7 +1056,7 @@
         </button>
         <button type="button" id="btnSubmitQrisStep" onclick="submitQrisPaymentAndFinish()"
           class="flex-1 py-3 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:bg-stone-400 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-brand-500/20 active:scale-95 transition flex items-center justify-center gap-2">
-          <span>kirim bukti & Buat Pesanan</span>
+          <span>Kirim Bukti & Buat Pesanan</span>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
           </svg>
@@ -1088,13 +1068,10 @@
   <!-- CUSTOMER ORDER HISTORY MODAL (#orderHistoryModal) -->
   <div id="orderHistoryModal"
     class="fixed inset-0 z-50 bg-black/70 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-3 sm:p-4">
-    <!-- Backdrop dismiss -->
     <div class="absolute inset-0" onclick="closeOrderHistoryModal()"></div>
 
-    <!-- Modal Box -->
     <div id="orderHistoryContentBox"
       class="relative z-10 w-full max-w-md max-h-[90vh] flex flex-col bg-stone-50 rounded-3xl shadow-2xl overflow-hidden border border-stone-200 transform scale-95 transition-transform duration-300">
-      <!-- Modal Header -->
       <div class="px-5 py-4 bg-white border-b border-stone-200 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center font-bold text-lg">
@@ -1105,27 +1082,22 @@
             <p class="text-[11px] text-stone-500 font-medium">Daftar pesanan sebelumnya di perangkat ini</p>
           </div>
         </div>
-        <button onclick="closeOrderHistoryModal()"
+        <button type="button" onclick="closeOrderHistoryModal()" aria-label="Tutup riwayat pesanan"
           class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 flex items-center justify-center text-xs font-bold transition"
           title="Tutup">
           ✕
         </button>
       </div>
 
-      <!-- Order History List Body -->
-      <div id="orderHistoryList" class="overflow-y-auto p-3.5 sm:p-4 flex-1 space-y-3">
-        <!-- Rendered dynamically -->
-      </div>
+      <div id="orderHistoryList" class="overflow-y-auto p-3.5 sm:p-4 flex-1 space-y-3"></div>
     </div>
   </div>
 
   <!-- DIGITAL RECEIPT MODAL (#receiptModal) -->
   <div id="receiptModal"
     class="fixed inset-0 z-50 bg-black/70 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-3 sm:p-4">
-    <!-- Backdrop dismiss -->
     <div class="absolute inset-0" onclick="closeReceiptModal()"></div>
 
-    <!-- Modal Box -->
     <div id="receiptContentBox"
       class="relative z-10 w-full max-w-sm max-h-[95vh] flex flex-col bg-stone-100 rounded-3xl shadow-2xl overflow-hidden border border-stone-300 transform scale-95 transition-transform duration-300">
 
@@ -1135,14 +1107,13 @@
           <span class="text-sm">🧾</span>
           <span class="text-xs font-bold tracking-tight">Struk Digital Pesanan</span>
         </div>
-        <button id="btnCloseReceipt" onclick="closeReceiptModal()"
+        <button type="button" id="btnCloseReceipt" onclick="closeReceiptModal()" aria-label="Tutup struk"
           class="w-6 h-6 rounded-full bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-300 text-xs transition"
           title="Tutup Struk">✕</button>
       </div>
 
       <!-- Scrollable Receipt Body -->
       <div class="overflow-y-auto p-3.5 sm:p-4 flex-1 flex justify-center bg-stone-100">
-        <!-- Physical Receipt Paper (#receiptPaper) -->
         <div id="receiptPaper"
           class="w-full bg-white text-stone-800 p-5 rounded-2xl shadow-sm border border-stone-200/90 font-sans text-xs relative">
 
@@ -1150,14 +1121,15 @@
           <div class="text-center pb-1">
             <img src="img/logo.webp" alt="Logo Mellowbites" width="64" height="64"
               class="w-16 h-16 object-contain mx-auto mb-1.5 rounded-2xl border border-stone-200/80 bg-[#fbf6ea] p-1">
-            <h4 class="font-black text-stone-900 text-base tracking-tight uppercase leading-snug">Gabin Ice Bar -
-              Mellowbites</h4>
+            <h4 class="font-black text-stone-900 text-base tracking-tight uppercase leading-snug">
+              Gabin Ice Bar - Mellowbites
+            </h4>
             <p class="text-[10px] text-stone-500 font-medium mt-0.5">Biskuit Renyah, Fla Creamy Lumer</p>
-            <p class="text-[9px] text-stone-400 mt-0.5">jl. bromo, RT/RW:001/006, Dsn. Karangtimongo, Ds. Denanyar,
-              Jombang • WA: 0856-4640-9023</p>
+            <p class="text-[9px] text-stone-400 mt-0.5">
+              Jl. Bromo, RT/RW 001/006, Dsn. Karangtimongo, Ds. Denanyar, Jombang • WA: 0856-4640-9023
+            </p>
           </div>
 
-          <!-- Divider 1 -->
           <div class="rcpt-divider"></div>
 
           <!-- Order Metadata -->
@@ -1178,7 +1150,6 @@
               <span class="text-stone-500">Metode Pesanan:</span>
               <span id="rcptOrderMethod" class="font-bold text-stone-800">-</span>
             </div>
-            <!-- Detail Row (Alamat atau Jam Ambil) -->
             <div id="rcptDetailRow"
               class="text-[10px] text-stone-600 bg-stone-50 p-2 rounded-lg border border-stone-200/60 leading-normal my-1.5">
               -
@@ -1190,7 +1161,6 @@
             </div>
           </div>
 
-          <!-- Divider 2 -->
           <div class="rcpt-divider"></div>
 
           <!-- Items Table -->
@@ -1199,12 +1169,9 @@
               <span>Item Menu</span>
               <span>Subtotal</span>
             </div>
-            <div id="rcptItemsList" class="text-xs">
-              <!-- Rendered dynamically -->
-            </div>
+            <div id="rcptItemsList" class="text-xs"></div>
           </div>
 
-          <!-- Divider 3 -->
           <div class="rcpt-divider"></div>
 
           <!-- Total Calculation -->
@@ -1224,7 +1191,6 @@
             </div>
           </div>
 
-          <!-- Divider 4 -->
           <div class="rcpt-divider"></div>
 
           <!-- Receipt Footer Note -->
@@ -1235,10 +1201,8 @@
         </div>
       </div>
 
-      <!-- Modal Bottom Actions (3 Buttons) -->
+      <!-- Modal Bottom Actions -->
       <div class="p-3.5 bg-white border-t border-stone-200 space-y-2.5 shrink-0">
-
-        <!-- Peringatan Status Konfirmasi WA -->
         <div id="rcptWaStatusBox"
           class="p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-2 transition-all duration-200">
           <span id="rcptWaStatusIcon" class="text-sm shrink-0">⚠️</span>
@@ -1249,7 +1213,6 @@
         </div>
 
         <div class="grid grid-cols-2 gap-2">
-          <!-- 1. Download PNG Button -->
           <button type="button" onclick="downloadReceiptPng()"
             class="py-2 px-3 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1259,7 +1222,6 @@
             <span>Download PNG</span>
           </button>
 
-          <!-- 2. Salin Pesanan Button -->
           <button type="button" onclick="copyOrderText()"
             class="py-2 px-3 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1271,7 +1233,6 @@
           </button>
         </div>
 
-        <!-- 3. WhatsApp Confirmation Button (Wajib) -->
         <button type="button" id="btnSubmitWaOrder" onclick="submitWhatsAppOrder()"
           class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-emerald-600/20 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2">
           <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
@@ -1303,7 +1264,7 @@
             <p class="text-[11px] text-stone-500 mt-0.5">Pasang di layar utama perangkat Anda</p>
           </div>
         </div>
-        <button onclick="closePwaGuideModal()"
+        <button type="button" onclick="closePwaGuideModal()" aria-label="Tutup panduan instalasi"
           class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition active:scale-90">
           ✕
         </button>
@@ -1311,7 +1272,6 @@
 
       <!-- Modal Body -->
       <div class="p-4 sm:p-5 space-y-4 overflow-y-auto">
-        <!-- Keunggulan Aplikasi -->
         <div class="grid grid-cols-3 gap-2 text-center">
           <div class="p-2.5 rounded-xl bg-orange-50 border border-orange-100">
             <span class="text-base">⚡</span>
@@ -1339,18 +1299,20 @@
             <div class="flex items-start gap-2.5 p-2.5 rounded-xl bg-stone-50 border border-stone-200">
               <span
                 class="w-5 h-5 rounded-full bg-orange-500 text-white text-[11px] font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
-              <p>Tap tombol <strong class="text-stone-900 font-bold">Bagikan (Share)</strong> <svg
-                  class="inline w-4 h-4 text-sky-600 align-text-bottom" fill="none" stroke="currentColor"
+              <p>
+                Tap tombol <strong class="text-stone-900 font-bold">Bagikan (Share)</strong>
+                <svg class="inline w-4 h-4 text-sky-600 align-text-bottom" fill="none" stroke="currentColor"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg> di menu bawah Safari.</p>
+                </svg>
+                di menu bawah Safari.
+              </p>
             </div>
             <div class="flex items-start gap-2.5 p-2.5 rounded-xl bg-stone-50 border border-stone-200">
               <span
                 class="w-5 h-5 rounded-full bg-orange-500 text-white text-[11px] font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
-              <p>Geser ke bawah lalu pilih menu <strong class="text-stone-900 font-bold">"Tambah ke Layar Utama" (Add
-                  to
+              <p>Geser ke bawah lalu pilih menu <strong class="text-stone-900 font-bold">"Tambah ke Layar Utama" (Add to
                   Home Screen ➕)</strong>.</p>
             </div>
             <div class="flex items-start gap-2.5 p-2.5 rounded-xl bg-stone-50 border border-stone-200">
@@ -1364,7 +1326,6 @@
 
         <!-- Panduan Khusus Android / Chrome / PC -->
         <div id="pwaAndroidGuide" class="space-y-3">
-          <!-- Tombol Pasang Langsung jika prompt tersedia -->
           <button id="btnPwaPromptDirect" type="button" onclick="triggerNativePwaPrompt()"
             class="w-full py-3 px-4 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-orange-600/20 active:scale-95 transition flex items-center justify-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1394,12 +1355,11 @@
             </div>
           </div>
         </div>
-
       </div>
 
       <!-- Modal Footer -->
       <div class="p-3 bg-stone-50 border-t border-stone-100 flex justify-end">
-        <button onclick="closePwaGuideModal()"
+        <button type="button" onclick="closePwaGuideModal()"
           class="w-full sm:w-auto px-4 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs transition">
           Mengerti
         </button>

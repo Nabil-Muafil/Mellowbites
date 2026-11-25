@@ -181,9 +181,11 @@ let selectedPaymentMethod = 'qris'; // 'qris' | 'tunai'
 let qrisProofFile = null;
 let currentOrder = null;
 let hasConfirmedWhatsApp = false;
+let hasSentWhatsAppClick = false;
 let activeDetailProductId = null;
 let pendingOrder = null;
 let pendingQrisOrderMeta = null;
+let isCreatingOrder = false;
 
 // 4. LocalStorage Helpers
 function saveCartToStorage() {
@@ -239,8 +241,9 @@ function saveCustomerOrderHistory(order) {
   try {
     let history = getCustomerOrderHistory();
     history = history.filter(o => o.orderNumber !== order.orderNumber);
+    const { _recordPromise, ...restOrder } = order;
     const cleanOrder = {
-      ...order,
+      ...restOrder,
       timestamp: order.timestamp instanceof Date ? order.timestamp.toISOString() : (order.timestamp || new Date().toISOString())
     };
     history.unshift(cleanOrder);
@@ -266,9 +269,26 @@ function updateHistoryBadge() {
   }
 }
 
-// 5. Utility: Format Rupiah
+// 5. Utility: Format Rupiah & Sanitasi HTML
 function formatRupiah(num) {
   return 'Rp ' + Number(num).toLocaleString('id-ID');
+}
+
+const HTML_ESCAPE_MAP = {
+  '&': '\x26amp;',
+  '<': '\x26lt;',
+  '>': '\x26gt;',
+  '"': '\x26quot;',
+  "'": '\x26#39;'
+};
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, (ch) => HTML_ESCAPE_MAP[ch]);
+}
+
+function isQrisOrder(order) {
+  return String(order?.paymentMethod || '').toLowerCase() === 'qris';
 }
 
 // 6. Utility: Gambar Ilustrasi Gabin SVG (Fallback jika foto offline/loading)
@@ -281,7 +301,7 @@ function getGabinSvg(creamColor) {
       <circle cx="50" cy="18" r="3" fill="#B45309"/>
       <circle cx="65" cy="18" r="3" fill="#B45309"/>
       <circle cx="80" cy="18" r="3" fill="#B45309"/>
-      <rect x="10" y="26" width="80" height="28" rx="5" fill="${creamColor}" stroke="#78350F" stroke-width="2"/>
+      <rect x="10" y="26" width="80" height="28" rx="5" fill="${escapeHtml(creamColor)}" stroke="#78350F" stroke-width="2"/>
       <rect x="5" y="52" width="90" height="20" rx="6" fill="#FBBF24" stroke="#B45309" stroke-width="3"/>
       <circle cx="20" cy="62" r="3" fill="#B45309"/>
       <circle cx="35" cy="62" r="3" fill="#B45309"/>
@@ -299,25 +319,31 @@ function initProductGrid() {
 
   grid.innerHTML = PRODUCTS.map((product, idx) => {
     const isAvail = product.isAvailable !== false;
-    const searchTokens = product.name.toLowerCase();
+    const searchTokens = escapeHtml(product.name.toLowerCase());
+    const safeId = escapeHtml(product.id);
+    const safeName = escapeHtml(product.name);
+    const safeDesc = escapeHtml(product.desc);
+    const safeTag = escapeHtml(product.tag);
+    const safeImage = escapeHtml(product.image);
+
     return `
       <div 
-        id="card-${product.id}"
-        data-id="${product.id}"
-        data-category="${product.category}"
+        id="card-${safeId}"
+        data-id="${safeId}"
+        data-category="${escapeHtml(product.category)}"
         data-bestseller="${product.isBestSeller}"
         data-search="${searchTokens}"
         class="product-card group relative bg-white rounded-2xl p-3 border border-stone-200 shadow-xs flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-lg hover:border-brand-300 ${!isAvail ? 'opacity-75' : ''}"
       >
-        <div onclick="openProductDetailModal('${product.id}')" class="cursor-pointer select-none">
+        <div onclick="openProductDetailModal('${safeId}')" class="cursor-pointer select-none">
           <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden ${product.flavorBg} mb-3 flex items-center justify-center">
             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none transition-transform duration-300 group-hover:scale-105">
               ${getGabinSvg(product.creamColor)}
             </div>
 
             <img 
-              src="${product.image}" 
-              alt="${product.name}" 
+              src="${safeImage}" 
+              alt="${safeName}" 
               loading="${idx < 4 ? 'eager' : 'lazy'}"
               decoding="async"
               class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${!isAvail ? 'grayscale-[60%]' : ''}"
@@ -335,24 +361,24 @@ function initProductGrid() {
             <div class="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
 
             <span class="absolute top-2 left-2 ${product.tagColor} text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs z-10">
-              ${product.tag}
+              ${safeTag}
             </span>
 
-            <div id="card-badge-${product.id}"></div>
+            <div id="card-badge-${safeId}"></div>
           </div>
 
           <div class="flex items-start justify-between gap-1 mb-1">
-            <h4 class="font-bold text-stone-900 text-sm leading-tight group-hover:text-brand-600 transition-colors">${product.name}</h4>
+            <h4 class="font-bold text-stone-900 text-sm leading-tight group-hover:text-brand-600 transition-colors">${safeName}</h4>
             <span class="text-xs font-black text-brand-600 whitespace-nowrap">${formatRupiah(product.price)}</span>
           </div>
           <p class="text-[11px] text-stone-500 leading-relaxed line-clamp-2 mb-3">
-            ${product.desc}
+            ${safeDesc}
           </p>
         </div>
 
         <div class="pt-2 border-t border-stone-100 flex items-center justify-between" onclick="event.stopPropagation()">
           <span class="text-[10px] text-stone-400 font-medium">Satuan / pcs</span>
-          <div id="card-action-${product.id}" class="flex items-center"></div>
+          <div id="card-action-${safeId}" class="flex items-center"></div>
         </div>
       </div>
     `;
@@ -442,11 +468,12 @@ function updateProductCardState(productId) {
   }
 
   const actionEl = document.getElementById(`card-action-${productId}`);
+  const safeId = escapeHtml(productId);
   if (actionEl) {
     if (qty === 0) {
       actionEl.innerHTML = `
         <button 
-          onclick="event.stopPropagation(); addToCart('${productId}')"
+          onclick="event.stopPropagation(); addToCart('${safeId}')"
           class="px-3.5 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-500 text-brand-600 hover:text-white text-xs font-bold transition flex items-center gap-1 active:scale-95 shadow-xs"
           aria-label="Tambah item"
         >
@@ -460,7 +487,7 @@ function updateProductCardState(productId) {
       actionEl.innerHTML = `
         <div class="flex items-center bg-stone-100 rounded-xl p-0.5 border border-stone-200" onclick="event.stopPropagation()">
           <button 
-            onclick="event.stopPropagation(); updateQty('${productId}', -1)"
+            onclick="event.stopPropagation(); updateQty('${safeId}', -1)"
             class="w-7 h-7 rounded-lg bg-white text-stone-700 hover:bg-rose-50 hover:text-rose-600 shadow-xs flex items-center justify-center font-black text-sm active:scale-90 transition"
             aria-label="Kurangi"
           >
@@ -470,7 +497,7 @@ function updateProductCardState(productId) {
             ${qty}
           </span>
           <button 
-            onclick="event.stopPropagation(); updateQty('${productId}', 1)"
+            onclick="event.stopPropagation(); updateQty('${safeId}', 1)"
             class="w-7 h-7 rounded-lg bg-brand-500 text-white hover:bg-brand-600 shadow-xs flex items-center justify-center font-black text-sm active:scale-90 transition"
             aria-label="Tambah"
           >
@@ -1045,18 +1072,21 @@ async function searchMapLocation() {
     }
 
     resultsBox.innerHTML = data.map((place) => {
-      const safeName = place.display_name.replace(/'/g, "\\'");
-      const shortTitle = place.display_name.split(',')[0];
+      const safeFullName = escapeHtml(place.display_name);
+      const shortTitle = escapeHtml(place.display_name.split(',')[0]);
       return `
         <button 
           type="button"
-          onclick="selectSearchedLocation(${place.lat}, ${place.lon}, '${safeName}')"
+          data-lat="${escapeHtml(place.lat)}"
+          data-lng="${escapeHtml(place.lon)}"
+          data-name="${safeFullName}"
+          onclick="selectSearchedLocationFromBtn(this)"
           class="w-full text-left px-3 py-2 hover:bg-brand-50 transition flex items-start gap-2"
         >
           <span class="text-xs mt-0.5">📍</span>
           <div class="min-w-0">
             <p class="text-xs font-bold text-stone-800 truncate">${shortTitle}</p>
-            <p class="text-[10px] text-stone-500 line-clamp-1">${place.display_name}</p>
+            <p class="text-[10px] text-stone-500 line-clamp-1">${safeFullName}</p>
           </div>
         </button>
       `;
@@ -1074,10 +1104,18 @@ async function searchMapLocation() {
   }
 }
 
+function selectSearchedLocationFromBtn(btnEl) {
+  if (!btnEl) return;
+  const lat = Number(btnEl.dataset.lat);
+  const lng = Number(btnEl.dataset.lng);
+  const displayName = btnEl.dataset.name || '';
+  selectSearchedLocation(lat, lng, displayName);
+}
+
 function selectSearchedLocation(lat, lng, displayName) {
   const resultsBox = document.getElementById('mapSearchResults');
   const statusEl = document.getElementById('deliveryLocationStatus');
-  const shortName = (displayName || '').split(',')[0];
+  const shortName = escapeHtml((displayName || '').split(',')[0]);
 
   if (resultsBox) resultsBox.classList.add('hidden');
   if (statusEl) {
@@ -1180,7 +1218,7 @@ async function uploadQrisProofToSupabase(file, orderNumber) {
     .from('payment-proofs')
     .upload(filePath, compressedBlob, {
       contentType: 'image/jpeg',
-      upsert: true
+      upsert: false
     });
 
   if (error) throw new Error('Gagal mengunggah bukti transfer: ' + error.message);
@@ -1518,7 +1556,7 @@ function renderModalCart() {
           <span class="text-xs">🥪</span>
         </div>
         <div class="min-w-0">
-          <h5 class="font-bold text-stone-900 text-xs truncate">${item.name}</h5>
+          <h5 class="font-bold text-stone-900 text-xs truncate">${escapeHtml(item.name)}</h5>
           <div class="text-[10px] text-stone-500">
             ${formatRupiah(item.price)} × ${item.qty}
           </div>
@@ -1529,7 +1567,7 @@ function renderModalCart() {
       <div class="flex items-center bg-white rounded-lg p-0.5 border border-stone-200 shrink-0">
         <button 
           type="button"
-          onclick="updateQty('${item.id}', -1)"
+          onclick="updateQty('${escapeHtml(item.id)}', -1)"
           class="w-6 h-6 rounded bg-stone-100 text-stone-700 hover:bg-rose-50 hover:text-rose-600 flex items-center justify-center font-bold text-xs"
           aria-label="Kurangi"
         >
@@ -1538,7 +1576,7 @@ function renderModalCart() {
         <span class="w-7 text-center text-xs font-bold text-stone-800">${item.qty}</span>
         <button 
           type="button"
-          onclick="updateQty('${item.id}', 1)"
+          onclick="updateQty('${escapeHtml(item.id)}', 1)"
           class="w-6 h-6 rounded bg-brand-500 text-white hover:bg-brand-600 flex items-center justify-center font-bold text-xs"
           aria-label="Tambah"
         >
@@ -1958,11 +1996,11 @@ function renderConfirmModal(order) {
 
   const detailBox = document.getElementById('cfmDetailBox');
   if (order.orderMethod === 'pickup') {
-    detailBox.innerHTML = `<strong>Rencana Ambil:</strong> Pukul ${order.pickupTime} WIB di Kedai Mellowbites`;
+    detailBox.innerHTML = `<strong>Rencana Ambil:</strong> Pukul ${escapeHtml(order.pickupTime)} WIB di Kedai Mellowbites`;
   } else {
     const ongkirLabel = (order.deliveryFee || 0) > 0 ? formatRupiah(order.deliveryFee) : 'Gratis';
     detailBox.innerHTML = `
-      <strong>Alamat Pengiriman:</strong> ${order.deliveryAddress}
+      <strong>Alamat Pengiriman:</strong> ${escapeHtml(order.deliveryAddress)}
       <div class="mt-1 pt-1 border-t border-stone-100 text-brand-700 font-bold">
         🛵 Jarak: ${order.deliveryDistanceKm ?? '-'} km • Ongkir: ${ongkirLabel}
       </div>
@@ -2016,6 +2054,8 @@ function cancelQrisStepModal() {
 }
 
 async function proceedCreateOrder() {
+  if (isCreatingOrder) return;
+
   if (!pendingOrder) {
     showToast('Data pesanan tidak ditemukan');
     return;
@@ -2027,23 +2067,40 @@ async function proceedCreateOrder() {
     return;
   }
 
-  const orderMeta = {
-    ...pendingOrder,
-    orderNumber: generateOrderNumber(),
-    timestamp: new Date()
-  };
+  const btn = document.getElementById('btnProceedCreateOrder');
+  const origHtml = btn ? btn.innerHTML : '';
 
-  if (orderMeta.paymentMethod === 'qris') {
-    closeConfirmModal();
-    closeCartModal();
-    openQrisStepModal(orderMeta);
-    return;
+  try {
+    isCreatingOrder = true;
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>Memproses...</span>';
+    }
+
+    const orderMeta = {
+      ...pendingOrder,
+      orderNumber: generateOrderNumber(),
+      timestamp: new Date()
+    };
+
+    if (orderMeta.paymentMethod === 'qris') {
+      closeConfirmModal();
+      closeCartModal();
+      openQrisStepModal(orderMeta);
+      return;
+    }
+
+    await finalizeAndIssueReceipt({
+      ...orderMeta,
+      paymentProofUrl: null
+    });
+  } finally {
+    isCreatingOrder = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
   }
-
-  await finalizeAndIssueReceipt({
-    ...orderMeta,
-    paymentProofUrl: null
-  });
 }
 
 // 17d. Submit Bukti Transfer QRIS & Terbitkan Struk
@@ -2088,16 +2145,26 @@ async function submitQrisPaymentAndFinish() {
 }
 
 async function recordOrderToBackend(order) {
-  if (!order || order._isRecordedToBackend) return;
-  order._isRecordedToBackend = true;
+  if (!order) return false;
+  if (order._isRecordedToBackend) return true;
+  if (order._recordPromise) return order._recordPromise;
 
-  saveCustomerOrderHistory(order);
+  order._recordPromise = (async () => {
+    saveCustomerOrderHistory(order);
 
-  const formattedDeliveryAddress = order.orderMethod === 'delivery'
-    ? `${order.deliveryAddress} [Jarak: ${order.deliveryDistanceKm ?? '-'} km | Ongkir: ${formatRupiah(order.deliveryFee || 0)}]${order.deliveryRouteUrl ? ` • Rute Maps: ${order.deliveryRouteUrl}` : ''}`
-    : null;
+    const safeCleanAddress = order.deliveryAddress
+      ? order.deliveryAddress.trim().replace(/\[/g, '(').replace(/\]/g, ')')
+      : null;
 
-  if (sbClient) {
+    const formattedDeliveryAddress = order.orderMethod === 'delivery'
+      ? `${safeCleanAddress} [Jarak: ${order.deliveryDistanceKm ?? '-'} km | Ongkir: ${formatRupiah(order.deliveryFee || 0)}]${order.deliveryRouteUrl ? ` • Rute Maps: ${order.deliveryRouteUrl}` : ''}`
+      : null;
+
+    if (!sbClient) {
+      order._isRecordedToBackend = true;
+      return true;
+    }
+
     const { error: insertErr } = await sbClient.from('orders').insert([{
       order_number: order.orderNumber,
       customer_name: order.customerName,
@@ -2110,7 +2177,13 @@ async function recordOrderToBackend(order) {
       total_items: order.totalItems,
       total_price: order.totalPrice
     }]);
-    if (insertErr) console.warn('Gagal mencatat pesanan ke rekap admin:', insertErr);
+
+    if (insertErr) {
+      console.warn('Gagal mencatat pesanan ke rekap admin:', insertErr);
+      return false;
+    }
+
+    order._isRecordedToBackend = true;
 
     const daftarMenuEmail = order.items
       .map(i => `- ${i.name} (${i.qty} pcs) = ${formatRupiah(i.subtotal)}`)
@@ -2134,14 +2207,23 @@ async function recordOrderToBackend(order) {
         Total_Bayar: formatRupiah(order.totalPrice)
       })
     }).catch(err => console.warn('Gagal kirim notifikasi email:', err));
+
+    return true;
+  })();
+
+  try {
+    return await order._recordPromise;
+  } finally {
+    order._recordPromise = null;
   }
 }
 
-// 17e. Finalisasi Simpan ke Database, Email, & Buka Struk Digital
+// 17e. Finalisasi Simpan ke Database (Khusus QRIS) & Buka Struk Digital
 async function finalizeAndIssueReceipt(finalOrder) {
   currentOrder = {
     ...finalOrder,
-    _isRecordedToBackend: false
+    _isRecordedToBackend: false,
+    _recordPromise: null
   };
 
   try {
@@ -2162,14 +2244,30 @@ async function finalizeAndIssueReceipt(finalOrder) {
   closeConfirmModal();
   closeCartModal();
 
+  // Tetap terkunci (false) untuk semua metode pembayaran sampai tombol WhatsApp diklik
   hasConfirmedWhatsApp = false;
-  localStorage.setItem('mellowbites_pending_wa_order', JSON.stringify(currentOrder));
-  updateReceiptConfirmationState();
+  hasSentWhatsAppClick = false;
 
+  if (isQrisOrder(currentOrder)) {
+    // QRIS: Langsung simpan ke database begitu struk terbit
+    await recordOrderToBackend(currentOrder);
+  }
+
+  // Simpan status pending WA agar banner pengingat muncul jika tab ditutup paksa
+  const { _recordPromise, ...serializableOrder } = currentOrder;
+  try {
+    localStorage.setItem('mellowbites_pending_wa_order', JSON.stringify(serializableOrder));
+  } catch (_) { }
+
+  updateReceiptConfirmationState();
   renderReceiptModal(currentOrder);
   openReceiptModal();
 
-  showToast('Struk siap! Klik Konfirmasi ke WhatsApp agar pesanan masuk.');
+  if (isQrisOrder(currentOrder) && currentOrder._isRecordedToBackend) {
+    showToast('Bukti QRIS tercatat! Wajib klik Konfirmasi WhatsApp untuk menutup struk.');
+  } else {
+    showToast('Struk siap! Wajib klik Konfirmasi ke WhatsApp agar pesanan diproses.');
+  }
 }
 
 // 18. Helper Format Nomor Order & Tanggal
@@ -2293,7 +2391,11 @@ function updateReceiptConfirmationState() {
     }
     if (icon) icon.textContent = '⚠️';
     if (text) {
-      text.innerHTML = '<strong class="font-bold">Wajib:</strong> Klik tombol hijau di bawah untuk konfirmasi ke WhatsApp agar pesanan segera dibuatkan. Struk tidak dapat ditutup sebelum konfirmasi.';
+      if (isQrisOrder(currentOrder) && currentOrder._isRecordedToBackend) {
+        text.innerHTML = '<strong class="font-bold">Bukti QRIS tercatat — Wajib Konfirmasi WA:</strong> Klik tombol hijau di bawah untuk konfirmasi ke WhatsApp agar pesanan segera diproses. Struk tidak dapat ditutup sebelum konfirmasi.';
+      } else {
+        text.innerHTML = '<strong class="font-bold">Wajib:</strong> Klik tombol hijau di bawah untuk konfirmasi ke WhatsApp agar pesanan masuk & segera dibuatkan. Struk tidak dapat ditutup sebelum konfirmasi.';
+      }
     }
     if (btnClose) {
       btnClose.title = 'Wajib konfirmasi WA sebelum menutup struk';
@@ -2316,9 +2418,9 @@ function renderReceiptModal(order) {
 
   const detailRow = document.getElementById('rcptDetailRow');
   if (order.orderMethod === 'pickup') {
-    detailRow.innerHTML = `<strong>Jam Rencana Ambil:</strong> Pukul ${order.pickupTime} WIB di Kedai Mellowbites`;
+    detailRow.innerHTML = `<strong>Jam Rencana Ambil:</strong> Pukul ${escapeHtml(order.pickupTime)} WIB di Kedai Mellowbites`;
   } else {
-    detailRow.innerHTML = `<strong>Alamat Pengiriman:</strong> ${order.deliveryAddress}`;
+    detailRow.innerHTML = `<strong>Alamat Pengiriman:</strong> ${escapeHtml(order.deliveryAddress)}`;
   }
 
   const rcptFeeRow = document.getElementById('rcptDeliveryFeeRow');
@@ -2349,7 +2451,7 @@ function renderReceiptModal(order) {
   itemsList.innerHTML = order.items.map(item => `
     <div class="rcpt-item-row">
       <div style="min-width: 0; flex: 1;">
-        <p class="rcpt-item-name">${item.name}</p>
+        <p class="rcpt-item-name">${escapeHtml(item.name)}</p>
         <p class="rcpt-item-sub">${formatRupiah(item.price)} × ${item.qty}</p>
       </div>
       <span class="rcpt-item-price">${formatRupiah(item.subtotal)}</span>
@@ -2524,7 +2626,7 @@ function buildOrderString() {
 }
 
 // 22. Kirim Konfirmasi ke WhatsApp
-function submitWhatsAppOrder() {
+async function submitWhatsAppOrder() {
   if (!currentOrder) {
     showToast('Silakan buat pesanan terlebih dahulu');
     return;
@@ -2533,18 +2635,45 @@ function submitWhatsAppOrder() {
   const text = buildOrderString();
   if (!text) return;
 
-  recordOrderToBackend(currentOrder);
+  const btn = document.getElementById('btnSubmitWaOrder');
+  const btnText = document.getElementById('btnSubmitWaText');
+  const prevLabel = btnText ? btnText.textContent : '';
 
-  hasConfirmedWhatsApp = true;
-  localStorage.removeItem('mellowbites_pending_wa_order');
-  document.getElementById('unconfirmedOrderBanner')?.classList.add('hidden');
-  updateReceiptConfirmationState();
+  if (btn) btn.disabled = true;
+  if (btnText) btnText.textContent = 'Menyimpan pesanan...';
 
-  const waNumber = '6285646409023';
-  const waUrl = `https://api.whatsapp.com/send?phone=${waNumber}&text=${encodeURIComponent(text)}`;
+  try {
+    // Untuk Tunai (COD): pesanan baru dicatat ke database di tahap ini.
+    // Untuk QRIS: otomatis dilewati jika sudah tercatat saat struk terbit, atau dicoba ulang jika tadi gagal.
+    const saved = await recordOrderToBackend(currentOrder);
+    if (!saved && !isQrisOrder(currentOrder)) {
+      const lanjutWa = confirm(
+        'Koneksi ke server sedang bermasalah sehingga pesanan belum tercatat otomatis di sistem. Tetap lanjut konfirmasi manual ke WhatsApp admin?'
+      );
+      if (!lanjutWa) return;
+    }
 
-  window.open(waUrl, '_blank');
-  showToast('Pesanan masuk & membuka WhatsApp...');
+    hasConfirmedWhatsApp = true;
+    hasSentWhatsAppClick = true;
+    localStorage.removeItem('mellowbites_pending_wa_order');
+    document.getElementById('unconfirmedOrderBanner')?.classList.add('hidden');
+    updateReceiptConfirmationState();
+
+    const waNumber = '6285646409023';
+    const waUrl = `https://api.whatsapp.com/send?phone=${waNumber}&text=${encodeURIComponent(text)}`;
+
+    showToast('Pesanan masuk & membuka WhatsApp...');
+    const waWindow = window.open(waUrl, '_blank');
+    if (!waWindow || waWindow.closed || typeof waWindow.closed === 'undefined') {
+      // Fallback untuk in-app browser Instagram / TikTok yang memblokir window.open
+      window.location.href = waUrl;
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnText && !hasConfirmedWhatsApp) {
+      btnText.textContent = prevLabel;
+    }
+  }
 }
 
 // 23. Salin Rincian Pesanan ke Clipboard
@@ -2592,20 +2721,21 @@ function openOrderHistoryModal() {
       const itemsListHtml = (order.items || []).map(i => `
         <div class="flex items-center justify-between text-xs py-1">
           <span class="text-stone-700 font-medium truncate pr-2">
-            ${i.name} <span class="text-stone-400 font-bold">×${i.qty}</span>
+            ${escapeHtml(i.name)} <span class="text-stone-400 font-bold">×${i.qty}</span>
           </span>
           <span class="text-stone-600 font-bold shrink-0">${formatRupiah(i.subtotal)}</span>
         </div>
       `).join('');
 
       const isPickup = order.orderMethod === 'pickup';
-      const methodLabel = isPickup ? `🏬 Ambil (${order.pickupTime || '-'})` : `🛵 Antar COD`;
+      const methodLabel = isPickup ? `🏬 Ambil (${escapeHtml(order.pickupTime || '-')})` : `🛵 Antar COD`;
+      const safeOrderNum = escapeHtml(order.orderNumber);
 
       return `
         <div class="bg-white p-4 rounded-2xl border border-stone-200/90 shadow-2xs space-y-2.5 transition hover:border-brand-300">
           <div class="flex items-start justify-between gap-2">
             <div>
-              <span class="font-mono font-extrabold text-[11px] text-brand-600 tracking-wide">${order.orderNumber}</span>
+              <span class="font-mono font-extrabold text-[11px] text-brand-600 tracking-wide">${safeOrderNum}</span>
               <p class="text-[10px] text-stone-400 font-medium mt-0.5">${formatDateTime(order.timestamp)}</p>
             </div>
             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPickup ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">
@@ -2619,7 +2749,7 @@ function openOrderHistoryModal() {
 
           <div class="flex items-center justify-between text-xs pt-0.5">
             <span class="text-stone-500 text-[11px]">
-              ${order.totalItems} pcs • <strong class="text-stone-700 uppercase font-bold">${order.paymentMethod}</strong>
+              ${order.totalItems} pcs • <strong class="text-stone-700 uppercase font-bold">${escapeHtml(order.paymentMethod)}</strong>
             </span>
             <div class="text-right">
               <span class="text-[10px] text-stone-400 block -mb-0.5">Total Bayar</span>
@@ -2630,7 +2760,7 @@ function openOrderHistoryModal() {
           <div class="pt-2 border-t border-stone-100 grid grid-cols-2 gap-2">
             <button 
               type="button" 
-              onclick="viewPastOrderReceipt('${order.orderNumber}')"
+              onclick="viewPastOrderReceipt('${safeOrderNum}')"
               class="py-2 px-3 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-700 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1.5"
             >
               <span>🧾</span>
@@ -2638,7 +2768,7 @@ function openOrderHistoryModal() {
             </button>
             <button 
               type="button" 
-              onclick="repeatOrder('${order.orderNumber}')"
+              onclick="repeatOrder('${safeOrderNum}')"
               class="py-2 px-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-xs shadow-sm shadow-brand-500/20 active:scale-95 transition flex items-center justify-center gap-1.5"
             >
               <span>🔁</span>
@@ -2681,6 +2811,7 @@ function viewPastOrderReceipt(orderNumber) {
   };
 
   hasConfirmedWhatsApp = true;
+  hasSentWhatsAppClick = true;
   updateReceiptConfirmationState();
 
   renderReceiptModal(currentOrder);
@@ -3066,11 +3197,14 @@ function resumeUnconfirmedOrder() {
     const savedOrder = JSON.parse(raw);
     currentOrder = {
       ...savedOrder,
+      _isRecordedToBackend: Boolean(savedOrder._isRecordedToBackend),
+      _recordPromise: null,
       items: Array.isArray(savedOrder.items) ? savedOrder.items : [],
       timestamp: savedOrder.timestamp ? new Date(savedOrder.timestamp) : new Date()
     };
 
     hasConfirmedWhatsApp = false;
+    hasSentWhatsAppClick = false;
     updateReceiptConfirmationState();
     renderReceiptModal(currentOrder);
     openReceiptModal();
