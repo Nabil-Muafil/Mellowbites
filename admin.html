@@ -906,21 +906,30 @@
       </div>
 
       <!-- Modal Bottom Actions -->
-      <div class="p-3 bg-white border-t border-stone-200 grid grid-cols-3 gap-2 shrink-0 no-print">
-        <button type="button" onclick="printAdminReceipt()"
-          class="py-2 px-2 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1">
-          <span>🖨</span>
-          <span>Cetak</span>
-        </button>
-        <button type="button" onclick="downloadAdminReceiptPng()"
-          class="py-2 px-2 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1">
-          <span>📥</span>
-          <span>PNG</span>
-        </button>
-        <button type="button" onclick="closeAdminReceiptModal()"
-          class="py-2 px-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-xs active:scale-95 transition flex items-center justify-center">
-          Tutup
-        </button>
+      <div class="p-3 bg-white border-t border-stone-200 space-y-2 shrink-0 no-print">
+        <div id="adminRcptContactActions" class="hidden">
+          <a id="adminRcptWaBtn" href="#" target="_blank" rel="noopener noreferrer"
+            class="w-full py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5">
+            <span>💬</span>
+            <span>Hubungi WA</span>
+          </a>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="printAdminReceipt()"
+            class="py-2 px-2 rounded-xl bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1">
+            <span>🖨</span>
+            <span>Cetak</span>
+          </button>
+          <button type="button" onclick="downloadAdminReceiptPng()"
+            class="py-2 px-2 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 font-bold text-xs active:scale-95 transition flex items-center justify-center gap-1">
+            <span>📥</span>
+            <span>PNG</span>
+          </button>
+          <button type="button" onclick="closeAdminReceiptModal()"
+            class="py-2 px-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-xs active:scale-95 transition flex items-center justify-center">
+            Tutup
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -2416,6 +2425,33 @@
       `;
     }
 
+    function getCustomerContactInfo(order) {
+      const rawPhone = (order?.customer_phone || '').trim();
+      const displayPhone = rawPhone ? (normalizeIndonesianPhone(rawPhone) || rawPhone) : '';
+      const waPhone = rawPhone ? toWhatsAppPhone(rawPhone) : '';
+
+      let waRawUrl = '';
+      let waUrl = '';
+      if (waPhone) {
+        const items = parseOrderItems(order?.items);
+        const waItemsLines = items.length > 0
+          ? items.map((item, idx) => `${idx + 1}. ${item.name || 'Varian'} (${Number(item.qty || 0)} pcs)`).join('\n')
+          : '-';
+        const waTotalPcs = Number(order?.total_items || items.reduce((sum, item) => sum + Number(item.qty || 0), 0));
+        const waGreeting = [
+          `Halo Kak ${order?.customer_name || ''}, perkenalkan kami dari *Mellowbites*.`,
+          `Kami ingin mengonfirmasi pesanan Kakak dengan kode order *${order?.order_number || '-'}*.\n`,
+          `*Rincian Pesanan:*`,
+          waItemsLines,
+          `*Total:* ${waTotalPcs} pcs`
+        ].join('\n');
+        waRawUrl = `https://api.whatsapp.com/send?phone=${waPhone}&text=${encodeURIComponent(waGreeting)}`;
+        waUrl = sanitizeUrl(waRawUrl);
+      }
+
+      return { displayPhone, waUrl, waRawUrl };
+    }
+
     function renderFilteredAdminOrders() {
       const container = document.getElementById('adminOrderList');
       const query = (document.getElementById('adminOrderSearch')?.value || '').toLowerCase().trim();
@@ -2426,7 +2462,8 @@
         const matchMethod = adminOrderMethodFilter === 'all' || o.order_method === adminOrderMethodFilter;
         const matchQuery = !query ||
           (o.customer_name || '').toLowerCase().includes(query) ||
-          (o.order_number || '').toLowerCase().includes(query);
+          (o.order_number || '').toLowerCase().includes(query) ||
+          (o.customer_phone || '').toLowerCase().includes(query);
         return matchPeriod && matchStatus && matchMethod && matchQuery;
       });
 
@@ -2456,23 +2493,7 @@
         const loc = isDelivery ? parseDeliveryInfo(o.delivery_address) : null;
         const safeIdAttr = escapeAttr(String(o.id));
         const safeProofUrl = sanitizeUrl(o.payment_proof_url);
-        const rawPhone = (o.customer_phone || '').trim();
-        const displayPhone = rawPhone ? (normalizeIndonesianPhone(rawPhone) || rawPhone) : '';
-        const waPhone = rawPhone ? toWhatsAppPhone(rawPhone) : '';
-        const waItemsLines = items.length > 0
-          ? items.map((item, idx) => `${idx + 1}. ${item.name || 'Varian'} (${Number(item.qty || 0)} pcs)`).join('\n')
-          : '-';
-        const waTotalPcs = Number(o.total_items || items.reduce((sum, item) => sum + Number(item.qty || 0), 0));
-        const waGreeting = [
-          `Halo Kak ${o.customer_name || ''}, perkenalkan kami dari *Mellowbites*.`,
-          `Kami ingin mengonfirmasi pesanan Kakak dengan kode order *${o.order_number || '-'}*.\n`,
-          `*Rincian Pesanan:*`,
-          waItemsLines,
-          `*Total:* ${waTotalPcs} pcs`
-        ].join('\n');
-        const waCustomerUrl = waPhone
-          ? sanitizeUrl(`https://api.whatsapp.com/send?phone=${waPhone}&text=${encodeURIComponent(waGreeting)}`)
-          : '';
+        const { displayPhone, waUrl: waCustomerUrl } = getCustomerContactInfo(o);
 
         const selectColorClass = isDone
           ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
@@ -2656,8 +2677,7 @@
 
       const adminPhoneRow = document.getElementById('adminRcptCustomerPhoneRow');
       const adminPhoneEl = document.getElementById('adminRcptCustomerPhone');
-      const rawPhone = (order.customer_phone || '').trim();
-      const displayPhone = rawPhone ? (normalizeIndonesianPhone(rawPhone) || rawPhone) : '';
+      const { displayPhone, waRawUrl } = getCustomerContactInfo(order);
       if (adminPhoneRow && adminPhoneEl) {
         if (displayPhone) {
           adminPhoneEl.textContent = displayPhone;
@@ -2665,6 +2685,18 @@
         } else {
           adminPhoneEl.textContent = '-';
           adminPhoneRow.classList.add('hidden');
+        }
+      }
+
+      const contactActions = document.getElementById('adminRcptContactActions');
+      const waBtn = document.getElementById('adminRcptWaBtn');
+      if (contactActions && waBtn) {
+        if (waRawUrl) {
+          contactActions.classList.remove('hidden');
+          waBtn.href = waRawUrl;
+        } else {
+          contactActions.classList.add('hidden');
+          waBtn.href = '#';
         }
       }
 

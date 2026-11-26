@@ -1584,11 +1584,7 @@ function openCartModal() {
   if (!modal || !box) return;
 
   renderModalCart();
-
-  const phoneGroup = document.getElementById('customerPhoneGroup');
-  if (phoneGroup) {
-    phoneGroup.classList.toggle('hidden', selectedPaymentMethod !== 'qris');
-  }
+  updateCustomerPhoneFieldUI();
 
   if (selectedOrderMethod === 'delivery') {
     loadLeafletAssets().then(() => {
@@ -1772,13 +1768,32 @@ function setOrderMethod(method) {
   renderModalCart();
 }
 
+function updateCustomerPhoneFieldUI() {
+  const phoneGroup = document.getElementById('customerPhoneGroup');
+  const requiredMark = document.getElementById('customerPhoneRequiredMark');
+  const hintEl = document.getElementById('customerPhoneHint');
+  const isQris = selectedPaymentMethod === 'qris';
+
+  if (phoneGroup) {
+    phoneGroup.classList.remove('hidden');
+  }
+  if (requiredMark) {
+    requiredMark.textContent = isQris ? '*' : '(Opsional)';
+    requiredMark.className = isQris ? 'text-rose-500' : 'text-stone-400 font-semibold';
+  }
+  if (hintEl) {
+    hintEl.textContent = isQris
+      ? 'Wajib diisi untuk jaga-jaga agar admin tetap bisa menghubungi Anda jika lupa mengirim konfirmasi ke WhatsApp.'
+      : 'Opsional — isi jika ingin admin dapat menghubungi Anda lewat WhatsApp / telepon saat pesanan diproses atau diantar.';
+  }
+}
+
 function setPaymentMethod(method) {
   selectedPaymentMethod = method;
   const tabQris = document.getElementById('tabPaymentQris');
   const tabTunai = document.getElementById('tabPaymentTunai');
   const qrisBox = document.getElementById('qrisPaymentBox');
   const tunaiBox = document.getElementById('tunaiPaymentBox');
-  const phoneGroup = document.getElementById('customerPhoneGroup');
 
   qrisBox?.classList.add('hidden');
 
@@ -1789,7 +1804,6 @@ function setPaymentMethod(method) {
     tabTunai?.classList.remove('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
 
     tunaiBox?.classList.add('hidden');
-    phoneGroup?.classList.remove('hidden');
   } else {
     tabTunai?.classList.add('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
     tabTunai?.classList.remove('border-stone-200', 'bg-white', 'text-stone-700');
@@ -1797,10 +1811,10 @@ function setPaymentMethod(method) {
     tabQris?.classList.remove('border-brand-500', 'bg-brand-50/80', 'text-brand-900', 'shadow-xs');
 
     tunaiBox?.classList.remove('hidden');
-    phoneGroup?.classList.add('hidden');
     clearFieldError('customerPhone');
   }
 
+  updateCustomerPhoneFieldUI();
   clearFieldError('qrisProof');
   renderModalCart();
 }
@@ -1986,16 +2000,16 @@ function validateCheckoutForm() {
     clearFieldError('customerName');
   }
 
-  // 1b. Validasi Nomor WhatsApp / Telepon (Wajib khusus QRIS)
+  // 1b. Validasi Nomor WhatsApp / Telepon (Wajib untuk QRIS, Opsional untuk Tunai)
+  const phoneInput = document.getElementById('customerPhone');
+  const phoneRaw = (phoneInput?.value || '').trim();
   let normalizedPhone = null;
-  if (selectedPaymentMethod === 'qris') {
-    const phoneInput = document.getElementById('customerPhone');
-    const phoneRaw = (phoneInput?.value || '').trim();
-    if (!phoneRaw) {
-      setFieldError('customerPhone', 'Nomor WhatsApp / Telepon wajib diisi untuk pembayaran QRIS');
-      hasError = true;
-      if (!firstErrorEl) firstErrorEl = phoneInput;
-    } else if (/[^\d\s+\-().]/.test(phoneRaw)) {
+  if (selectedPaymentMethod === 'qris' && !phoneRaw) {
+    setFieldError('customerPhone', 'Nomor WhatsApp / Telepon wajib diisi untuk pembayaran QRIS');
+    hasError = true;
+    if (!firstErrorEl) firstErrorEl = phoneInput;
+  } else if (phoneRaw) {
+    if (/[^\d\s+\-().]/.test(phoneRaw)) {
       setFieldError('customerPhone', 'Nomor telepon hanya boleh berisi angka (cth: 081234567890)');
       hasError = true;
       if (!firstErrorEl) firstErrorEl = phoneInput;
@@ -2179,7 +2193,7 @@ function renderConfirmModal(order) {
   const cfmPhoneRow = document.getElementById('cfmCustomerPhoneRow');
   const cfmPhoneEl = document.getElementById('cfmCustomerPhone');
   if (cfmPhoneRow && cfmPhoneEl) {
-    if (isQrisOrder(order) && order.customerPhone) {
+    if (order.customerPhone) {
       cfmPhoneEl.textContent = order.customerPhone;
       cfmPhoneRow.classList.remove('hidden');
     } else {
@@ -2364,7 +2378,7 @@ async function recordOrderToBackend(order) {
     const { error: insertErr } = await sbClient.from('orders').insert([{
       order_number: order.orderNumber,
       customer_name: order.customerName,
-      customer_phone: isQrisOrder(order) ? (order.customerPhone || null) : null,
+      customer_phone: order.customerPhone || null,
       order_method: order.orderMethod,
       pickup_time: order.pickupTime,
       delivery_address: formattedDeliveryAddress,
@@ -2399,6 +2413,7 @@ async function recordOrderToBackend(order) {
         from_name: 'Mellowbites',
         No_Order: order.orderNumber,
         Nama_Pemesan: order.customerName,
+        No_Telepon: order.customerPhone || '-',
         Metode_Pesanan: order.orderMethod === 'pickup'
           ? `Ambil Sendiri (${formatPickupDisplay(order.pickupTime)} WIB)`
           : `Diantar / COD (${formattedDeliveryAddress})`,
@@ -2429,7 +2444,7 @@ async function finalizeAndIssueReceipt(finalOrder) {
 
   try {
     localStorage.setItem(STORAGE_NAME_KEY, currentOrder.customerName);
-    if (isQrisOrder(currentOrder) && currentOrder.customerPhone) {
+    if (currentOrder.customerPhone) {
       localStorage.setItem(STORAGE_PHONE_KEY, currentOrder.customerPhone);
     }
     if (currentOrder.deliveryAddress) {
@@ -2619,9 +2634,10 @@ function renderReceiptModal(order) {
 
   const rcptPhoneRow = document.getElementById('rcptCustomerPhoneRow');
   const rcptPhoneEl = document.getElementById('rcptCustomerPhone');
+  const rcptPhoneVal = (order.customerPhone || order.customer_phone || '').trim();
   if (rcptPhoneRow && rcptPhoneEl) {
-    if (isQrisOrder(order) && order.customerPhone) {
-      rcptPhoneEl.textContent = order.customerPhone;
+    if (rcptPhoneVal) {
+      rcptPhoneEl.textContent = normalizeIndonesianPhone(rcptPhoneVal) || rcptPhoneVal;
       rcptPhoneRow.classList.remove('hidden');
     } else {
       rcptPhoneEl.textContent = '-';
@@ -2807,7 +2823,7 @@ function buildOrderString() {
   text += `*No. Order:* ${o.orderNumber}\n`;
   text += `*Waktu Pesan:* ${formattedDate}\n`;
   text += `*Nama Pemesan:* ${o.customerName}\n`;
-  if (isQrisOrder(o) && o.customerPhone) {
+  if (o.customerPhone) {
     text += `*No. Telp / WA:* ${o.customerPhone}\n`;
   }
   text += `\n`;

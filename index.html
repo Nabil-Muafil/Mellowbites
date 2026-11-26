@@ -760,14 +760,14 @@
             <p id="err-customerName" class="hidden text-[11px] text-rose-600 font-semibold mt-1"></p>
           </div>
 
-          <!-- Input Nomor WhatsApp / Telepon (Khusus Payment QRIS) -->
+          <!-- Input Nomor WhatsApp / Telepon (Wajib untuk QRIS, Opsional untuk Tunai) -->
           <div id="customerPhoneGroup">
             <label for="customerPhone" class="block text-xs font-bold text-stone-700 mb-1">
-              Nomor WhatsApp / Telepon <span class="text-rose-500">*</span>
+              Nomor WhatsApp / Telepon <span id="customerPhoneRequiredMark" class="text-rose-500">*</span>
             </label>
             <input type="tel" id="customerPhone" inputmode="tel" autocomplete="tel" placeholder="Cth: 081234567890"
               class="w-full text-xs px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200 transition">
-            <p class="text-[10px] text-stone-500 mt-1 leading-snug">
+            <p id="customerPhoneHint" class="text-[10px] text-stone-500 mt-1 leading-snug">
               Wajib diisi untuk jaga-jaga agar admin tetap bisa menghubungi Anda jika lupa mengirim konfirmasi ke
               WhatsApp.
             </p>
