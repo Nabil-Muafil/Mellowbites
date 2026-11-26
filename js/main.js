@@ -1787,13 +1787,13 @@ function updateCustomerPhoneFieldUI() {
     phoneGroup.classList.remove('hidden');
   }
   if (requiredMark) {
-    requiredMark.textContent = isQris ? '*' : '(Opsional)';
-    requiredMark.className = isQris ? 'text-rose-500' : 'text-stone-400 font-semibold';
+    requiredMark.textContent = '*';
+    requiredMark.className = 'text-rose-500';
   }
   if (hintEl) {
     hintEl.textContent = isQris
       ? 'Wajib diisi untuk jaga-jaga agar admin tetap bisa menghubungi Anda jika lupa mengirim konfirmasi ke WhatsApp.'
-      : 'Opsional — isi jika ingin admin dapat menghubungi Anda lewat WhatsApp / telepon saat pesanan diproses atau diantar.';
+      : 'Wajib diisi agar admin dapat menghubungi Anda lewat WhatsApp / telepon saat pesanan diproses atau diantar.';
   }
 }
 
@@ -2009,15 +2009,15 @@ function validateCheckoutForm() {
     clearFieldError('customerName');
   }
 
-  // 1b. Validasi Nomor WhatsApp / Telepon (Wajib untuk QRIS, Opsional untuk Tunai)
+  // 1b. Validasi Nomor WhatsApp / Telepon (Wajib untuk QRIS & Tunai)
   const phoneInput = document.getElementById('customerPhone');
   const phoneRaw = (phoneInput?.value || '').trim();
   let normalizedPhone = null;
-  if (selectedPaymentMethod === 'qris' && !phoneRaw) {
-    setFieldError('customerPhone', 'Nomor WhatsApp / Telepon wajib diisi untuk pembayaran QRIS');
+  if (!phoneRaw) {
+    setFieldError('customerPhone', 'Nomor WhatsApp / Telepon wajib diisi');
     hasError = true;
     if (!firstErrorEl) firstErrorEl = phoneInput;
-  } else if (phoneRaw) {
+  } else {
     if (/[^\d\s+\-().]/.test(phoneRaw)) {
       setFieldError('customerPhone', 'Nomor telepon hanya boleh berisi angka (cth: 081234567890)');
       hasError = true;
@@ -2034,8 +2034,6 @@ function validateCheckoutForm() {
         localStorage.setItem(STORAGE_PHONE_KEY, normalizedPhone);
       } catch (_) { }
     }
-  } else {
-    clearFieldError('customerPhone');
   }
 
   // 2. Validasi Metode Pesanan
