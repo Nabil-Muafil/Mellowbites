@@ -1926,15 +1926,25 @@
         wibNow.getUTCDate(),
         1, 0, 0, 0
       ); // 08:00 WIB = 01:00 UTC
-      return { inNormalHours, todayOpenUtcMs };
+      const lastCloseDate = new Date(Date.UTC(
+        wibNow.getUTCFullYear(),
+        wibNow.getUTCMonth(),
+        wibNow.getUTCDate(),
+        13, 0, 0, 0
+      )); // 20:00 WIB = 13:00 UTC
+      if (wibNow.getUTCHours() < 8) {
+        lastCloseDate.setUTCDate(lastCloseDate.getUTCDate() - 1);
+      }
+      const lastCloseUtcMs = lastCloseDate.getTime();
+      return { inNormalHours, todayOpenUtcMs, lastCloseUtcMs };
     }
 
     async function syncAdminStoreScheduleState() {
-      if (!cachedStoreSettings || cachedStoreSettings.is_open !== false) return;
-      const { inNormalHours, todayOpenUtcMs } = getWIBStoreSchedule();
+      if (!cachedStoreSettings) return;
+      const { inNormalHours, todayOpenUtcMs, lastCloseUtcMs } = getWIBStoreSchedule();
       const updatedMs = cachedStoreSettings.updated_at ? new Date(cachedStoreSettings.updated_at).getTime() : 0;
 
-      if (inNormalHours && updatedMs < todayOpenUtcMs) {
+      if (cachedStoreSettings.is_open === false && inNormalHours && updatedMs < todayOpenUtcMs) {
         const nowIso = new Date().toISOString();
         cachedStoreSettings = { ...cachedStoreSettings, is_open: true, updated_at: nowIso };
         const toggleEl = document.getElementById('toggleStoreOpen');
@@ -1947,6 +1957,20 @@
           .eq('id', 1);
         if (error) {
           console.warn('Gagal menyinkronkan status buka otomatis toko:', error);
+        }
+      } else if (cachedStoreSettings.is_open === true && !inNormalHours && updatedMs < lastCloseUtcMs) {
+        const nowIso = new Date().toISOString();
+        cachedStoreSettings = { ...cachedStoreSettings, is_open: false, updated_at: nowIso };
+        const toggleEl = document.getElementById('toggleStoreOpen');
+        if (toggleEl) toggleEl.checked = false;
+        updateAdminStoreBadge(false);
+
+        const { error } = await sbClient
+          .from('store_settings')
+          .update({ is_open: false, updated_at: nowIso })
+          .eq('id', 1);
+        if (error) {
+          console.warn('Gagal menyinkronkan status tutup otomatis toko:', error);
         }
       }
     }
@@ -1985,10 +2009,10 @@
     function updateAdminStoreBadge(isOpen) {
       const badge = document.getElementById('adminStoreBadge');
       if (isOpen) {
-        badge.textContent = 'Buka (Sesuai Jam)';
+        badge.textContent = 'Buka';
         badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800';
       } else {
-        badge.textContent = 'Ditutup Manual';
+        badge.textContent = 'Tutup';
         badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800';
       }
     }
