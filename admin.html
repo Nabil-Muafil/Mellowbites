@@ -3116,8 +3116,10 @@
         const ratingNum = Math.max(1, Math.min(5, Number(r.rating || 0)));
         const safeIdAttr = escapeAttr(String(r.id));
         const commentText = String(r.comment || '').trim();
+        const adminReply = String(r.admin_reply || '').trim();
+        const isVisible = r.is_visible !== false;
         return `
-          <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs space-y-2 text-xs">
+          <div class="bg-white p-3.5 rounded-2xl border ${isVisible ? 'border-stone-200' : 'border-amber-200 bg-amber-50/20'} shadow-2xs space-y-2 text-xs">
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap">
@@ -3125,6 +3127,9 @@
                     ${escapeHtml(r.product_name || r.product_id || 'Varian Menu')}
                   </span>
                   <span class="font-mono font-bold text-[10px] text-stone-500">${escapeHtml(r.order_number || '-')}</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isVisible ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-stone-100 text-stone-500 border border-stone-200'}">
+                    ${isVisible ? 'Ditampilkan' : 'Disembunyikan'}
+                  </span>
                 </div>
                 <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
                   <span class="font-extrabold text-stone-900 text-xs">${escapeHtml(r.customer_name || 'Pelanggan')}</span>
@@ -3142,7 +3147,42 @@
               ${commentText ? escapeHtml(commentText) : 'Tidak ada komentar tertulis.'}
             </div>
 
-            <div class="pt-1 border-t border-stone-100 flex justify-end">
+            ${adminReply ? `
+              <div class="p-2.5 rounded-xl bg-brand-50/70 border border-brand-200/80 space-y-0.5">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-[10px] font-extrabold text-brand-700 uppercase tracking-wide">Balasan Admin</span>
+                  ${r.admin_reply_at ? `<span class="text-[10px] text-stone-400">${formatAdminDateTime(r.admin_reply_at)}</span>` : ''}
+                </div>
+                <p class="text-[11px] text-stone-700 leading-relaxed">${escapeHtml(adminReply)}</p>
+              </div>
+            ` : ''}
+
+            <div id="replyForm-${safeIdAttr}" class="hidden pt-1 space-y-2">
+              <textarea id="replyInput-${safeIdAttr}" rows="2" placeholder="Tulis balasan untuk pelanggan..."
+                class="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 resize-none">${escapeHtml(adminReply)}</textarea>
+              <div class="flex items-center justify-end gap-2">
+                <button type="button" onclick="toggleAdminReplyForm('${safeIdAttr}', false)"
+                  class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold text-[11px] transition">
+                  Batal
+                </button>
+                <button type="button" onclick="saveAdminReviewReply('${safeIdAttr}')"
+                  class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-[11px] transition">
+                  Simpan Balasan
+                </button>
+              </div>
+            </div>
+
+            <div class="pt-1 border-t border-stone-100 flex flex-wrap items-center justify-end gap-2">
+              <button type="button" onclick="toggleAdminReviewVisibility('${safeIdAttr}', ${!isVisible})"
+                class="px-3 py-1.5 rounded-xl ${isVisible ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'} font-bold text-[11px] transition flex items-center gap-1">
+                <span>${isVisible ? '🙈' : '👁'}</span>
+                <span>${isVisible ? 'Sembunyikan' : 'Tampilkan'}</span>
+              </button>
+              <button type="button" onclick="toggleAdminReplyForm('${safeIdAttr}', true)"
+                class="px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 font-bold text-[11px] transition flex items-center gap-1">
+                <span>💬</span>
+                <span>${adminReply ? 'Edit Balasan' : 'Balas Ulasan'}</span>
+              </button>
               <button type="button" onclick="deleteAdminReview('${safeIdAttr}')"
                 class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-[11px] transition flex items-center gap-1">
                 <span>🗑</span>
@@ -3175,6 +3215,58 @@
       renderAdminReviewSummary();
       populateAdminReviewFilter();
       renderFilteredAdminReviews();
+    }
+
+    function toggleAdminReplyForm(reviewId, show) {
+      const form = document.getElementById(`replyForm-${reviewId}`);
+      if (!form) return;
+      if (show) {
+        form.classList.remove('hidden');
+        const input = document.getElementById(`replyInput-${reviewId}`);
+        if (input) input.focus();
+      } else {
+        form.classList.add('hidden');
+      }
+    }
+
+    async function saveAdminReviewReply(reviewId) {
+      const input = document.getElementById(`replyInput-${reviewId}`);
+      if (!input || !sbClient) return;
+      const replyText = input.value.trim();
+
+      const payload = replyText
+        ? { admin_reply: replyText, admin_reply_at: new Date().toISOString() }
+        : { admin_reply: null, admin_reply_at: null };
+
+      const { error } = await sbClient
+        .from('product_reviews')
+        .update(payload)
+        .eq('id', reviewId);
+
+      if (error) {
+        showAdminToast('Gagal menyimpan balasan: ' + error.message);
+        return;
+      }
+
+      showAdminToast(replyText ? 'Balasan ulasan disimpan' : 'Balasan ulasan dihapus');
+      toggleAdminReplyForm(reviewId, false);
+      loadAdminReviews();
+    }
+
+    async function toggleAdminReviewVisibility(reviewId, nextVisible) {
+      if (!sbClient) return;
+      const { error } = await sbClient
+        .from('product_reviews')
+        .update({ is_visible: Boolean(nextVisible) })
+        .eq('id', reviewId);
+
+      if (error) {
+        showAdminToast('Gagal mengubah visibilitas: ' + error.message);
+        return;
+      }
+
+      showAdminToast(nextVisible ? 'Ulasan ditampilkan di katalog' : 'Ulasan disembunyikan dari katalog');
+      loadAdminReviews();
     }
 
     function deleteAdminReview(reviewId) {

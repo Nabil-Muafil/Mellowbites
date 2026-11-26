@@ -192,6 +192,7 @@ let isCreatingOrder = false;
 
 // State Ulasan & Rating Produk
 let productRatingsMap = {};
+let productReviewsListMap = {};
 let reviewedItemsByOrder = {};
 let activeReviewOrder = null;
 let reviewDraftState = {};
@@ -418,6 +419,7 @@ function initProductGrid() {
             <h4 class="font-bold text-stone-900 text-sm leading-tight group-hover:text-brand-600 transition-colors">${safeName}</h4>
             <span class="text-xs font-black text-brand-600 whitespace-nowrap">${formatRupiah(product.price)}</span>
           </div>
+          <div id="card-rating-${safeId}" class="mb-1.5 empty:hidden">${getCardRatingHtml(product.id)}</div>
           <p class="text-[11px] text-stone-500 leading-relaxed line-clamp-2 mb-3">
             ${safeDesc}
           </p>
@@ -3804,6 +3806,32 @@ function isOrderFullyReviewed(order) {
   return uniqueProductIds.every(pid => reviewedList.includes(pid));
 }
 
+function getCardRatingHtml(productId) {
+  const stat = productRatingsMap[productId];
+  if (!stat || stat.count <= 0) return '';
+  const safeId = escapeHtml(productId);
+  return `
+    <button type="button" onclick="event.stopPropagation(); openProductReviewsModal('${safeId}')"
+      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-[10px] font-bold text-amber-800 transition cursor-pointer"
+      title="Cek Ulasan Pelanggan">
+      <span class="text-amber-500 leading-none">★</span>
+      <span>${stat.avg.toFixed(1)}</span>
+      <span class="text-stone-500 font-semibold">(${stat.count})</span>
+      <span class="text-brand-600 underline decoration-brand-300 ml-0.5">Cek Ulasan</span>
+    </button>
+  `;
+}
+
+function updateAllProductCardRatings() {
+  if (!Array.isArray(PRODUCTS)) return;
+  PRODUCTS.forEach(p => {
+    const el = document.getElementById(`card-rating-${p.id}`);
+    if (el) {
+      el.innerHTML = getCardRatingHtml(p.id);
+    }
+  });
+}
+
 function updateProductDetailRatingBadge(productId) {
   const badge = document.getElementById('detailProdRatingBadge');
   const avgEl = document.getElementById('detailProdRatingAvg');
@@ -3825,21 +3853,26 @@ async function syncProductReviewsSummary() {
   try {
     const { data, error } = await sbClient
       .from('product_reviews')
-      .select('product_id, rating');
+      .select('*')
+      .order('created_at', { ascending: false });
 
     if (error || !Array.isArray(data)) return;
 
     const nextMap = {};
+    const nextListMap = {};
     data.forEach(row => {
+      if (row.is_visible === false) return;
       const pid = String(row.product_id || '').trim();
       const rating = Number(row.rating);
       if (!pid || !Number.isFinite(rating) || rating < 1 || rating > 5) return;
 
       if (!nextMap[pid]) {
         nextMap[pid] = { sum: 0, count: 0, avg: 0 };
+        nextListMap[pid] = [];
       }
       nextMap[pid].sum += rating;
       nextMap[pid].count += 1;
+      nextListMap[pid].push(row);
     });
 
     Object.keys(nextMap).forEach(pid => {
@@ -3847,12 +3880,85 @@ async function syncProductReviewsSummary() {
     });
 
     productRatingsMap = nextMap;
+    productReviewsListMap = nextListMap;
+    updateAllProductCardRatings();
     if (activeDetailProductId) {
       updateProductDetailRatingBadge(activeDetailProductId);
     }
   } catch (err) {
     console.warn('Gagal memuat ringkasan ulasan produk:', err);
   }
+}
+
+function openProductReviewsModal(productId) {
+  const modal = document.getElementById('productReviewsModal');
+  const titleEl = document.getElementById('prodReviewsModalTitle');
+  const avgEl = document.getElementById('prodReviewsModalAvg');
+  const countEl = document.getElementById('prodReviewsModalCount');
+  const listEl = document.getElementById('prodReviewsModalList');
+  if (!modal || !listEl) return;
+
+  const product = PRODUCTS.find(p => p.id === productId);
+  const stat = productRatingsMap[productId] || { avg: 0, count: 0 };
+  const reviews = productReviewsListMap[productId] || [];
+
+  if (titleEl) titleEl.textContent = `Ulasan ${product ? product.name : 'Menu'}`;
+  if (avgEl) avgEl.textContent = stat.count > 0 ? stat.avg.toFixed(1) : '0.0';
+  if (countEl) countEl.textContent = `(${stat.count} ulasan)`;
+
+  if (reviews.length === 0) {
+    listEl.innerHTML = `
+      <div class="bg-white p-6 rounded-2xl border border-stone-200 text-center text-xs text-stone-400">
+        Belum ada ulasan yang ditampilkan untuk menu ini.
+      </div>
+    `;
+  } else {
+    listEl.innerHTML = reviews.map(r => {
+      const ratingNum = Math.max(1, Math.min(5, Number(r.rating || 0)));
+      const stars = '★'.repeat(ratingNum) + '☆'.repeat(5 - ratingNum);
+      const commentText = String(r.comment || '').trim();
+      const adminReply = String(r.admin_reply || '').trim();
+      const dateStr = r.created_at
+        ? new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+        : '';
+
+      return `
+        <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-2xs space-y-2">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <p class="font-bold text-stone-900 text-xs">${escapeHtml(r.customer_name || 'Pelanggan')}</p>
+              ${dateStr ? `<p class="text-[10px] text-stone-400">${escapeHtml(dateStr)}</p>` : ''}
+            </div>
+            <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[10px] font-bold text-amber-800 shrink-0">
+              <span class="text-amber-500 leading-none">${stars}</span>
+              <span>${ratingNum}/5</span>
+            </div>
+          </div>
+
+          <p class="text-xs leading-relaxed ${commentText ? 'text-stone-700' : 'text-stone-400 italic'}">
+            ${commentText ? escapeHtml(commentText) : 'Tidak ada komentar tertulis.'}
+          </p>
+
+          ${adminReply ? `
+            <div class="mt-2 p-2.5 rounded-xl bg-brand-50/70 border border-brand-200/80 space-y-0.5">
+              <p class="text-[10px] font-extrabold text-brand-700 uppercase tracking-wide">Balasan Admin</p>
+              <p class="text-xs text-stone-700 leading-relaxed">${escapeHtml(adminReply)}</p>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeProductReviewsModal() {
+  const modal = document.getElementById('productReviewsModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  document.body.style.overflow = '';
 }
 
 async function syncCustomerReviewedOrders(orderNumbers) {
@@ -4203,6 +4309,8 @@ function playCustomerSuccessChime() {
   } catch (_) { }
 }
 
+window.openProductReviewsModal = openProductReviewsModal;
+window.closeProductReviewsModal = closeProductReviewsModal;
 window.openReviewOrderModal = openReviewOrderModal;
 window.closeReviewOrderModal = closeReviewOrderModal;
 window.submitOrderReviews = submitOrderReviews;
