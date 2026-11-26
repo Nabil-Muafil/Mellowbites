@@ -1039,28 +1039,6 @@ async function initDeliveryMap() {
       subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     }).addTo(deliveryMap);
 
-    // Lingkaran radius batas maksimal pengantaran dari kedai
-    L.circle([STORE_COORDS.lat, STORE_COORDS.lng], {
-      radius: DELIVERY_CONFIG.maxDistanceKm * 1000,
-      color: '#f97316',
-      weight: 1.5,
-      fillColor: '#fb923c',
-      fillOpacity: 0.06,
-      dashArray: '5, 5'
-    }).addTo(deliveryMap);
-
-    // Pin Lokasi Kedai Mellowbites
-    const storeIcon = L.divIcon({
-      className: 'custom-store-pin',
-      html: `<div style="background:#ea580c;color:#fff;width:28px;height:28px;border-radius:9999px;display:flex;align-items:center;justify-content:center;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);font-size:13px;">🏪</div>`,
-      iconSize: [28, 28],
-      iconAnchor: [14, 14]
-    });
-
-    storeMarker = L.marker([STORE_COORDS.lat, STORE_COORDS.lng], { icon: storeIcon })
-      .addTo(deliveryMap)
-      .bindPopup('<b>Kedai Gabin Ice Bar - Mellowbites</b><br><span style="font-size:11px">Titik Awal Pengiriman (Denanyar)</span>');
-
     deliveryMap.on('click', (e) => {
       const statusEl = document.getElementById('deliveryLocationStatus');
       if (statusEl) {
@@ -1139,15 +1117,230 @@ function locateCustomerGPS(showAlertOnDenied = true) {
 }
 
 // Pencarian Alamat / Tempat pada Peta (Gratis via Nominatim OSM)
-async function searchMapLocation() {
+let mapSearchDebounceTimer = null;
+
+function onMapSearchInput(value) {
+  const resultsBox = document.getElementById('mapSearchResults');
+  const query = (value || '').trim();
+
+  if (mapSearchDebounceTimer) {
+    clearTimeout(mapSearchDebounceTimer);
+    mapSearchDebounceTimer = null;
+  }
+
+  if (query.length < 3) {
+    if (resultsBox) resultsBox.classList.add('hidden');
+    return;
+  }
+
+  mapSearchDebounceTimer = setTimeout(() => {
+    searchMapLocation(true);
+  }, 500);
+}
+
+const JOMBANG_BBOX = {
+  minLat: -7.85,
+  maxLat: -7.25,
+  minLng: 111.95,
+  maxLng: 112.55
+};
+
+function isWithinJombangBbox(lat, lng) {
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= JOMBANG_BBOX.minLat &&
+    lat <= JOMBANG_BBOX.maxLat &&
+    lng >= JOMBANG_BBOX.minLng &&
+    lng <= JOMBANG_BBOX.maxLng
+  );
+}
+
+const JOMBANG_LANDMARKS = [
+  { name: 'Alun-Alun Jombang', subtitle: 'Jl. KH. Wahid Hasyim, Jombang', lat: -7.5461, lng: 112.2331, aliases: ['alun alun', 'alun2'] },
+  { name: 'Stasiun Jombang', subtitle: 'Jl. Basuki Rahmat, Jombang', lat: -7.5582, lng: 112.2334, aliases: ['stasiun', 'ka jombang'] },
+  { name: 'SMAN 2 Jombang', subtitle: 'Jl. Dr. Wahidin Sudirohusodo, Jombang', lat: -7.5432, lng: 112.2356, aliases: ['sma negeri 2', 'smada', 'sman 2'] },
+  { name: 'SMAN 1 Jombang', subtitle: 'Jl. Bupati R. Soedirman, Jombang', lat: -7.5488, lng: 112.2305, aliases: ['sma negeri 1', 'smasa', 'sman 1'] },
+  { name: 'SMAN 3 Jombang', subtitle: 'Jl. Dr. Soetomo, Jombang', lat: -7.5416, lng: 112.2286, aliases: ['sma negeri 3', 'smaga', 'sman 3'] },
+  { name: 'SMPN 1 Jombang', subtitle: 'Jl. Pattimura, Jombang', lat: -7.5453, lng: 112.2279, aliases: ['smp negeri 1', 'smpn 1'] },
+  { name: 'SMPN 2 Jombang', subtitle: 'Jl. Bupati R. Soedirman, Jombang', lat: -7.5495, lng: 112.2309, aliases: ['smp negeri 2', 'smpn 2'] },
+  { name: 'SMKN 1 Jombang', subtitle: 'Jl. Dr. Soetomo, Jombang', lat: -7.5405, lng: 112.2292, aliases: ['smk negeri 1', 'smkn 1'] },
+  { name: 'MAN 1 Jombang', subtitle: 'Jl. Dr. Wahidin Sudirohusodo, Jombang', lat: -7.5441, lng: 112.2371, aliases: ['madrasah aliyah negeri 1', 'man 1'] },
+  { name: 'RSUD Jombang', subtitle: 'Jl. KH. Wahid Hasyim No.52, Jombang', lat: -7.5499, lng: 112.2273, aliases: ['rumah sakit umum daerah', 'rsud'] },
+  { name: 'RS Islam Jombang', subtitle: 'Jl. Brigjen Kretarto, Jombang', lat: -7.5378, lng: 112.2376, aliases: ['rumah sakit islam', 'rsi jombang'] },
+  { name: 'Taman Kebonratu', subtitle: 'Jl. Brigjen Kretarto, Keplaksari, Peterongan', lat: -7.5396, lng: 112.2484, aliases: ['kebon ratu', 'taman kebon ratu'] },
+  { name: 'Ringin Contong', subtitle: 'Simpang Empat Jl. KH. Wahid Hasyim, Jombang', lat: -7.5515, lng: 112.2306, aliases: ['ringin contong', 'bundaran ringin'] },
+  { name: 'Universitas Darul Ulum (Undar)', subtitle: 'Jl. Gus Dur No.29A, Mojongapit, Jombang', lat: -7.5539, lng: 112.2449, aliases: ['undar', 'univ darul ulum', 'universitas darul ulum'] },
+  { name: 'Unipdu Peterongan', subtitle: 'Komplek Ponpes Darul Ulum, Peterongan, Jombang', lat: -7.5456, lng: 112.2756, aliases: ['unipdu', 'darul ulum peterongan'] },
+  { name: 'Pasar Legi Jombang', subtitle: 'Jl. Seroja, Jombang', lat: -7.5532, lng: 112.2261, aliases: ['pasar legi', 'pasar citra niaga'] },
+  { name: 'Terminal Kepuhsari', subtitle: 'Kepuhsari, Peterongan, Jombang', lat: -7.5471, lng: 112.2636, aliases: ['terminal jombang', 'kepuhsari'] },
+  { name: 'Denanyar', subtitle: 'Desa Denanyar, Kec. Jombang', lat: -7.5345, lng: 112.2155, aliases: ['denanyar', 'ponpes mambaul maarif'] },
+  { name: 'Ponpes Tebuireng', subtitle: 'Cukir, Diwek, Jombang', lat: -7.6063, lng: 112.2375, aliases: ['tebuireng', 'makam gus dur', 'cukir'] },
+  { name: 'Alun-Alun Mojoagung', subtitle: 'Jl. Raya Mojoagung, Jombang', lat: -7.5681, lng: 112.3469, aliases: ['mojoagung', 'pasar mojoagung'] }
+];
+
+const MAP_ABBREVIATION_RULES = [
+  [/\bsma negeri\b/gi, 'sman'],
+  [/\bsmp negeri\b/gi, 'smpn'],
+  [/\bsmk negeri\b/gi, 'smkn'],
+  [/\bmadrasah aliyah negeri\b/gi, 'man'],
+  [/\brumah sakit umum daerah\b/gi, 'rsud'],
+  [/\brumah sakit\b/gi, 'rs'],
+  [/\bperumahan\b/gi, 'perum'],
+  [/\bjalan\b/gi, 'jl'],
+  [/\buniversitas\b/gi, 'univ']
+];
+
+function normalizeMapKeyword(rawQuery) {
+  let normalized = (rawQuery || '').trim().replace(/\s+/g, ' ');
+  for (const [pattern, replacement] of MAP_ABBREVIATION_RULES) {
+    normalized = normalized.replace(pattern, replacement);
+  }
+  return normalized.trim();
+}
+
+function matchJombangLandmarks(rawQuery) {
+  const normalized = normalizeMapKeyword(rawQuery).toLowerCase();
+  const rawLower = (rawQuery || '').trim().toLowerCase();
+  if (!normalized || normalized.length < 2) return [];
+
+  return JOMBANG_LANDMARKS.filter((lm) => {
+    const nameLower = lm.name.toLowerCase();
+    const subLower = lm.subtitle.toLowerCase();
+    if (nameLower.includes(normalized) || nameLower.includes(rawLower) || subLower.includes(normalized)) {
+      return true;
+    }
+    return lm.aliases.some((alias) => alias.includes(normalized) || normalized.includes(alias) || alias.includes(rawLower));
+  }).map((lm) => ({
+    lat: lm.lat,
+    lng: lm.lng,
+    title: lm.name,
+    subtitle: lm.subtitle,
+    fullName: `${lm.name} — ${lm.subtitle}`
+  }));
+}
+
+function buildMapSearchQueries(rawQuery) {
+  const normalized = normalizeMapKeyword(rawQuery);
+  if (!normalized) return [];
+
+  const queries = new Set();
+  const hasJombang = /\bjombang\b/i.test(normalized);
+
+  if (hasJombang) {
+    queries.add(normalized);
+    const withoutJombang = normalized.replace(/\bdi\s+jombang\b/gi, '').replace(/\bjombang\b/gi, '').replace(/[,\s]+$/g, '').trim();
+    if (withoutJombang.length >= 2) {
+      queries.add(withoutJombang);
+    }
+  } else {
+    queries.add(`${normalized} jombang`);
+    queries.add(normalized);
+  }
+
+  return Array.from(queries).slice(0, 3);
+}
+
+function formatPhotonPlace(feature) {
+  const coords = feature?.geometry?.coordinates;
+  const props = feature?.properties || {};
+  if (!Array.isArray(coords) || coords.length < 2) return null;
+
+  const lng = Number(coords[0]);
+  const lat = Number(coords[1]);
+  if (!isWithinJombangBbox(lat, lng)) return null;
+
+  const title = props.name || props.street || props.district || props.city || props.county || 'Lokasi';
+  const rawParts = [
+    props.street,
+    props.village || props.suburb || props.locality,
+    props.district,
+    props.city || props.county
+  ].filter(Boolean);
+
+  const seen = new Set([title.toLowerCase()]);
+  const subtitleParts = [];
+  for (const part of rawParts) {
+    const key = part.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      subtitleParts.push(part);
+    }
+  }
+
+  const subtitle = subtitleParts.join(', ');
+  const fullName = subtitle ? `${title} — ${subtitle}` : title;
+  return { lat, lng, title, subtitle, fullName };
+}
+
+async function fetchPhotonPlaces(query) {
+  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=-7.546&lon=112.233&limit=15`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Photon HTTP ${res.status}`);
+  const data = await res.json();
+  const features = Array.isArray(data?.features) ? data.features : [];
+  return features.map(formatPhotonPlace).filter(Boolean);
+}
+
+async function fetchNominatimPlaces(query) {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=id&viewbox=111.95,-7.25,112.55,-7.85&bounded=1&limit=10&q=${encodeURIComponent(query)}`;
+  const res = await fetch(url, {
+    headers: { 'Accept-Language': 'id' }
+  });
+  if (!res.ok) throw new Error(`Nominatim HTTP ${res.status}`);
+  const data = await res.json();
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((place) => {
+      const lat = Number(place.lat);
+      const lng = Number(place.lon);
+      if (!isWithinJombangBbox(lat, lng)) return null;
+
+      const fullName = place.display_name || '';
+      const parts = fullName.split(',').map((s) => s.trim()).filter(Boolean);
+      const title = parts[0] || fullName;
+      const subtitle = parts.slice(1, 4).join(', ');
+      return {
+        lat,
+        lng,
+        title,
+        subtitle: subtitle || fullName,
+        fullName: subtitle ? `${title} — ${subtitle}` : title
+      };
+    })
+    .filter(Boolean);
+}
+
+function deduplicatePlaces(places) {
+  const unique = [];
+  for (const place of places) {
+    if (!isWithinJombangBbox(place.lat, place.lng)) continue;
+    const isTooClose = unique.some(
+      (existing) => calculateHaversineKm(existing.lat, existing.lng, place.lat, place.lng) < 0.1
+    );
+    if (!isTooClose) {
+      unique.push(place);
+    }
+  }
+  return unique.slice(0, 10);
+}
+
+async function searchMapLocation(isAuto = false) {
+  if (mapSearchDebounceTimer) {
+    clearTimeout(mapSearchDebounceTimer);
+    mapSearchDebounceTimer = null;
+  }
+
   const input = document.getElementById('mapSearchInput');
   const resultsBox = document.getElementById('mapSearchResults');
   const btn = document.getElementById('btnMapSearch');
   const query = (input?.value || '').trim();
 
   if (query.length < 3) {
-    showToast('Ketik minimal 3 huruf nama jalan/tempat');
-    input?.focus();
+    if (!isAuto) {
+      showToast('Ketik minimal 3 huruf nama jalan/tempat');
+      input?.focus();
+    }
     return;
   }
 
@@ -1157,42 +1350,49 @@ async function searchMapLocation() {
   }
 
   try {
-    const searchQuery = query.toLowerCase().includes('jombang') ? query : `${query}, Jombang`;
-    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=id&viewbox=112.05,-7.35,112.45,-7.75&bounded=0&q=${encodeURIComponent(searchQuery)}`;
+    const landmarkMatches = matchJombangLandmarks(query);
+    const queries = buildMapSearchQueries(query);
 
-    const res = await fetch(url, {
-      headers: { 'Accept-Language': 'id' }
-    });
-    const data = await res.json();
+    const settled = await Promise.allSettled([
+      ...queries.map((q) => fetchPhotonPlaces(q)),
+      ...queries.map((q) => fetchNominatimPlaces(q))
+    ]);
+
+    const apiPlaces = settled
+      .filter((r) => r.status === 'fulfilled' && Array.isArray(r.value))
+      .flatMap((r) => r.value);
+
+    const places = deduplicatePlaces([...landmarkMatches, ...apiPlaces]);
 
     if (!resultsBox) return;
 
-    if (!Array.isArray(data) || data.length === 0) {
+    if (places.length === 0) {
       resultsBox.innerHTML = `
-        <div class="p-3 text-xs text-stone-500 text-center">
-          Lokasi tidak ditemukan. Coba kata kunci lain atau geser pin langsung di peta.
+        <div class="p-3 text-xs text-stone-500 text-center leading-relaxed">
+          Alamat tidak ditemukan? Pilih jalan/desa terdekat lalu geser pin langsung di peta, atau klik tombol <strong>Lokasi Saya</strong>.
         </div>
       `;
       resultsBox.classList.remove('hidden');
       return;
     }
 
-    resultsBox.innerHTML = data.map((place) => {
-      const safeFullName = escapeHtml(place.display_name);
-      const shortTitle = escapeHtml(place.display_name.split(',')[0]);
+    resultsBox.innerHTML = places.map((place) => {
+      const safeFullName = escapeHtml(place.fullName);
+      const safeTitle = escapeHtml(place.title);
+      const safeSubtitle = escapeHtml(place.subtitle || place.fullName);
       return `
         <button 
           type="button"
-          data-lat="${escapeHtml(place.lat)}"
-          data-lng="${escapeHtml(place.lon)}"
+          data-lat="${escapeHtml(String(place.lat))}"
+          data-lng="${escapeHtml(String(place.lng))}"
           data-name="${safeFullName}"
           onclick="selectSearchedLocationFromBtn(this)"
           class="w-full text-left px-3 py-2 hover:bg-brand-50 transition flex items-start gap-2"
         >
           <span class="text-xs mt-0.5">📍</span>
           <div class="min-w-0">
-            <p class="text-xs font-bold text-stone-800 truncate">${shortTitle}</p>
-            <p class="text-[10px] text-stone-500 line-clamp-1">${safeFullName}</p>
+            <p class="text-xs font-bold text-stone-800 truncate">${safeTitle}</p>
+            <p class="text-[10px] text-stone-500 line-clamp-1">${safeSubtitle}</p>
           </div>
         </button>
       `;
@@ -1219,10 +1419,12 @@ function selectSearchedLocationFromBtn(btnEl) {
 }
 
 function selectSearchedLocation(lat, lng, displayName) {
+  const input = document.getElementById('mapSearchInput');
   const resultsBox = document.getElementById('mapSearchResults');
   const statusEl = document.getElementById('deliveryLocationStatus');
   const shortName = escapeHtml((displayName || '').split(',')[0]);
 
+  if (input && displayName) input.value = displayName;
   if (resultsBox) resultsBox.classList.add('hidden');
   if (statusEl) {
     statusEl.innerHTML = `📍 Titik dipindah ke <strong>${shortName}</strong>. Geser pin merah jika posisi rumah belum pas.`;
@@ -1230,6 +1432,20 @@ function selectSearchedLocation(lat, lng, displayName) {
 
   setCustomerDeliveryPin(Number(lat), Number(lng), true);
 }
+
+document.addEventListener('click', (e) => {
+  const resultsBox = document.getElementById('mapSearchResults');
+  const searchInput = document.getElementById('mapSearchInput');
+  const searchBtn = document.getElementById('btnMapSearch');
+  if (!resultsBox || resultsBox.classList.contains('hidden')) return;
+  if (
+    !resultsBox.contains(e.target) &&
+    e.target !== searchInput &&
+    e.target !== searchBtn
+  ) {
+    resultsBox.classList.add('hidden');
+  }
+});
 
 function getPayableTotal(baseTotal) {
   if (!baseTotal || baseTotal <= 0) return 0;
