@@ -1913,11 +1913,56 @@
     }
 
     // --- 5. Kelola Status Buka / Tutup Toko & Banner Promo ---
+    let cachedStoreSettings = null;
+    let storeScheduleTimer = null;
+
+    function getWIBStoreSchedule() {
+      const wibNow = new Date(Date.now() + 7 * 3600000);
+      const nowMinutes = wibNow.getUTCHours() * 60 + wibNow.getUTCMinutes();
+      const inNormalHours = nowMinutes >= 8 * 60 && nowMinutes < 20 * 60;
+      const todayOpenUtcMs = Date.UTC(
+        wibNow.getUTCFullYear(),
+        wibNow.getUTCMonth(),
+        wibNow.getUTCDate(),
+        1, 0, 0, 0
+      ); // 08:00 WIB = 01:00 UTC
+      return { inNormalHours, todayOpenUtcMs };
+    }
+
+    async function syncAdminStoreScheduleState() {
+      if (!cachedStoreSettings || cachedStoreSettings.is_open !== false) return;
+      const { inNormalHours, todayOpenUtcMs } = getWIBStoreSchedule();
+      const updatedMs = cachedStoreSettings.updated_at ? new Date(cachedStoreSettings.updated_at).getTime() : 0;
+
+      if (inNormalHours && updatedMs < todayOpenUtcMs) {
+        const nowIso = new Date().toISOString();
+        cachedStoreSettings = { ...cachedStoreSettings, is_open: true, updated_at: nowIso };
+        const toggleEl = document.getElementById('toggleStoreOpen');
+        if (toggleEl) toggleEl.checked = true;
+        updateAdminStoreBadge(true);
+
+        const { error } = await sbClient
+          .from('store_settings')
+          .update({ is_open: true, updated_at: nowIso })
+          .eq('id', 1);
+        if (error) {
+          console.warn('Gagal menyinkronkan status buka otomatis toko:', error);
+        }
+      }
+    }
+
     async function loadStoreSettings() {
       const { data } = await sbClient.from('store_settings').select('*').eq('id', 1).single();
       if (data) {
+        cachedStoreSettings = data;
         document.getElementById('toggleStoreOpen').checked = data.is_open;
         updateAdminStoreBadge(data.is_open);
+
+        await syncAdminStoreScheduleState();
+
+        if (!storeScheduleTimer) {
+          storeScheduleTimer = setInterval(syncAdminStoreScheduleState, 30000);
+        }
 
         const badgeInput = document.getElementById('adminPromoBadge');
         const titleInput = document.getElementById('adminPromoTitle');
@@ -1950,9 +1995,11 @@
 
     async function toggleStoreStatus(isOpen) {
       updateAdminStoreBadge(isOpen);
+      const nowIso = new Date().toISOString();
+      cachedStoreSettings = { ...(cachedStoreSettings || {}), is_open: isOpen, updated_at: nowIso };
       const { error } = await sbClient
         .from('store_settings')
-        .update({ is_open: isOpen, updated_at: new Date().toISOString() })
+        .update({ is_open: isOpen, updated_at: nowIso })
         .eq('id', 1);
 
       if (error) showAdminToast('Gagal mengubah status toko');
@@ -1968,6 +2015,8 @@
       const promo_badge = badgeInput?.value.trim() || '❄️ 100% Homemade & Halal';
       const promo_title = titleInput?.value.trim() || 'Sensasi Es Krim Gabin Lumer!';
       const promo_desc = descInput?.value.trim() || 'Renyah di luar, creamy dingin lumer di dalam. Praktis & bikin nagih!';
+      const currentToggleOpen = Boolean(document.getElementById('toggleStoreOpen')?.checked);
+      const nowIso = new Date().toISOString();
 
       const btn = document.getElementById('btnSavePromoBanner');
       if (btn) {
@@ -1979,16 +2028,18 @@
         const { error } = await sbClient
           .from('store_settings')
           .update({
+            is_open: currentToggleOpen,
             promo_badge,
             promo_title,
             promo_desc,
-            updated_at: new Date().toISOString()
+            updated_at: nowIso
           })
           .eq('id', 1);
 
         if (error) {
           showAdminToast('Gagal menyimpan banner: ' + error.message);
         } else {
+          cachedStoreSettings = { ...(cachedStoreSettings || {}), is_open: currentToggleOpen, promo_badge, promo_title, promo_desc, updated_at: nowIso };
           showAdminToast('Banner promo berhasil diperbarui!');
         }
       } finally {

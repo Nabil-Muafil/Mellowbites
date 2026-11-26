@@ -1574,6 +1574,13 @@ function openCartModal() {
   populatePickupDates();
   closeProductDetailModal();
 
+  syncFromSupabase().then(() => {
+    initProductGrid();
+    updateUI();
+    updateStoreStatus();
+    renderModalCart();
+  }).catch(() => { });
+
   if (!isStoreOpen()) {
     showToast('Toko sedang tutup. Fitur checkout dibuka kembali pukul 08.00 WIB');
     return;
@@ -3281,6 +3288,12 @@ function openOrderHistoryModal() {
   const box = document.getElementById('orderHistoryContentBox');
   if (!modal || !box) return;
 
+  syncFromSupabase().then(() => {
+    initProductGrid();
+    updateUI();
+    updateStoreStatus();
+  }).catch(() => { });
+
   const orders = getCustomerOrderHistory();
   renderOrderHistoryCards(orders, orders.length > 0);
 
@@ -4207,7 +4220,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateStoreStatus();
   initPwaUI();
 
-  // 2. Tunda pemanggilan syncFromSupabase(), data ulasan, dan Realtime subscribe selama ±2 detik
+  // 2. Tunda pemanggilan syncFromSupabase(), data ulasan, dan Realtime subscribe selama 400ms
   setTimeout(async () => {
     try {
       await syncFromSupabase();
@@ -4236,7 +4249,7 @@ document.addEventListener('DOMContentLoaded', () => {
           .subscribe();
       } catch (_) { }
     }
-  }, 2000);
+  }, 400);
 
   document.getElementById('customerName')?.addEventListener('input', (e) => {
     clearFieldError('customerName');
